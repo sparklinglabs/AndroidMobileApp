@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="window_background">#f8f8f8</color>
+    <color name="selector_window_background">#212121</color>
+    <color name="primary">#F4B700</color>
+    <color name="primary_dark">#d7a125</color>
+    <color name="accent">#FF9800</color>
+
+    <color name="scheduled_star_color">#ffc400</color>
+    <color name="scheduled_not_star_color">#dedede</color>
+
+    <color name="degree_link">#A30E0B</color>
+    <color name="tab_strip">@color/primary_text_45</color>
+    <color name="drawer_bg">#f7f7f7</color>
+    <color name="drawer_item_bg">#ffffff</color>
+    <color name="drawer_divider_color">#ffe5e5e5</color>
+    <color name="secondary_text">#ff666666</color>
+
+    <color name="primary_text">#212121</color>
+    <color name="primary_text_90">#E6212121</color>
+    <color name="primary_text_70">#B3212121</color>
+    <color name="primary_text_45">#73212121</color>
+    <color name="primary_text_30">#4D212121</color>
+    <color name="primary_text_15">#26212121</color>
+    <color name="primary_text_05">#0D212121</color>
+
+    <color name="rounded_image_border">#A0ffffff</color>
+
+    <color name="tab_text_selected">#FFFFFF</color>
+    <color name="tab_text_unselected">#A0FFFFFF</color>
+    <color name="divider_color">#50212121</color>
+    <color name="dark_gray">#212121</color>
+    <color name="talk_item_sub_icon_color">#757575</color>
+    <color name="running_timespan">#f1464c</color>
+    <color name="link">#2979ff</color>
+</resources>

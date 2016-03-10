@@ -1,0 +1,166 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        maven { url 'https://maven.fabric.io/public' }
+    }
+
+    dependencies {
+        classpath 'io.fabric.tools:gradle:1.21.2'
+        classpath 'me.tatarka:gradle-retrolambda:3.2.4'
+    }
+}
+
+apply plugin: 'com.android.application'
+apply plugin: 'io.fabric'
+apply plugin: 'android-apt'
+apply plugin: 'me.tatarka.retrolambda'
+
+def PACKAGE_NAME = "com.devoxx"
+def VERSION_CODE = 102
+def VERSION_NAME = "1.0.${VERSION_CODE}"
+def SUPPORT_VERSION = "23.1.1"
+
+def keystorePropertiesFile = rootProject.file("devoxx.properties");
+def keystoreProperties = new Properties()
+keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+
+def mapKey = keystoreProperties['mapKey']
+
+android {
+    compileSdkVersion 23
+    buildToolsVersion "22.0.1"
+
+    defaultConfig {
+        applicationId PACKAGE_NAME
+        minSdkVersion 16
+        targetSdkVersion 23
+        versionCode VERSION_CODE
+        versionName VERSION_NAME
+        manifestPlaceholders = [applicationLabel: "@string/app_name", mapKey: mapKey]
+
+        renderscriptTargetApi 18
+        renderscriptSupportModeEnabled true
+    }
+
+    signingConfigs {
+        debug {
+            storeFile file("debug.keystore")
+        }
+        release {
+            keyAlias keystoreProperties['keyAlias']
+            keyPassword keystoreProperties['keyPassword']
+            storeFile file("${projectDir}/${keystoreProperties['storeFile']}")
+            storePassword keystoreProperties['storePassword']
+        }
+    }
+
+    buildTypes {
+        release {
+            debuggable false
+            minifyEnabled false
+            buildConfigField "boolean", "LOGGING", "false"
+            buildConfigField "boolean", "DEV_ROTATION_ALL", "false"
+            manifestPlaceholders = [applicationLabel: "@string/app_name", mapKey: mapKey]
+            signingConfig signingConfigs.release
+        }
+        debug {
+            debuggable true
+            buildConfigField "boolean", "LOGGING", "true"
+            buildConfigField "boolean", "DEV_ROTATION_ALL", "false"
+            manifestPlaceholders = [applicationLabel: "@string/app_name", mapKey: mapKey]
+        }
+        devoxx {
+            debuggable true
+            versionNameSuffix "@devoxx"
+            buildConfigField "boolean", "LOGGING", "true"
+            buildConfigField "boolean", "DEV_ROTATION_ALL", "false"
+            signingConfig signingConfigs.debug
+            manifestPlaceholders = [applicationLabel: "@string/app_name", mapKey: mapKey]
+        }
+        devoxxDev {
+            debuggable true
+            versionNameSuffix "@devoxx"
+            buildConfigField "boolean", "LOGGING", "true"
+            buildConfigField "boolean", "DEV_ROTATION_ALL", "true"
+            signingConfig signingConfigs.debug
+            manifestPlaceholders = [applicationLabel: "@string/app_name", mapKey: mapKey]
+        }
+    }
+    packagingOptions {
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/NOTICE'
+    }
+    lintOptions {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+apt {
+    arguments {
+        androidManifestFile variant.outputs[0].processResources.manifestFile
+        resourcePackageName PACKAGE_NAME
+    }
+}
+
+dependencies {
+    repositories {
+        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+        maven { url 'https://maven.fabric.io/public' }
+        mavenCentral()
+    }
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+
+    compile "com.android.support:appcompat-v7:${SUPPORT_VERSION}"
+    compile "com.android.support:design:${SUPPORT_VERSION}"
+    compile "com.android.support:support-v4:${SUPPORT_VERSION}"
+
+    compile 'com.google.android.gms:play-services-maps:8.4.0'
+    compile 'com.google.android.gms:play-services-vision:8.4.0'
+
+    compile 'org.jetbrains:annotations:13.0'
+    compile 'com.github.bumptech.glide:glide:3.6.0'
+    compile 'com.makeramen:roundedimageview:2.2.0'
+
+    compile 'com.squareup.retrofit:retrofit:2.0.0-beta2'
+    compile 'com.squareup.retrofit:converter-gson:2.0.0-beta2'
+    compile 'com.google.code.gson:gson:2.4'
+
+    compile 'com.annimon:stream:1.0.3'
+    compile 'io.realm:realm-android:0.84.0'
+
+    compile 'net.danlew:android.joda:2.9.0'
+
+    apt 'org.androidannotations:androidannotations:3.3.2'
+    compile 'org.androidannotations:androidannotations-api:3.3.2'
+
+    compile 'org.lucasr.twowayview:core:1.0.0-SNAPSHOT@aar'
+    compile 'org.lucasr.twowayview:layouts:1.0.0-SNAPSHOT@aar'
+
+    compile 'com.github.bumptech.glide:glide:3.6.1'
+
+    compile('com.github.afollestad.material-dialogs:core:0.8.5.3@aar') {
+        transitive = true
+    }
+
+    compile('com.crashlytics.sdk.android:crashlytics:2.5.3@aar') {
+        transitive = true
+    }
+
+    compile 'com.commit451:PhotoView:1.2.4'
+
+    compile project(path: ':scanner')
+}
+
+def JAVA8_HOME_PATH = "/Library/Java/JavaVirtualMachines/jdk1.8.0_65.jdk/Contents/Home/"
+
+retrolambda {
+    jdk JAVA8_HOME_PATH
+    javaVersion JavaVersion.VERSION_1_7
+    defaultMethods false
+    incremental true
+}

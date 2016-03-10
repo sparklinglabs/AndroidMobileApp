@@ -1,0 +1,41 @@
+<resources>
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
+    <dimen name="width_24h">44sp</dimen>
+    <dimen name="width_12h">72sp</dimen>
+    <dimen name="width_speaker_photo">64dp</dimen>
+    <dimen name="rounded_image_border">2dp</dimen>
+    <dimen name="track_icon_size">42dp</dimen>
+    <dimen name="talk_details_icon_size">28dp</dimen>
+    <dimen name="menu_height">56dp</dimen>
+    <dimen name="speaker_list_image_size">48dp</dimen>
+    <dimen name="progressbar_size">32dp</dimen>
+
+    <dimen name="item_talks_more_icon_container_size">48dp</dimen>
+    <dimen name="item_talks_more_icon_size">32dp</dimen>
+
+    <dimen name="header_view_start_margin_left">16dp</dimen>
+    <dimen name="header_view_start_margin_bottom">36dp</dimen>
+    <dimen name="header_view_end_margin_left">40dp</dimen>
+    <dimen name="header_view_end_margin_right">40dp</dimen>
+    <dimen name="value_16dp">16dp</dimen>
+    <dimen name="value_12dp">12dp</dimen>
+    <dimen name="talk_header_height">300dp</dimen>
+
+    <dimen name="elevation_tab_layout">0dp</dimen>
+    <dimen name="elevation_toolbar">0dp</dimen>
+    <dimen name="elevation_main_frame">0dp</dimen>
+    <dimen name="elevation_menu">0dp</dimen>
+    <dimen name="talk_item_sub_icon_size">20dp</dimen>
+    <dimen name="toolbar_logo_height">18dp</dimen>
+
+    <dimen name="selector_circle_padding">56dp</dimen>
+    <dimen name="selector_circle_item_size">64dp</dimen>
+    <dimen name="selector_values_text_size">16dp</dimen>
+    <dimen name="selector_view_size">280dp</dimen>
+    <dimen name="selector_conf_label_size">28dp</dimen>
+    <dimen name="selector_go_text_size">20dp</dimen>
+    <dimen name="selector_info_label_size">14dp</dimen>
+    <dimen name="selector_main_circle_margin_top">16dp</dimen>
+    <dimen name="selector_devox_logo_margin_top">0dp</dimen>
+</resources>

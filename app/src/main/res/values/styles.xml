@@ -1,0 +1,117 @@
+<resources>
+
+    <style name="AppBaseTheme" parent="Theme.AppCompat.Light.NoActionBar"></style>
+
+    <!-- Application theme. -->
+    <style name="AppTheme" parent="AppBaseTheme">
+        <item name="android:windowBackground">@color/window_background</item>
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryDark">@color/primary_dark</item>
+        <item name="drawerArrowStyle">@style/DrawerArrowStyle</item>
+    </style>
+
+    <style name="ToolbarTitleStyle" parent="TextAppearance.Widget.AppCompat.Toolbar.Title">
+        <item name="android:textColor">@android:color/white</item>
+    </style>
+
+    <style name="DrawerArrowStyle" parent="Widget.AppCompat.DrawerArrowToggle">
+        <item name="spinBars">true</item>
+        <item name="color">@android:color/white</item>
+    </style>
+
+    <style name="talks_topic_style">
+        <item name="android:ellipsize">end</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:lines">1</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:textColor">@color/primary_text_90</item>
+        <item name="android:textSize">14dp</item>
+    </style>
+
+    <style name="talks_speakers_style">
+        <item name="android:textColor">@color/primary_text_45</item>
+        <item name="android:textStyle">italic</item>
+    </style>
+
+    <style name="talks_time_style">
+        <item name="android:fontFamily">sans-serif-condensed</item>
+        <item name="android:textColor">@color/primary_text_45</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="ScheduleImageButtonStyle">
+        <item name="android:scaleType">centerInside</item>
+        <item name="android:layout_width">24dp</item>
+        <item name="android:layout_height">24dp</item>
+        <item name="android:contentDescription">@null</item>
+        <item name="android:src">@drawable/ic_star</item>
+        <item name="android:tint">@color/scheduled_star_color</item>
+    </style>
+
+    <style name="tabButtonStyle">
+        <item name="android:background">@drawable/tab_button_background</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">@drawable/tab_text_selector</item>
+        <item name="android:textSize">12dp</item>
+    </style>
+
+    <style name="MenuItemLabelStyle">
+        <item name="android:singleLine">true</item>
+        <item name="android:textColor">@drawable/menu_text_label_selector</item>
+        <item name="android:textSize">12dp</item>
+        <item name="android:gravity">center_horizontal|bottom</item>
+        <item name="android:background">@drawable/menu_item_background_selector</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">true</item>
+    </style>
+
+    <style name="MenuItemContainerStyle">
+        <item name="android:paddingBottom">4dp</item>
+        <item name="android:background">@drawable/menu_item_background_selector</item>
+    </style>
+
+    <style name="TalkDetailsTheme" parent="AppBaseTheme">
+        <item name="android:windowBackground">@color/window_background</item>
+        <item name="colorPrimary">#C1221C</item>
+        <item name="colorPrimaryDark">#b71c1c</item>
+    </style>
+
+    <style name="SpeakerDetailsTheme" parent="AppBaseTheme">
+        <item name="android:windowBackground">@color/window_background</item>
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryDark">@color/primary_dark</item>
+    </style>
+
+    <style name="AboutTheme" parent="AppBaseTheme">
+        <item name="android:windowBackground">@color/window_background</item>
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryDark">@color/primary_dark</item>
+    </style>
+
+    <style name="SelectorTheme" parent="AppTheme">
+        <item name="android:windowBackground">@color/selector_window_background</item>
+        <item name="colorPrimary">#212121</item>
+        <item name="colorPrimaryDark">#212121</item>
+    </style>
+
+    <style name="MainTheme" parent="AppTheme">
+        <item name="android:windowBackground">@color/window_background</item>
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryDark">@color/primary_dark</item>
+    </style>
+
+    <style name="ToolBarStyle" parent="Theme.AppCompat">
+        <item name="android:textColorPrimary">@android:color/white</item>
+        <item name="android:textColorSecondary">@android:color/white</item>
+    </style>
+
+    <style name="TalkItemSubIconStyle">
+        <item name="android:layout_width">@dimen/talk_item_sub_icon_size</item>
+        <item name="android:layout_height">@dimen/talk_item_sub_icon_size</item>
+        <item name="android:layout_marginRight">4dp</item>
+        <item name="android:contentDescription">@null</item>
+        <item name="android:scaleType">fitCenter</item>
+        <item name="android:tint">@color/talk_item_sub_icon_color</item>
+    </style>
+</resources>
