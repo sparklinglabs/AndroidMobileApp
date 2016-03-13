@@ -45,6 +45,7 @@ public class TracksListFragment extends BaseListFragment implements NeededUpdate
 		final String lastQuery = searchManager.getLastQuery();
 		final List<SlotApiModel> tracks = filterSlotsByDayWithLastQuery(lastQuery);
 		tracksAdapter.setData(tracks);
+		tracksAdapter.setItemClickListener(this);
 	}
 
 	@AfterViews void afterViewsInternal() {
@@ -52,21 +53,12 @@ public class TracksListFragment extends BaseListFragment implements NeededUpdate
 		scrollToFirstActiveItem();
 	}
 
-	private void scrollToFirstActiveItem() {
-		final int index = tracksAdapter.getRunningFirstIndex();
-		if (index != TracksAdapter.INVALID_RUNNING_FIRST_INDEX) {
-			recyclerView.scrollToPosition(index);
-		}
-	}
-
-	@Override
-	public void onItemClick(RecyclerView parent, View view, int position, long id) {
+	@Override public void onListAdapterItemClick(View clickedView, int position, long id) {
 		final SlotApiModel slotApiModel = tracksAdapter.getClickedItem(position);
 		navigator.openTalkDetails(getMainActivity(), slotApiModel, getParentFragment(), false);
 	}
 
-	@Override
-	protected RecyclerView.Adapter getAdapter() {
+	@Override protected RecyclerView.Adapter getAdapter() {
 		return tracksAdapter;
 	}
 
@@ -76,6 +68,13 @@ public class TracksListFragment extends BaseListFragment implements NeededUpdate
 		tracksAdapter.setData(tracks);
 		tracksAdapter.notifyDataSetChanged();
 		scrollToFirstActiveItem();
+	}
+
+	private void scrollToFirstActiveItem() {
+		final int index = tracksAdapter.getRunningFirstIndex();
+		if (index != TracksAdapter.INVALID_RUNNING_FIRST_INDEX) {
+			recyclerView.scrollToPosition(index);
+		}
 	}
 
 	private SlotApiModel.FilterPredicate filterPredicate = new SlotApiModel.FilterPredicate();

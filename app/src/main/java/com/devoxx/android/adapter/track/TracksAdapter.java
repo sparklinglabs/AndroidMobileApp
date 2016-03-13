@@ -1,5 +1,6 @@
 package com.devoxx.android.adapter.track;
 
+import com.devoxx.android.adapter.ListAdapterClickListener;
 import com.devoxx.android.view.list.schedule.TalkItemView_;
 import com.devoxx.android.view.listholder.track.BaseTrackHolder;
 import com.devoxx.android.view.listholder.track.TalkTrackHolder;
@@ -32,6 +33,7 @@ public class TracksAdapter extends RecyclerView.Adapter<BaseTrackHolder> {
 	NotificationsManager notificationsManager;
 
 	private final List<SlotApiModel> data = new ArrayList<>();
+	private ListAdapterClickListener clickListener;
 
 	public void setData(List<SlotApiModel> aData) {
 		data.clear();
@@ -52,6 +54,9 @@ public class TracksAdapter extends RecyclerView.Adapter<BaseTrackHolder> {
 		}
 
 		holder.setupView(slot, isRunningItem(slot), isPreviousAlsoRunning);
+
+		holder.itemView.setOnClickListener(v ->
+				clickListener.onListAdapterItemClick(v, position, getItemId(position)));
 	}
 
 	@Override
@@ -79,5 +84,9 @@ public class TracksAdapter extends RecyclerView.Adapter<BaseTrackHolder> {
 		final long currentTime = conferenceManager.getNow();
 		return slot.fromTimeMillis <= currentTime
 				&& slot.toTimeMillis >= currentTime;
+	}
+
+	public void setItemClickListener(ListAdapterClickListener listener) {
+		clickListener = listener;
 	}
 }
