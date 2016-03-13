@@ -114,7 +114,7 @@ public class ScheduleLineupFragment extends BaseListFragment implements NeededUp
 	}
 
 	@Override
-	public void onItemClick(RecyclerView parent, View view, int position, long id) {
+	public void onListAdapterItemClick(View clickedView, int position, long id) {
 		final Optional<SlotApiModel> slotApiModel = scheduleDayLineupAdapter.getClickedSlot(position);
 		if (slotApiModel.isPresent() && slotApiModel.get().isTalk()) {
 			navigator.openTalkDetails(getMainActivity(), slotApiModel.get(), getParentFragment(), false);

@@ -1,6 +1,7 @@
 package com.devoxx.android.adapter.schedule;
 
 import com.annimon.stream.Optional;
+import com.devoxx.android.adapter.ListAdapterClickListener;
 import com.devoxx.android.adapter.schedule.model.BreakScheduleItem;
 import com.devoxx.android.adapter.schedule.model.ScheduleItem;
 import com.devoxx.android.adapter.schedule.model.TalksScheduleItem;
@@ -18,7 +19,6 @@ import com.devoxx.connection.model.SlotApiModel;
 
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
-import org.lucasr.twowayview.ItemClickSupport;
 
 import android.content.Context;
 import android.support.annotation.IntDef;
@@ -53,14 +53,14 @@ public class ScheduleDayLineupAdapter extends RecyclerView.Adapter<BaseItemHolde
 	ScheduleLineupDataCreator scheduleLineupDataCreator;
 
 	private final List<ScheduleItem> data = new ArrayList<>();
-	private ItemClickSupport.OnItemClickListener clickListener;
+	private ListAdapterClickListener clickListener;
 
 	public void setData(List<ScheduleItem> aData) {
 		data.clear();
 		data.addAll(aData);
 	}
 
-	public void setListener(ItemClickSupport.OnItemClickListener listener) {
+	public void setListener(ListAdapterClickListener listener) {
 		clickListener = listener;
 	}
 
@@ -161,7 +161,7 @@ public class ScheduleDayLineupAdapter extends RecyclerView.Adapter<BaseItemHolde
 
 	private void setupOnItemClickListener(BaseItemHolder holder, int position) {
 		holder.itemView.setOnClickListener(v ->
-				clickListener.onItemClick(null, v, position, getItemId(position)));
+				clickListener.onListAdapterItemClick(v, position, getItemId(position)));
 	}
 
 	@Override
