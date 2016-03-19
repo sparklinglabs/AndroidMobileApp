@@ -99,7 +99,7 @@
         </receiver>
 
         <!-- Android Wear Service Listener -->
-        <service android:name=".android.service.WearService">
+        <service android:name=".android.service.WearService_">
             <intent-filter>
                 <action android:name="com.google.android.gms.wearable.BIND_LISTENER" />
             </intent-filter>
