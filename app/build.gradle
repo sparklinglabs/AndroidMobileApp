@@ -16,7 +16,7 @@ apply plugin: 'android-apt'
 apply plugin: 'me.tatarka.retrolambda'
 
 def PACKAGE_NAME = "com.devoxx"
-def VERSION_CODE = 102
+def VERSION_CODE = 110
 def VERSION_NAME = "1.0.${VERSION_CODE}"
 
 def keystorePropertiesFile = rootProject.file("devoxx.properties");
@@ -110,12 +110,19 @@ dependencies {
     }
     compile fileTree(include: ['*.jar'], dir: 'libs')
 
+
+    wearApp project(':wear')
+    //releaseWearApp project(path:':wear', configuration: 'release')
+    //devoxxWearApp project(path:':wear', configuration: 'devoxx')
+    //devoxxDevWearApp project(path:':wear', configuration: 'devoxxDev')
+
     compile "com.android.support:appcompat-v7:${SUPPORT_LIBRARY_VERSION}"
     compile "com.android.support:design:${SUPPORT_LIBRARY_VERSION}"
     compile "com.android.support:support-v4:${SUPPORT_LIBRARY_VERSION}"
 
     compile 'com.google.android.gms:play-services-maps:8.4.0'
     compile 'com.google.android.gms:play-services-vision:8.4.0'
+    compile 'com.google.android.gms:play-services-wearable:8.4.0'
 
     compile 'org.jetbrains:annotations:13.0'
     compile 'com.github.bumptech.glide:glide:3.6.0'
@@ -148,7 +155,7 @@ dependencies {
     compile project(path: ':scanner')
 }
 
-def JAVA8_HOME_PATH = "/Library/Java/JavaVirtualMachines/jdk1.8.0_65.jdk/Contents/Home/"
+def JAVA8_HOME_PATH = "/Library/Java/JavaVirtualMachines/jdk1.8.0_74.jdk/Contents/Home/"
 
 retrolambda {
     jdk JAVA8_HOME_PATH
