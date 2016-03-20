@@ -70,4 +70,8 @@ dependencies {
 
     // Event Bus: BusWear
     compile 'pl.tajchert:buswear:0.9.5'
+
+    compile project(path: ':common')
+
+
 }

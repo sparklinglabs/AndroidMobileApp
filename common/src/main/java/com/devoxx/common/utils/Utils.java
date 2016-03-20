@@ -1,4 +1,4 @@
-package com.devoxx.smartvoxx.utils;
+package com.devoxx.common.utils;
 
 /**
  * Created by eloudsa on 06/09/15.

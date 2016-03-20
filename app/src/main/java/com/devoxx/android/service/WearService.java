@@ -2,6 +2,8 @@ package com.devoxx.android.service;
 
 import android.os.Bundle;
 
+import com.devoxx.common.utils.Constants;
+import com.devoxx.common.utils.Utils;
 import com.devoxx.data.conference.ConferenceManager;
 import com.devoxx.data.conference.model.ConferenceDay;
 import com.devoxx.data.manager.SlotsDataManager;
@@ -32,24 +34,12 @@ public class WearService extends WearableListenerService {
     protected GoogleApiClient mApiClient;
 
 
-    private static final String CHANNEL_ID = "/000000";
-    private static final String SCHEDULES_PATH = "/schedules";
-    private static final String LIST_PATH = "/list";
-
-
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        mApiClient = new GoogleApiClient.Builder(this)
-                .addApi(Wearable.API)
-                .build();
-        mApiClient.connect();
-    }
-
     @Override
     public void onDestroy() {
         super.onDestroy();
-        mApiClient.disconnect();
+        if (mApiClient.isConnected()) {
+            mApiClient.disconnect();
+        }
     }
 
     @Override
@@ -60,7 +50,8 @@ public class WearService extends WearableListenerService {
         String data = new String(messageEvent.getData());
 
 
-        if (path.startsWith(CHANNEL_ID + SCHEDULES_PATH)) {
+        // request for schedules
+        if (path.startsWith(Constants.CHANNEL_ID + Constants.SCHEDULES_PATH)) {
             sendSchedules();
             return;
         }
@@ -109,23 +100,30 @@ public class WearService extends WearableListenerService {
 
         final List<ConferenceDay> days = conferenceManager.getConferenceDays();
 
-        final PutDataMapRequest putDataMapRequest = PutDataMapRequest.create(CHANNEL_ID + SCHEDULES_PATH);
+        final PutDataMapRequest putDataMapRequest = PutDataMapRequest.create(Constants.CHANNEL_ID + Constants.SCHEDULES_PATH);
 
+
+        // Prepare and save the country code
+        final DataMap countryMap = new DataMap();
+        countryMap.putString("country", conferenceManager.getActiveConference().get().getCountry());
+        putDataMapRequest.getDataMap().putDataMap(Constants.COUNTRY_PATH, countryMap);
+
+
+        // Prepare and save the schedule
         ArrayList<DataMap> schedulesDataMap = new ArrayList<>();
-
         for (ConferenceDay day : days) {
 
             final DataMap scheduleDataMap = new DataMap();
 
             // process and push schedule's data
-            scheduleDataMap.putString("day", getLastPartUrl(day.getName()));
-            scheduleDataMap.putString("title", day.getName());
+            scheduleDataMap.putString("dayName", Utils.getLastPartUrl(day.getName()));
+            scheduleDataMap.putLong("dayMillis", day.getDayMs());
 
             schedulesDataMap.add(scheduleDataMap);
         }
 
-       // store the list in the datamap to send it to the watch
-        putDataMapRequest.getDataMap().putDataMapArrayList(LIST_PATH, schedulesDataMap);
+       // store the list schedules
+        putDataMapRequest.getDataMap().putDataMapArrayList(Constants.LIST_PATH, schedulesDataMap);
 
         /*
         // send the schedules
@@ -134,8 +132,7 @@ public class WearService extends WearableListenerService {
         }
         */
 
-        // send the speaker
-        // event not more defined on the calendar -> inform the watch
+        // send the schedules
         mApiClient = new GoogleApiClient.Builder(getApplicationContext())
                 .addApi(Wearable.API)
                 .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
@@ -150,29 +147,5 @@ public class WearService extends WearableListenerService {
                     }
                 }).build();
         mApiClient.connect();
-
-
-
-    }
-
-
-    private static String getLastPartUrl(String url) {
-
-        if (url == null) {
-            return "";
-        }
-
-        String href = url.trim();
-        if (href == "") {
-            return "";
-        }
-
-
-        if (href.endsWith("/")) {
-            // remove last trailing slash
-            href = href.substring(0, href.length()-1);
-        }
-
-        return(href.substring(href.lastIndexOf("/") + 1,href.length()));
     }
 }

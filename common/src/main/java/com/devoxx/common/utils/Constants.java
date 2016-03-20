@@ -1,11 +1,15 @@
-package com.devoxx.smartvoxx.utils;
+package com.devoxx.common.utils;
 
 /**
  * Created by eloudsa on 03/11/15.
  */
 public class Constants {
 
+    public static final String CHANNEL_ID = "/000000";
+
     public static final String CONFERENCES_PATH = "/conferences";
+
+    public static final String COUNTRY_PATH = "/country";
 
     public static final String SCHEDULES_PATH = "/schedules";
 

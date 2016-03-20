@@ -1,4 +1,4 @@
-package com.devoxx.smartvoxx.activity;
+package com.devoxx.wear.activity;
 
 import android.app.Activity;
 

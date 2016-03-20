@@ -1,4 +1,4 @@
-package com.devoxx.smartvoxx.activity;
+package com.devoxx.wear.activity;
 
 import android.app.Activity;
 import android.content.Context;
@@ -7,16 +7,18 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.wearable.view.WatchViewStub;
 import android.support.wearable.view.WearableListView;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
 import com.devoxx.R;
-import com.devoxx.smartvoxx.model.Schedule;
-import com.devoxx.smartvoxx.utils.Constants;
-import com.devoxx.smartvoxx.wrapper.SchedulesListWrapper;
+import com.devoxx.common.utils.Constants;
+import com.devoxx.wear.model.Schedule;
+import com.devoxx.wear.wrapper.SchedulesWrapper;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.Result;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataEvent;
@@ -28,7 +30,9 @@ import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 
@@ -54,19 +58,11 @@ public class ScheduleActivity extends Activity implements WearableListView.Click
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // selected conference
-        mCountryCode = "BE";
-        Bundle bundle = getIntent().getExtras();
-        if (bundle != null) {
-            mCountryCode = bundle.getString("countryCode");
-        }
-
         setContentView(R.layout.schedule_activity);
         final WatchViewStub stub = (WatchViewStub) findViewById(R.id.watch_view_stub);
         stub.setOnLayoutInflatedListener(new WatchViewStub.OnLayoutInflatedListener() {
             @Override
             public void onLayoutInflated(WatchViewStub stub) {
-
                 // change the title
                 ((TextView) findViewById(R.id.title)).setText(getString(R.string.welcome_devoxx) + " " + mCountryCode);
 
@@ -91,7 +87,7 @@ public class ScheduleActivity extends Activity implements WearableListView.Click
         mClicked = false;
 
         // Retrieve and display the list of schedules
-        getSchedulesFromCache("/000000" + Constants.SCHEDULES_PATH);
+        getSchedulesFromCache(Constants.CHANNEL_ID + Constants.SCHEDULES_PATH);
     }
 
     @Override
@@ -139,17 +135,24 @@ public class ScheduleActivity extends Activity implements WearableListView.Click
         for (DataEvent event : dataEventBuffer) {
 
             // Check if we have received our schedules
-            if (event.getType() == DataEvent.TYPE_CHANGED && event.getDataItem().getUri().getPath().startsWith("/000000" + Constants.SCHEDULES_PATH)) {
+            if (event.getType() == DataEvent.TYPE_CHANGED && event.getDataItem().getUri().getPath().startsWith(Constants.CHANNEL_ID + Constants.SCHEDULES_PATH)) {
 
-                SchedulesListWrapper schedulesListWrapper = new SchedulesListWrapper();
+                SchedulesWrapper schedulesWrapper = new SchedulesWrapper();
 
-                final List<Schedule> schedulesList = schedulesListWrapper.getSchedulesList(event);
+                // fetch the country
+                final String country = schedulesWrapper.getCountry(event);
+
+                // fet the schedule
+                final List<Schedule> schedulesList = schedulesWrapper.getSchedulesList(event);
 
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         // hide the progress bar
                         findViewById(R.id.progressBar).setVisibility(View.GONE);
+
+                        // change the title
+                        ((TextView) findViewById(R.id.title)).setText(country);
 
                         mListViewAdapter.refresh(schedulesList);
                     }
@@ -193,10 +196,15 @@ public class ScheduleActivity extends Activity implements WearableListView.Click
                                     return;
                                 }
 
-                                // retrieve and display the schedule from the cache
-                                SchedulesListWrapper schedulesListWrapper = new SchedulesListWrapper();
 
-                                final List<Schedule> schedulesList = schedulesListWrapper.getSchedulesList(dataMap);
+                                // retrieve and display the schedule from the cache
+                                SchedulesWrapper schedulesWrapper = new SchedulesWrapper();
+
+
+                                final String country = schedulesWrapper.getCountry(dataMap);
+
+
+                                final List<Schedule> schedulesList = schedulesWrapper.getSchedulesList(dataMap);
 
                                 dataItems.release();
 
@@ -205,6 +213,9 @@ public class ScheduleActivity extends Activity implements WearableListView.Click
                                     public void run() {
                                         // hide the progress bar
                                         findViewById(R.id.progressBar).setVisibility(View.GONE);
+
+                                        // change the title
+                                        ((TextView) findViewById(R.id.title)).setText(country);
 
                                         mListViewAdapter.refresh(schedulesList);
                                     }
@@ -218,6 +229,21 @@ public class ScheduleActivity extends Activity implements WearableListView.Click
     @Override
     public void onConnected(Bundle bundle) {
         Wearable.DataApi.addListener(mApiClient, this);
+
+
+        // Uncomment the following to reset the channel
+        Uri uri = new Uri.Builder()
+                .scheme(PutDataRequest.WEAR_URI_SCHEME)
+                .path(Constants.CHANNEL_ID + Constants.SCHEDULES_PATH)
+                .build();
+
+        Wearable.DataApi.deleteDataItems(mApiClient, uri).setResultCallback(new ResultCallback() {
+
+            @Override
+            public void onResult(Result result) {
+                Log.d(TAG, "Deleting rows");
+            }
+        });
     }
 
     @Override
@@ -245,7 +271,7 @@ public class ScheduleActivity extends Activity implements WearableListView.Click
 
         Bundle b = new Bundle();
         b.putString("countryCode", mCountryCode);
-        b.putString("dayOfWeek", schedule.getDay());
+        b.putString("dayOfWeek", schedule.getDayName());
         scheduleIntent.putExtras(b);
 
         ScheduleActivity.this.startActivity(scheduleIntent);
@@ -301,7 +327,7 @@ public class ScheduleActivity extends Activity implements WearableListView.Click
 
             // retrieve, transform and display the schedule's day
             Schedule schedule = mDataset.get(position);
-            String scheduleDay = schedule.getTitle().replace(",", "\n");
+            String scheduleDay = schedule.getDayName() + "\n" + new SimpleDateFormat("dd MMM yyyy").format(new Date(schedule.getDayMillis()));
             view.setText(scheduleDay);
 
             // replace list item's metadata

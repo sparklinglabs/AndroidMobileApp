@@ -150,6 +150,9 @@ dependencies {
     compile 'com.commit451:PhotoView:1.2.4'
 
     compile project(path: ':scanner')
+
+    compile project(path: ':common')
+
 }
 
 def JAVA8_HOME_PATH = "/Library/Java/JavaVirtualMachines/jdk1.8.0_74.jdk/Contents/Home/"

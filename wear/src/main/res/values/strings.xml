@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Smartvoxx</string>
+    <string name="app_name">My Devoxx</string>
 
     <!-- Schedules -->
     <string name="welcome_devoxx">Devoxx</string>

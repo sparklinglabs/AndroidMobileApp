@@ -1,7 +1,7 @@
-package com.devoxx.smartvoxx.wrapper;
+package com.devoxx.wear.wrapper;
 
-import com.devoxx.smartvoxx.model.Schedule;
-import com.devoxx.smartvoxx.utils.Constants;
+import com.devoxx.common.utils.Constants;
+import com.devoxx.wear.model.Schedule;
 import com.google.android.gms.wearable.DataEvent;
 import com.google.android.gms.wearable.DataMap;
 import com.google.android.gms.wearable.DataMapItem;
@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * Created by eloudsa on 03/09/15.
  */
-public class SchedulesListWrapper {
+public class SchedulesWrapper {
 
     public List<Schedule> getSchedulesList(DataEvent dataEvent) {
 
@@ -49,12 +49,43 @@ public class SchedulesListWrapper {
             // retrieve the speaker's information
 
             schedulesList.add(new Schedule(
-                    scheduleDataMap.getString("day"),
-                    scheduleDataMap.getString("title").replaceAll("Schedule for ", "")));
+                    scheduleDataMap.getString("dayName"),
+                    scheduleDataMap.getLong("dayMillis")));
         }
 
         return schedulesList;
 
+    }
+
+
+    public String getCountry(DataEvent dataEvent) {
+
+
+        if (dataEvent == null) {
+            return null;
+        }
+
+        DataMapItem dataMapItem = DataMapItem.fromDataItem(dataEvent.getDataItem());
+        if (dataMapItem == null) {
+            return null;
+        }
+
+        return getCountry(dataMapItem.getDataMap());
+    }
+
+
+    public String getCountry(DataMap dataMap) {
+
+        if (dataMap == null) {
+            return null;
+        }
+
+        DataMap countryMap = dataMap.getDataMap(Constants.COUNTRY_PATH);
+        if (countryMap == null) {
+            return null;
+        }
+
+        return countryMap.getString("country");
     }
 
 }
