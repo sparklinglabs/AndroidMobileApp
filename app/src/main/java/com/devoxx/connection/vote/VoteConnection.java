@@ -40,7 +40,6 @@ public class VoteConnection {
 		if (BuildConfig.LOGGING) {
 			client.interceptors().add(new LoggingInterceptor());
 		}
-
 		final Retrofit retrofit = new Retrofit.Builder()
 				.baseUrl(apiUrl)
 				.client(client)

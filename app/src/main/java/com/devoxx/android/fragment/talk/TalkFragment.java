@@ -211,6 +211,7 @@ public class TalkFragment extends BaseFragment implements AppBarLayout.OnOffsetC
 				@Override
 				public void onVoteForTalkSucceed() {
 					infoUtil.showToast("Voted...");
+					setupVoteIcon();
 				}
 
 				@Override
@@ -264,6 +265,10 @@ public class TalkFragment extends BaseFragment implements AppBarLayout.OnOffsetC
 			notifyHostActivityAboutChangeOccured();
 		}
 
+		setupVoteIcon();
+	}
+
+	private void setupVoteIcon() {
 		if (talkVoter.canVoteOnTalk(slotModel.talk.id)) {
 			voteButton.setImageResource(R.drawable.ic_heart_outline);
 		} else {
