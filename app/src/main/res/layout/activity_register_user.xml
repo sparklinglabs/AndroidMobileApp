@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             xmlns:app="http://schemas.android.com/apk/res-auto"
              android:layout_width="match_parent"
-             android:layout_height="match_parent">
+             android:layout_height="match_parent"
+             xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <View
         android:layout_width="1dp"
@@ -26,6 +26,18 @@
             android:text="Please scan your badge QR Code or enter the code on your badge to authenticate yourself for presentation voting.\nThanks for your feedback!"
             android:textColor="@color/primary_text_70"
             android:textSize="16dp"/>
+
+        <TextView
+            android:id="@+id/registerUserInfo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="32dp"
+            android:fontFamily="sans-serif"
+            android:visibility="gone"
+            android:gravity="center"
+            android:textColor="@color/primary_text_90"
+            android:textSize="22dp"/>
 
         <android.support.design.widget.TextInputLayout
             android:layout_width="match_parent"

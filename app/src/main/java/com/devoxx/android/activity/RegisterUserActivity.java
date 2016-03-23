@@ -12,7 +12,9 @@ import org.androidannotations.annotations.ViewById;
 
 import android.content.Intent;
 import android.text.TextUtils;
+import android.view.View;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import io.scalac.scanner.BarcodeCaptureActivity;
 
@@ -27,21 +29,30 @@ public class RegisterUserActivity extends BaseActivity {
 	@Bean
 	UserManager userManager;
 
+	@ViewById(R.id.registerUserInfo)
+	TextView userInfo;
+
 	@ViewById(R.id.registerUserinput)
 	EditText codeInput;
 
+	private String userId;
+
 	@Click(R.id.registerUserViaQr) void onScannerClick() {
-		Intent intent = new Intent(this, BarcodeCaptureActivity.class);
+		final Intent intent = new Intent(this, BarcodeCaptureActivity.class);
+		intent.putExtra(BarcodeCaptureActivity.AutoFocus, true);
 		startActivityForResult(intent, RC_BARCODE_CAPTURE);
 	}
 
 	@Click(R.id.registerUserSaveCode) void onSaveClick() {
-		final String input = codeInput.getText().toString();
 		final String message;
 		final boolean finishScreen;
 
-		if (validateInput(input)) {
-			userManager.saveUserCode(input);
+		final String input = codeInput.getText().toString();
+		final String finalCode = validateInput(userId) ?
+				userId : validateInput(input) ? input : null;
+
+		if (validateInput(finalCode)) {
+			userManager.saveUserCode(finalCode);
 			message = getString(R.string.register_success_message);
 			finishScreen = true;
 		} else {
@@ -67,8 +78,20 @@ public class RegisterUserActivity extends BaseActivity {
 		if (data != null && data.hasExtra(BarcodeCaptureActivity.BarcodeObject)) {
 			final Barcode barcode = data.getParcelableExtra(BarcodeCaptureActivity.BarcodeObject);
 			final String code = barcode.displayValue;
-			codeInput.setText(code);
-			codeInput.setSelection(0, code.length());
+			extractInfo(code);
 		}
+	}
+
+	private void extractInfo(String data) {
+		final String[] dataParts = data.split(",");
+		userId = dataParts[0];
+		final String userCompany = dataParts[1];
+		final String userName = dataParts[2];
+		final String userSurname = dataParts[3];
+
+		userInfo.setVisibility(View.VISIBLE);
+		userInfo.setText(String.format("%s\n%s\n%s\n%s", userName, userSurname, userCompany, userId));
+
+		codeInput.setVisibility(View.GONE);
 	}
 }
