@@ -1,17 +1,17 @@
-package com.devoxx.wear.model;
+package com.devoxx.model;
 
 /**
  * Created by eloudsa on 01/11/15.
  */
-public class Schedule {
+public class ScheduleModel {
 
     private String dayName;
     private Long dayMillis;
 
-    public Schedule() {
+    public ScheduleModel() {
     }
 
-    public Schedule(String dayName, Long dayMillis) {
+    public ScheduleModel(String dayName, Long dayMillis) {
         this.dayName = dayName;
         this.dayMillis = dayMillis;
     }

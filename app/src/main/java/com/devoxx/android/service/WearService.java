@@ -1,9 +1,11 @@
 package com.devoxx.android.service;
 
+import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.devoxx.common.utils.Constants;
-import com.devoxx.common.utils.Utils;
+import com.devoxx.connection.model.SlotApiModel;
 import com.devoxx.data.conference.ConferenceManager;
 import com.devoxx.data.conference.model.ConferenceDay;
 import com.devoxx.data.manager.SlotsDataManager;
@@ -50,11 +52,25 @@ public class WearService extends WearableListenerService {
         String data = new String(messageEvent.getData());
 
 
-        // request for schedules
+        // send schedules to the Wearable
         if (path.startsWith(Constants.CHANNEL_ID + Constants.SCHEDULES_PATH)) {
             sendSchedules();
             return;
         }
+
+        // send slots to the Wearable
+        if (path.startsWith(Constants.CHANNEL_ID + Constants.SLOTS_PATH)) {
+
+            try {
+                sendSlots(Long.parseLong(data));
+
+            } catch (Exception ex) {
+                Log.e(TAG, ex.getLocalizedMessage());
+            }
+
+            return;
+        }
+
 
 
         /*
@@ -96,7 +112,35 @@ public class WearService extends WearableListenerService {
     }
 
 
+    private void sendToWearable(final PutDataMapRequest putDataMapRequest) {
+
+        if ((mApiClient != null) && (mApiClient.isConnected())) {
+            Wearable.DataApi.putDataItem(mApiClient, putDataMapRequest.asPutDataRequest());
+            return;
+        }
+
+
+        mApiClient = new GoogleApiClient.Builder(getApplicationContext())
+                .addApi(Wearable.API)
+                .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
+                    @Override
+                    public void onConnected(Bundle bundle) {
+                        Wearable.DataApi.putDataItem(mApiClient, putDataMapRequest.asPutDataRequest());
+                    }
+
+                    @Override
+                    public void onConnectionSuspended(int cause) {
+
+                    }
+                }).build();
+        mApiClient.connect();
+
+    }
+
+
     private void sendSchedules() {
+
+        // TODO: ensure that we have data
 
         final List<ConferenceDay> days = conferenceManager.getConferenceDays();
 
@@ -116,7 +160,8 @@ public class WearService extends WearableListenerService {
             final DataMap scheduleDataMap = new DataMap();
 
             // process and push schedule's data
-            scheduleDataMap.putString("dayName", Utils.getLastPartUrl(day.getName()));
+            String dayName = Uri.parse(day.getName()).getLastPathSegment();
+            scheduleDataMap.putString("dayName", dayName);
             scheduleDataMap.putLong("dayMillis", day.getDayMs());
 
             schedulesDataMap.add(scheduleDataMap);
@@ -125,27 +170,78 @@ public class WearService extends WearableListenerService {
        // store the list schedules
         putDataMapRequest.getDataMap().putDataMapArrayList(Constants.LIST_PATH, schedulesDataMap);
 
-        /*
         // send the schedules
-        if (mApiClient.isConnected()) {
-            Wearable.DataApi.putDataItem(mApiClient, putDataMapRequest.asPutDataRequest());
-        }
-        */
-
-        // send the schedules
-        mApiClient = new GoogleApiClient.Builder(getApplicationContext())
-                .addApi(Wearable.API)
-                .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
-                    @Override
-                    public void onConnected(Bundle bundle) {
-                        Wearable.DataApi.putDataItem(mApiClient, putDataMapRequest.asPutDataRequest());
-                    }
-
-                    @Override
-                    public void onConnectionSuspended(int cause) {
-
-                    }
-                }).build();
-        mApiClient.connect();
+        sendToWearable(putDataMapRequest);
     }
+
+
+    // Send the schedule's slots to the watch.
+    private void sendSlots(Long dayMs) {
+
+        // TODO: ensure that we have data
+
+        List<SlotApiModel> slotApiModelList = null;
+
+        // fetch for the slot
+        final List<ConferenceDay> days = conferenceManager.getConferenceDays();
+        for (ConferenceDay day : days) {
+            if (day.getDayMs() == dayMs) {
+                slotApiModelList = slotsDataManager.getSlotsForDay(day.getDayMs());
+                break;
+            }
+        }
+
+        if (slotApiModelList == null) {
+            // not found
+            return;
+        }
+
+
+        final PutDataMapRequest putDataMapRequest = PutDataMapRequest.create(Constants.CHANNEL_ID + Constants.SLOTS_PATH + "/" + dayMs);
+
+        ArrayList<DataMap> slotsDataMap = new ArrayList<>();
+
+        for (int index = 0; index < slotApiModelList.size(); index++) {
+
+            final DataMap scheduleDataMap = new DataMap();
+
+            final SlotApiModel slot = slotApiModelList.get(index);
+
+            // process the data
+            scheduleDataMap.putString("roomName", slot.roomName);
+            scheduleDataMap.putLong("fromTimeMillis", slot.fromTimeMillis);
+            scheduleDataMap.putLong("toTimeMillis", slot.toTimeMillis);
+
+            if (slot.isBreak()) {
+                DataMap breakDataMap = new DataMap();
+
+                //breakDataMap.putString("id", slot.getBreak().getId());
+                breakDataMap.putString("nameEN", slot.slotBreak.nameEN);
+                breakDataMap.putString("nameFR", slot.slotBreak.nameEN);
+
+                scheduleDataMap.putDataMap("break", breakDataMap);
+            }
+
+
+            if (slot.isTalk()) {
+                DataMap talkDataMap = new DataMap();
+
+                talkDataMap.putString("id", slot.talk.id);
+                talkDataMap.putString("trackId", slot.talk.trackId);
+                talkDataMap.putString("title", slot.talk.title);
+                talkDataMap.putString("lang", slot.talk.lang);
+
+                scheduleDataMap.putDataMap("talk", talkDataMap);
+            }
+
+            slotsDataMap.add(scheduleDataMap);
+        }
+
+        // store the list in the datamap to send it to the wear
+        putDataMapRequest.getDataMap().putDataMapArrayList(Constants.LIST_PATH, slotsDataMap);
+
+        // send the schedules
+        sendToWearable(putDataMapRequest);
+    }
+
 }

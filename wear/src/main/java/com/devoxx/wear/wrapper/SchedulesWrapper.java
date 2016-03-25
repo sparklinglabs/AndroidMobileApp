@@ -1,7 +1,7 @@
 package com.devoxx.wear.wrapper;
 
+import com.devoxx.model.ScheduleModel;
 import com.devoxx.common.utils.Constants;
-import com.devoxx.wear.model.Schedule;
 import com.google.android.gms.wearable.DataEvent;
 import com.google.android.gms.wearable.DataMap;
 import com.google.android.gms.wearable.DataMapItem;
@@ -14,9 +14,9 @@ import java.util.List;
  */
 public class SchedulesWrapper {
 
-    public List<Schedule> getSchedulesList(DataEvent dataEvent) {
+    public List<ScheduleModel> getSchedulesList(DataEvent dataEvent) {
 
-        List<Schedule> schedulesList = new ArrayList<>();
+        List<ScheduleModel> schedulesList = new ArrayList<>();
 
         if (dataEvent == null) {
             return schedulesList;
@@ -32,9 +32,9 @@ public class SchedulesWrapper {
     }
 
 
-    public List<Schedule> getSchedulesList(DataMap dataMap) {
+    public List<ScheduleModel> getSchedulesList(DataMap dataMap) {
 
-        List<Schedule> schedulesList = new ArrayList<>();
+        List<ScheduleModel> schedulesList = new ArrayList<>();
 
         if (dataMap == null) {
             return schedulesList;
@@ -48,7 +48,7 @@ public class SchedulesWrapper {
         for (DataMap scheduleDataMap : schedulesDataMap) {
             // retrieve the speaker's information
 
-            schedulesList.add(new Schedule(
+            schedulesList.add(new ScheduleModel(
                     scheduleDataMap.getString("dayName"),
                     scheduleDataMap.getLong("dayMillis")));
         }

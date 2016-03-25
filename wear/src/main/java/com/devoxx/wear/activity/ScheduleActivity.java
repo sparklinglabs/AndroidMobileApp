@@ -15,7 +15,8 @@ import android.widget.TextView;
 
 import com.devoxx.R;
 import com.devoxx.common.utils.Constants;
-import com.devoxx.wear.model.Schedule;
+
+import com.devoxx.model.ScheduleModel;
 import com.devoxx.wear.wrapper.SchedulesWrapper;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Result;
@@ -67,7 +68,7 @@ public class ScheduleActivity extends Activity implements WearableListView.Click
                 mListView = (WearableListView) findViewById(R.id.wearable_list);
 
                 // Assign the adapter
-                mListViewAdapter = new ListViewAdapter(ScheduleActivity.this, new ArrayList<Schedule>());
+                mListViewAdapter = new ListViewAdapter(ScheduleActivity.this, new ArrayList<ScheduleModel>());
                 mListView.setAdapter(mListViewAdapter);
 
                 // Set the click listener
@@ -140,7 +141,7 @@ public class ScheduleActivity extends Activity implements WearableListView.Click
                 final String country = schedulesWrapper.getCountry(event);
 
                 // fetch the schedule
-                final List<Schedule> scheduleList = schedulesWrapper.getSchedulesList(event);
+                final List<ScheduleModel> scheduleList = schedulesWrapper.getSchedulesList(event);
 
                 updateUI(country, scheduleList);
 
@@ -150,7 +151,7 @@ public class ScheduleActivity extends Activity implements WearableListView.Click
 
     }
 
-    private void updateUI(final String title, final List<Schedule> scheduleList) {
+    private void updateUI(final String title, final List<ScheduleModel> scheduleList) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -202,7 +203,7 @@ public class ScheduleActivity extends Activity implements WearableListView.Click
 
                                 final String country = schedulesWrapper.getCountry(dataMap);
 
-                                final List<Schedule> scheduleList = schedulesWrapper.getSchedulesList(dataMap);
+                                final List<ScheduleModel> scheduleList = schedulesWrapper.getSchedulesList(dataMap);
 
                                 dataItems.release();
 
@@ -246,7 +247,7 @@ public class ScheduleActivity extends Activity implements WearableListView.Click
             return;
         }
 
-        Schedule schedule = (Schedule) viewHolder.itemView.getTag();
+        ScheduleModel schedule = (ScheduleModel) viewHolder.itemView.getTag();
         if (schedule == null) {
             return;
         }
@@ -258,8 +259,8 @@ public class ScheduleActivity extends Activity implements WearableListView.Click
 
         Bundle b = new Bundle();
         // TODO: remove countryCode
-        b.putString("countryCode", "BE");
         b.putString("dayOfWeek", schedule.getDayName());
+        b.putLong("dayMillis", schedule.getDayMillis());
         scheduleIntent.putExtras(b);
 
         ScheduleActivity.this.startActivity(scheduleIntent);
@@ -273,11 +274,11 @@ public class ScheduleActivity extends Activity implements WearableListView.Click
 
     // Inner class providing the WearableListview's adapter
     public class ListViewAdapter extends WearableListView.Adapter {
-        private List<Schedule> mDataset;
+        private List<ScheduleModel> mDataset;
         private final Context mContext;
 
         // Provide a suitable constructor (depends on the kind of dataset)
-        public ListViewAdapter(Context context, List<Schedule> schedulesList) {
+        public ListViewAdapter(Context context, List<ScheduleModel> schedulesList) {
             mContext = context;
             this.mDataset = schedulesList;
         }
@@ -314,7 +315,7 @@ public class ScheduleActivity extends Activity implements WearableListView.Click
             TextView view = itemHolder.textView;
 
             // retrieve, transform and display the schedule's day
-            Schedule schedule = mDataset.get(position);
+            ScheduleModel schedule = mDataset.get(position);
             String scheduleDay = schedule.getDayName() + "\n" + new SimpleDateFormat("dd MMM yyyy").format(new Date(schedule.getDayMillis()));
             view.setText(scheduleDay);
 
@@ -332,7 +333,7 @@ public class ScheduleActivity extends Activity implements WearableListView.Click
             return mDataset.size();
         }
 
-        public void refresh(List<Schedule> schedulesList) {
+        public void refresh(List<ScheduleModel> schedulesList) {
             mDataset = schedulesList;
 
             // reload the listview
