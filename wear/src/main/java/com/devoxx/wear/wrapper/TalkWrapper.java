@@ -63,7 +63,7 @@ public class TalkWrapper {
             TalkSpeakerApiModel speaker = new TalkSpeakerApiModel();
 
             speaker.setUuid(speakerDataMap.getString("uuid"));
-            speaker.setName(speakerDataMap.getString("title"));
+            speaker.setName(speakerDataMap.getString("name"));
 
 
             talk.addSpeaker(speaker);

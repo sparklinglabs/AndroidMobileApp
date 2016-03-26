@@ -161,7 +161,7 @@ public class TalkGridPageAdapter extends FragmentGridPagerAdapter {
         }
 
         for (TalkSpeakerApiModel speaker : speakersList.values()) {
-            mRowSpeakers.addPages(new SimplePage(speaker.getUuid(), TALK_SPEAKER, "Speaker", NO_BACKGROUND));
+            mRowSpeakers.addPages(new SimplePage(speaker.getUuid(), TALK_SPEAKER, speaker.getName(), NO_BACKGROUND));
         }
         mPages.add(mRowSpeakers);
     }

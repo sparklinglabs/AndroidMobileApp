@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.wearable.view.DotsPageIndicator;
 import android.support.wearable.view.GridViewPager;
+import android.util.Log;
 
 import com.devoxx.R;
 import com.devoxx.common.utils.Constants;
@@ -25,6 +26,7 @@ import com.devoxx.wear.wrapper.SpeakerDetailWrapper;
 import com.devoxx.wear.wrapper.TalkWrapper;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.Result;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataEvent;
@@ -153,6 +155,20 @@ public class TalkActivity extends Activity implements GoogleApiClient.Connection
     @Override
     public void onConnected(Bundle bundle) {
         Wearable.DataApi.addListener(mApiClient, this);
+
+        // Uncomment the following to reset the channel
+        Uri uri = new Uri.Builder()
+                .scheme(PutDataRequest.WEAR_URI_SCHEME)
+                .path(Constants.CHANNEL_ID + Constants.TALK_PATH + "/" + mTalkId)
+                .build();
+
+        Wearable.DataApi.deleteDataItems(mApiClient, uri).setResultCallback(new ResultCallback() {
+
+            @Override
+            public void onResult(Result result) {
+                Log.d(TAG, "Deleting rows");
+            }
+        });
     }
 
     @Override
@@ -232,7 +248,13 @@ public class TalkActivity extends Activity implements GoogleApiClient.Connection
 
 
             // Check if we have received some details for a speaker
-            if (event.getType() == DataEvent.TYPE_CHANGED && event.getDataItem().getUri().getPath().startsWith(Constants.SPEAKER_PATH +  "/" + mCountryCode + "/")) {
+            if (event.getType() == DataEvent.TYPE_CHANGED && event.getDataItem().getUri().getPath().startsWith(Constants.CHANNEL_ID + Constants.SPEAKER_PATH)) {
+
+                if (mTalk == null) {
+                    // ignore this message as we didn't processed the talk
+                    return;
+                }
+
                 SpeakerDetailWrapper speakerDetailWrapper = new SpeakerDetailWrapper();
 
                 TalkSpeakerApiModel speaker = speakerDetailWrapper.getSpeakerDetail(event);
@@ -240,7 +262,7 @@ public class TalkActivity extends Activity implements GoogleApiClient.Connection
                     return;
                 }
 
-                if ((mTalk == null) || (mTalk.getSpeakers() == null)) {
+                if (mTalk.getSpeakers() == null) {
                     return;
                 }
 
@@ -331,9 +353,11 @@ public class TalkActivity extends Activity implements GoogleApiClient.Connection
                                 EventBus.getDefault().postLocal(new TalkEvent(mTalk));
 
 
-                                // retrieve detail of each speaker
-                                for (TalkSpeakerApiModel speaker : mTalk.getSpeakers()) {
-                                    mSpeakers.put(speaker.getUuid(), speaker);
+                                if (mTalk.getSpeakers() != null) {
+                                    // retrieve detail of each speaker
+                                    for (TalkSpeakerApiModel speaker : mTalk.getSpeakers()) {
+                                        mSpeakers.put(speaker.getUuid(), speaker);
+                                    }
                                 }
 
                                 dataItems.release();
@@ -414,7 +438,7 @@ public class TalkActivity extends Activity implements GoogleApiClient.Connection
     //
     private void getSpeakerFromCache(final String speakerId) {
 
-        final String dataPath = Constants.SPEAKER_PATH + "/" + mCountryCode + "/" + speakerId;
+        final String dataPath = Constants.CHANNEL_ID + Constants.SPEAKER_PATH + "/" + speakerId;
 
         Uri uri = new Uri.Builder()
                 .scheme(PutDataRequest.WEAR_URI_SCHEME)
@@ -435,7 +459,7 @@ public class TalkActivity extends Activity implements GoogleApiClient.Connection
 
                                 if (dataMap == null) {
                                     // unable to fetch data -> refresh the list of slots from Mobile
-                                    sendMessage(Constants.SPEAKER_PATH + "/" + mCountryCode, speakerId);
+                                    sendMessage(Constants.CHANNEL_ID + Constants.SPEAKER_PATH, speakerId);
                                     dataItems.release();
                                     return;
                                 }
@@ -500,6 +524,20 @@ public class TalkActivity extends Activity implements GoogleApiClient.Connection
         if (getSpeakerEvent == null) {
             return;
         }
+
+        // Uncomment the following to reset the channel
+        Uri uri = new Uri.Builder()
+                .scheme(PutDataRequest.WEAR_URI_SCHEME)
+                .path(Constants.CHANNEL_ID + Constants.SPEAKER_PATH + "/" + getSpeakerEvent.getUuid())
+                .build();
+
+        Wearable.DataApi.deleteDataItems(mApiClient, uri).setResultCallback(new ResultCallback() {
+
+            @Override
+            public void onResult(Result result) {
+                Log.d(TAG, "Deleting rows");
+            }
+        });
 
         getSpeakerFromCache(getSpeakerEvent.getUuid());
     }

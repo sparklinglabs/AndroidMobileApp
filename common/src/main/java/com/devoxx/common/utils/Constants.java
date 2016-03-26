@@ -19,6 +19,7 @@ public class Constants {
 
     public static final String SPEAKERS_PATH = "/speakers";
     public static final String SPEAKER_PATH = "/speaker";
+    public static final String SPEAKER_IMAGE_PATH = "/speaker-image";
 
     public static final String FAVORITE_PATH = "/favorite";
     public static final String ADD_FAVORITE_PATH = "/add-favorite";
