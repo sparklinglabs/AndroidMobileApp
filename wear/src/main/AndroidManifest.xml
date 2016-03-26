@@ -32,6 +32,12 @@
             android:theme="@android:style/Theme.DeviceDefault.Light">
         </activity>
 
+        <activity
+            android:name=".wear.activity.TalkActivity"
+            android:theme="@android:style/Theme.DeviceDefault.Light">
+        </activity>
+
+
     </application>
 
 </manifest>

@@ -4,8 +4,10 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.annimon.stream.Optional;
 import com.devoxx.common.utils.Constants;
 import com.devoxx.connection.model.SlotApiModel;
+import com.devoxx.connection.model.TalkSpeakerApiModel;
 import com.devoxx.data.conference.ConferenceManager;
 import com.devoxx.data.conference.model.ConferenceDay;
 import com.devoxx.data.manager.SlotsDataManager;
@@ -20,6 +22,7 @@ import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EService;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @EService
@@ -28,10 +31,11 @@ public class WearService extends WearableListenerService {
     private final static String TAG = WearService.class.getCanonicalName();
 
     @Bean
-    SlotsDataManager slotsDataManager;
+    ConferenceManager conferenceManager;
 
     @Bean
-    ConferenceManager conferenceManager;
+    SlotsDataManager slotsDataManager;
+
 
     protected GoogleApiClient mApiClient;
 
@@ -39,7 +43,7 @@ public class WearService extends WearableListenerService {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (mApiClient.isConnected()) {
+        if ((mApiClient != null) && (mApiClient.isConnected())) {
             mApiClient.disconnect();
         }
     }
@@ -68,6 +72,12 @@ public class WearService extends WearableListenerService {
                 Log.e(TAG, ex.getLocalizedMessage());
             }
 
+            return;
+        }
+
+        // send the talk to the Wearable
+        if (path.startsWith(Constants.CHANNEL_ID + Constants.TALK_PATH)) {
+            sendTalk(data);
             return;
         }
 
@@ -240,7 +250,68 @@ public class WearService extends WearableListenerService {
         // store the list in the datamap to send it to the wear
         putDataMapRequest.getDataMap().putDataMapArrayList(Constants.LIST_PATH, slotsDataMap);
 
-        // send the schedules
+        // send the slots
+        sendToWearable(putDataMapRequest);
+    }
+
+
+    private void sendTalk(String talkId) {
+
+        if (slotsDataManager == null) {
+            return;
+        }
+
+        final Optional<SlotApiModel> opt = slotsDataManager.getSlotByTalkId(talkId);
+        if (!opt.isPresent()) {
+            return;
+        }
+        SlotApiModel slotApiModel = opt.get();
+
+        if (!slotApiModel.isTalk()) {
+            // not a talk
+            return;
+        }
+
+        final PutDataMapRequest putDataMapRequest = PutDataMapRequest.create(Constants.CHANNEL_ID +Constants.TALK_PATH + "/" + talkId);
+
+        final DataMap talkDataMap = new DataMap();
+
+        // process the data
+        talkDataMap.putString("timestamp", new Date().toString());
+        talkDataMap.putString("id", talkId);
+        //talkDataMap.putLong("eventId", talk.getEventId());
+        talkDataMap.putString("talkType", slotApiModel.talk.talkType);
+        talkDataMap.putString("track", slotApiModel.talk.track);
+        talkDataMap.putString("trackId", slotApiModel.talk.track);
+        talkDataMap.putString("title", slotApiModel.talk.title);
+        talkDataMap.putString("lang", slotApiModel.talk.lang);
+        talkDataMap.putString("summary", slotApiModel.talk.summary);
+
+        ArrayList<DataMap> speakersDataMap = new ArrayList<>();
+
+        // process each speaker's data
+        if (slotApiModel.talk.speakers != null) {
+            for (int index = 0; index < slotApiModel.talk.speakers.size(); index++) {
+
+                final DataMap speakerDataMap = new DataMap();
+
+                final TalkSpeakerApiModel speaker = slotApiModel.talk.speakers.get(index);
+
+                speakerDataMap.putString("uuid", speaker.uuid);
+                speakerDataMap.putString("uuid", speaker.name);
+
+                speakersDataMap.add(speakerDataMap);
+            }
+        }
+
+        if (speakersDataMap.size() > 0) {
+            talkDataMap.putDataMapArrayList(Constants.SPEAKERS_PATH, speakersDataMap);
+        }
+
+        // store the list in the datamap to send it to the wear
+        putDataMapRequest.getDataMap().putDataMap(Constants.DETAIL_PATH, talkDataMap);
+
+        // send the talk
         sendToWearable(putDataMapRequest);
     }
 

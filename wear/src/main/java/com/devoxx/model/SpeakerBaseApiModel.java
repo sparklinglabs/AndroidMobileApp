@@ -7,6 +7,9 @@ public class SpeakerBaseApiModel implements Serializable {
 	private String firstName;
 	private String lastName;
 	private String avatarURL;
+	private String avatarImage;
+	private String twitter;
+
 
 	public String getName() {
 		return String.format("%s %s", firstName, lastName);
@@ -42,5 +45,21 @@ public class SpeakerBaseApiModel implements Serializable {
 
 	public void setAvatarURL(String avatarURL) {
 		this.avatarURL = avatarURL;
+	}
+
+	public String getAvatarImage() {
+		return avatarImage;
+	}
+
+	public void setAvatarImage(String avatarImage) {
+		this.avatarImage = avatarImage;
+	}
+
+	public String getTwitter() {
+		return twitter;
+	}
+
+	public void setTwitter(String twitter) {
+		this.twitter = twitter;
 	}
 }

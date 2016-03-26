@@ -10,6 +10,7 @@ public class TalkSpeakerApiModel extends SpeakerBaseApiModel {
 		return Uri.parse(link.getHref()).getLastPathSegment();
 	}
 
+
 	@Override
 	public String getName() {
 		return name;
