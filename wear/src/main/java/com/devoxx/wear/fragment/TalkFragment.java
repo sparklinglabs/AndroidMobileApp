@@ -5,12 +5,15 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.wearable.activity.ConfirmationActivity;
 import android.support.wearable.view.WatchViewStub;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.devoxx.R;
+import com.devoxx.event.FavoriteEvent;
 import com.devoxx.event.GetTalkEvent;
 import com.devoxx.event.TalkEvent;
 import com.devoxx.model.TalkFullApiModel;
@@ -130,20 +133,19 @@ public class TalkFragment extends Fragment {
     }
 
 
-    /*
     public void onEvent(final FavoriteEvent favoriteEvent) {
         if (favoriteEvent == null) {
             return;
         }
 
-        Long eventId = favoriteEvent.getEventId();
+        Boolean favorite = favoriteEvent.getFavorite();
 
-        mTalk.setEventId(eventId);
+        mTalk.setFavorite(favorite);
 
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if ((mTalk.getEventId() != null) && (mTalk.getEventId() > 0)) {
+                if (mTalk.getFavorite()) {
                     ((ImageView) mMainView.findViewById(R.id.favorite)).setImageResource(R.drawable.ic_favorite_on);
                 } else {
                     ((ImageView) mMainView.findViewById(R.id.favorite)).setImageResource(R.drawable.ic_favorite_off);
@@ -151,7 +153,6 @@ public class TalkFragment extends Fragment {
             }
         });
     }
-    */
 
 
     private void displayTalk() {
@@ -164,20 +165,31 @@ public class TalkFragment extends Fragment {
             return;
         }
 
+        if (mMainView == null) {
+            return;
+        }
+
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                if (mTalk == null) {
+                    Log.d(TAG, "mTalk is null");
+                }
+
+                if (mTalk.getTitle() == null) {
+                    Log.d(TAG, "mTalk.title is null");
+                }
+
+
                 ((TextView) mMainView.findViewById(R.id.title)).setText(mTalk.getTitle());
 
                 ((TextView) mMainView.findViewById(R.id.roomName)).setText(mTalk.getRoomName());
 
-                /*
-                if ((mTalk.getEventId() != null) && (mTalk.getEventId() > 0)) {
+                if (mTalk.getFavorite()) {
                     ((ImageView) mMainView.findViewById(R.id.favorite)).setImageResource(R.drawable.ic_favorite_on);
                 } else {
                     ((ImageView) mMainView.findViewById(R.id.favorite)).setImageResource(R.drawable.ic_favorite_off);
                 }
-                */
 
                 String timeFrom;
                 String timeTo;

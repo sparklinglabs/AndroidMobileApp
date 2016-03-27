@@ -44,6 +44,7 @@ public class TalkWrapper {
         TalkFullApiModel talk = new TalkFullApiModel();
 
         talk.setId(dataTalkMap.getString("id"));
+        talk.setFavorite(dataTalkMap.getBoolean("favorite"));
         talk.setTalkType(dataTalkMap.getString("talkType"));
         talk.setTrack(dataTalkMap.getString("track"));
         talk.setTrackId(dataTalkMap.getString("trackId"));
@@ -64,7 +65,6 @@ public class TalkWrapper {
 
             speaker.setUuid(speakerDataMap.getString("uuid"));
             speaker.setName(speakerDataMap.getString("name"));
-
 
             talk.addSpeaker(speaker);
         }

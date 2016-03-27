@@ -5,12 +5,12 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.wearable.view.DotsPageIndicator;
 import android.support.wearable.view.GridViewPager;
-import android.util.Log;
 
 import com.devoxx.R;
 import com.devoxx.common.utils.Constants;
 import com.devoxx.event.AddFavoriteEvent;
 import com.devoxx.event.ConfirmationEvent;
+import com.devoxx.event.FavoriteEvent;
 import com.devoxx.event.FavoriteRemovedEvent;
 import com.devoxx.event.GetSpeakerEvent;
 import com.devoxx.event.GetTalkEvent;
@@ -26,7 +26,6 @@ import com.devoxx.wear.wrapper.SpeakerDetailWrapper;
 import com.devoxx.wear.wrapper.TalkWrapper;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.Result;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataEvent;
@@ -112,7 +111,7 @@ public class TalkActivity extends Activity implements GoogleApiClient.Connection
         if (mTalk != null) {
             //The activity can have been awakened up by a notification (remove favorite).
             //In this case, we ensure that the favorites status did not changed.
-            getFavoriteFromCache(mTalk);
+            getFavoriteFromCache(mTalk.getId());
             return;
         }
 
@@ -162,13 +161,7 @@ public class TalkActivity extends Activity implements GoogleApiClient.Connection
                 .path(Constants.CHANNEL_ID + Constants.TALK_PATH + "/" + mTalkId)
                 .build();
 
-        Wearable.DataApi.deleteDataItems(mApiClient, uri).setResultCallback(new ResultCallback() {
-
-            @Override
-            public void onResult(Result result) {
-                Log.d(TAG, "Deleting rows");
-            }
-        });
+        Wearable.DataApi.deleteDataItems(mApiClient, uri, DataApi.FILTER_PREFIX);
     }
 
     @Override
@@ -288,19 +281,20 @@ public class TalkActivity extends Activity implements GoogleApiClient.Connection
             }
 
             // Event received when a change occurred in the favorite
-            if (event.getType() == DataEvent.TYPE_CHANGED && event.getDataItem().getUri().getPath().startsWith(Constants.FAVORITE_PATH + "/" + mTalkId)) {
+            if (event.getType() == DataEvent.TYPE_CHANGED && event.getDataItem().getUri().getPath().startsWith(Constants.CHANNEL_ID + Constants.FAVORITE_PATH  + "/" + mTalkId)) {
                 DataMapItem dataMapItem = DataMapItem.fromDataItem(event.getDataItem());
                 if (dataMapItem == null) {
                     return;
                 }
 
-                DataMap dataMap = dataMapItem.getDataMap().getDataMap(Constants.DETAIL_PATH);
-                if (dataMap == null) {
+                DataMap favoriteMap = dataMapItem.getDataMap().getDataMap(Constants.DETAIL_PATH);
+                if (favoriteMap == null) {
                     return;
                 }
 
-                //mTalk.setEventId(dataMap.getLong("eventId"));
-                //EventBus.getDefault().postLocal(new FavoriteEvent(mTalk.getEventId()));
+                Boolean favorite = favoriteMap.getBoolean("favorite");
+                mTalk.setFavorite(favorite);
+                EventBus.getDefault().postLocal(new FavoriteEvent(favorite));
 
                 return;
             }
@@ -369,7 +363,7 @@ public class TalkActivity extends Activity implements GoogleApiClient.Connection
                                         mTalkGridPageAdapter.notifyDataSetChanged();
 
                                         // retrieve the status of the favorite
-                                        getFavoriteFromCache(mTalk);
+                                        getFavoriteFromCache(mTalk.getId());
                                     }
                                 });
                             }
@@ -381,9 +375,9 @@ public class TalkActivity extends Activity implements GoogleApiClient.Connection
     // Get favorite status of the talk from the data item repository (cache).
     // If not available, we refresh the data from the Mobile device.
     //
-    private void getFavoriteFromCache(final TalkFullApiModel talk) {
+    private void getFavoriteFromCache(final String  talkId) {
 
-        final String dataPath = Constants.FAVORITE_PATH + "/" + talk.getId();
+        final String dataPath = Constants.CHANNEL_ID + Constants.FAVORITE_PATH + "/" + talkId;
 
         Uri uri = new Uri.Builder()
                 .scheme(PutDataRequest.WEAR_URI_SCHEME)
@@ -406,13 +400,10 @@ public class TalkActivity extends Activity implements GoogleApiClient.Connection
                                 if (dataMap == null) {
                                     // Prepare the data map
                                     DataMap favoriteDataMap = new DataMap();
-                                    favoriteDataMap.putString("talkId", talk.getId());
-                                    favoriteDataMap.putString("title", talk.getTitle());
-                                    favoriteDataMap.putLong("fromTimeMillis", talk.getFromTimeMillis());
-                                    favoriteDataMap.putLong("toTimeMillis", talk.getToTimeMillis());
+                                    favoriteDataMap.putString("talkId", talkId);
 
                                     // unable to fetch data -> retrieve the favorite status from the Mobile
-                                    sendMessage(Constants.FAVORITE_PATH, favoriteDataMap.toByteArray());
+                                    sendMessage(Constants.CHANNEL_ID + Constants.FAVORITE_PATH , talkId);
                                     dataItems.release();
                                     return;
                                 }
@@ -423,8 +414,8 @@ public class TalkActivity extends Activity implements GoogleApiClient.Connection
                                     return;
                                 }
 
-                                //mTalk.setEventId(favoriteMap.getLong("eventId"));
-                                //EventBus.getDefault().postLocal(new FavoriteEvent(mTalk.getEventId()));
+                                EventBus.getDefault().postLocal(new FavoriteEvent(favoriteMap.getBoolean("favorite")));
+
 
                                 dataItems.release();
                             }
@@ -525,6 +516,7 @@ public class TalkActivity extends Activity implements GoogleApiClient.Connection
             return;
         }
 
+        /*
         // Uncomment the following to reset the channel
         Uri uri = new Uri.Builder()
                 .scheme(PutDataRequest.WEAR_URI_SCHEME)
@@ -538,6 +530,7 @@ public class TalkActivity extends Activity implements GoogleApiClient.Connection
                 Log.d(TAG, "Deleting rows");
             }
         });
+        */
 
         getSpeakerFromCache(getSpeakerEvent.getUuid());
     }

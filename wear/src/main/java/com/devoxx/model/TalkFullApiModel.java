@@ -6,12 +6,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TalkFullApiModel extends TalkBaseApiModel {
+	private Boolean favorite;
 	private String lang;
 	private String summary;
 	private List<TalkSpeakerApiModel> speakers;
 	private String roomName;
 	private Long fromTimeMillis;
 	private Long toTimeMillis;
+
+
+	public Boolean getFavorite() {
+		return favorite;
+	}
+
+	public void setFavorite(Boolean favorite) {
+		this.favorite = favorite;
+	}
 
 	public String getLang() {
 		return lang;

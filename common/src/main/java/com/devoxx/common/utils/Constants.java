@@ -5,9 +5,9 @@ package com.devoxx.common.utils;
  */
 public class Constants {
 
-    public static final String CHANNEL_ID = "/000000";
+    public static final String CHANNEL_ID = "/000001";
 
-    public static final String CONFERENCES_PATH = "/conferences";
+    public static final String HEADER_PATH = "/header";
 
     public static final String COUNTRY_PATH = "/country";
 
@@ -19,7 +19,6 @@ public class Constants {
 
     public static final String SPEAKERS_PATH = "/speakers";
     public static final String SPEAKER_PATH = "/speaker";
-    public static final String SPEAKER_IMAGE_PATH = "/speaker-image";
 
     public static final String FAVORITE_PATH = "/favorite";
     public static final String ADD_FAVORITE_PATH = "/add-favorite";

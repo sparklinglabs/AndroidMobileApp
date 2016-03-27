@@ -1,43 +1,9 @@
 package com.devoxx.android.fragment.talk;
 
-import com.annimon.stream.Optional;
-import com.devoxx.R;
-import com.devoxx.android.fragment.common.BaseFragment;
-import com.devoxx.android.fragment.schedule.ScheduleLineupFragment;
-import com.devoxx.android.view.talk.TalkDetailsHeader;
-import com.devoxx.android.view.talk.TalkDetailsSectionClickableItem;
-import com.devoxx.android.view.talk.TalkDetailsSectionClickableItem_;
-import com.devoxx.android.view.talk.TalkDetailsSectionItem;
-import com.devoxx.android.view.talk.TalkDetailsSectionItem_;
-import com.devoxx.connection.Connection;
-import com.devoxx.connection.model.SlotApiModel;
-import com.devoxx.connection.model.TalkFullApiModel;
-import com.devoxx.connection.model.TalkSpeakerApiModel;
-import com.devoxx.data.conference.ConferenceManager;
-import com.devoxx.data.manager.NotificationsManager;
-import com.devoxx.data.manager.SpeakersDataManager;
-import com.devoxx.data.model.RealmConference;
-import com.devoxx.data.user.UserManager;
-import com.devoxx.data.vote.interfaces.IOnVoteForTalkListener;
-import com.devoxx.data.vote.interfaces.ITalkVoter;
-import com.devoxx.data.vote.voters.TalkVoter;
-import com.devoxx.navigation.Navigator;
-import com.devoxx.utils.DeviceUtil;
-import com.devoxx.utils.InfoUtil;
-
-import org.androidannotations.annotations.AfterViews;
-import org.androidannotations.annotations.Bean;
-import org.androidannotations.annotations.Click;
-import org.androidannotations.annotations.EFragment;
-import org.androidannotations.annotations.FragmentArg;
-import org.androidannotations.annotations.SystemService;
-import org.androidannotations.annotations.ViewById;
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
-
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Bundle;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.StringRes;
 import android.support.design.widget.AppBarLayout;
@@ -53,6 +19,46 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import com.annimon.stream.Optional;
+import com.devoxx.R;
+import com.devoxx.android.fragment.common.BaseFragment;
+import com.devoxx.android.fragment.schedule.ScheduleLineupFragment;
+import com.devoxx.android.view.talk.TalkDetailsHeader;
+import com.devoxx.android.view.talk.TalkDetailsSectionClickableItem;
+import com.devoxx.android.view.talk.TalkDetailsSectionClickableItem_;
+import com.devoxx.android.view.talk.TalkDetailsSectionItem;
+import com.devoxx.android.view.talk.TalkDetailsSectionItem_;
+import com.devoxx.common.utils.Constants;
+import com.devoxx.connection.Connection;
+import com.devoxx.connection.model.SlotApiModel;
+import com.devoxx.connection.model.TalkFullApiModel;
+import com.devoxx.connection.model.TalkSpeakerApiModel;
+import com.devoxx.data.conference.ConferenceManager;
+import com.devoxx.data.manager.NotificationsManager;
+import com.devoxx.data.manager.SpeakersDataManager;
+import com.devoxx.data.model.RealmConference;
+import com.devoxx.data.user.UserManager;
+import com.devoxx.data.vote.interfaces.IOnVoteForTalkListener;
+import com.devoxx.data.vote.interfaces.ITalkVoter;
+import com.devoxx.data.vote.voters.TalkVoter;
+import com.devoxx.navigation.Navigator;
+import com.devoxx.utils.DeviceUtil;
+import com.devoxx.utils.InfoUtil;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.wearable.DataMap;
+import com.google.android.gms.wearable.PutDataMapRequest;
+import com.google.android.gms.wearable.Wearable;
+
+import org.androidannotations.annotations.AfterViews;
+import org.androidannotations.annotations.Bean;
+import org.androidannotations.annotations.Click;
+import org.androidannotations.annotations.EFragment;
+import org.androidannotations.annotations.FragmentArg;
+import org.androidannotations.annotations.SystemService;
+import org.androidannotations.annotations.ViewById;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
 
 import java.io.IOException;
 import java.util.List;
@@ -131,6 +137,8 @@ public class TalkFragment extends BaseFragment implements AppBarLayout.OnOffsetC
 	private boolean shouldHideToolbarHeader = false;
 	private SlotApiModel slotModel;
 
+	private GoogleApiClient mApiClient;
+
 	@AfterViews void afterViews() {
 		setHasOptionsMenu(!deviceUtil.isTablet());
 		setupMainLayout();
@@ -141,6 +149,7 @@ public class TalkFragment extends BaseFragment implements AppBarLayout.OnOffsetC
 	}
 
 	@Click(R.id.talkDetailsScheduleBtn) void onScheduleButtonClick() {
+
 		if (notificationsManager.isNotificationScheduled(slotModel.slotId)) {
 			notificationsManager.removeNotification(slotModel.slotId);
 		} else {
@@ -155,7 +164,45 @@ public class TalkFragment extends BaseFragment implements AppBarLayout.OnOffsetC
 		}
 
 		setupScheduleButton();
+
+		sendToWearable();
 	}
+
+
+
+	private void sendToWearable() {
+
+		if (slotModel.isTalk() == false) {
+			return;
+		}
+
+		// send the event to the wearable
+		final PutDataMapRequest putDataMapRequest = PutDataMapRequest.create(Constants.CHANNEL_ID + Constants.FAVORITE_PATH + "/" + slotModel.talk.id);
+
+		// store the data
+		DataMap dataMap = new DataMap();
+		dataMap.putBoolean("favorite", notificationsManager.isNotificationAvailable(slotModel.slotId));
+
+		// store the event in the datamap to send it to the wear
+		putDataMapRequest.getDataMap().putDataMap(Constants.DETAIL_PATH, dataMap);
+
+		mApiClient = new GoogleApiClient.Builder(getContext())
+				.addApi(Wearable.API)
+				.addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
+					@Override
+					public void onConnected(Bundle bundle) {
+						Wearable.DataApi.putDataItem(mApiClient, putDataMapRequest.asPutDataRequest());
+					}
+
+					@Override
+					public void onConnectionSuspended(int cause) {
+
+					}
+				}).build();
+		mApiClient.connect();
+
+	}
+
 
 	@Click(R.id.talkDetailsNotesBtn) void onNotesClick() {
 		openGoogleKeepIfExists();

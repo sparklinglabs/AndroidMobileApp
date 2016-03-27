@@ -7,7 +7,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.wearable.view.WatchViewStub;
 import android.support.wearable.view.WearableListView;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -15,11 +14,9 @@ import android.widget.TextView;
 
 import com.devoxx.R;
 import com.devoxx.common.utils.Constants;
-
 import com.devoxx.model.ScheduleModel;
 import com.devoxx.wear.wrapper.SchedulesWrapper;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.Result;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataEvent;
@@ -35,6 +32,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class ScheduleActivity extends Activity implements WearableListView.ClickListener, GoogleApiClient.ConnectionCallbacks, DataApi.DataListener {
@@ -51,9 +49,19 @@ public class ScheduleActivity extends Activity implements WearableListView.Click
     // Avoid double tap
     private Boolean mClicked = false;
 
+    //create a counter to count the number of instances of this activity
+    public static AtomicInteger mActivitiesLaunched = new AtomicInteger(0);
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        // if launching will create more than one instance of this activity, bail out
+        if (mActivitiesLaunched.incrementAndGet() > 1) {
+            finish();
+        }
+
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.schedule_activity);
@@ -77,6 +85,13 @@ public class ScheduleActivity extends Activity implements WearableListView.Click
         });
     }
 
+    @Override
+    protected void onDestroy() {
+        //remove this activity from the counter
+        mActivitiesLaunched.getAndDecrement();
+
+        super.onDestroy();
+    }
 
     @Override
     protected void onResume() {
@@ -218,20 +233,6 @@ public class ScheduleActivity extends Activity implements WearableListView.Click
     public void onConnected(Bundle bundle) {
         Wearable.DataApi.addListener(mApiClient, this);
 
-
-        // Uncomment the following to reset the channel
-        Uri uri = new Uri.Builder()
-                .scheme(PutDataRequest.WEAR_URI_SCHEME)
-                .path(Constants.CHANNEL_ID + Constants.SCHEDULES_PATH)
-                .build();
-
-        Wearable.DataApi.deleteDataItems(mApiClient, uri).setResultCallback(new ResultCallback() {
-
-            @Override
-            public void onResult(Result result) {
-                Log.d(TAG, "Deleting rows");
-            }
-        });
     }
 
     @Override
