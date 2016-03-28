@@ -1,5 +1,10 @@
 package com.devoxx.android.fragment.schedule;
 
+import android.content.Intent;
+import android.support.design.widget.TabLayout;
+import android.support.v4.app.Fragment;
+import android.support.v4.view.ViewPager;
+
 import com.annimon.stream.Optional;
 import com.devoxx.R;
 import com.devoxx.android.adapter.schedule.SchedulePagerAdapter;
@@ -9,6 +14,7 @@ import com.devoxx.data.conference.model.ConferenceDay;
 import com.devoxx.data.manager.SlotsDataManager;
 import com.devoxx.data.schedule.filter.model.RealmScheduleDayItemFilter;
 import com.devoxx.data.schedule.search.SearchManager;
+import com.devoxx.event.ScheduleEvent;
 import com.devoxx.navigation.NeededUpdateListener;
 
 import org.androidannotations.annotations.AfterViews;
@@ -17,13 +23,10 @@ import org.androidannotations.annotations.EFragment;
 import org.androidannotations.annotations.ViewById;
 import org.androidannotations.annotations.res.ColorRes;
 
-import android.content.Intent;
-import android.support.design.widget.TabLayout;
-import android.support.v4.app.Fragment;
-import android.support.v4.view.ViewPager;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import pl.tajchert.buswear.EventBus;
 
 @EFragment(R.layout.fragment_schedules)
 public class ScheduleMainFragment extends BaseMenuFragment
@@ -61,6 +64,8 @@ public class ScheduleMainFragment extends BaseMenuFragment
 		tabLayout.setSelectedTabIndicatorColor(tabStripColor);
 
 		viewPager.addOnPageChangeListener(this);
+
+		EventBus.getDefault().register(this);
 	}
 
 	@Override
@@ -176,4 +181,21 @@ public class ScheduleMainFragment extends BaseMenuFragment
 	public void onPageScrollStateChanged(int state) {
 		// Nothing.
 	}
+
+	// This event is used to refresh the view because the favorite status has been changed from the wearable device
+	public void onEvent(ScheduleEvent scheduleEvent) {
+		if (getActivity() == null) {
+			return;
+		}
+
+		getActivity().runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				if (isActivityLive()) {
+					invalidateViewPager();
+				}
+			}
+		});
+	}
+
 }

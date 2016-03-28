@@ -180,6 +180,10 @@ public class TalkFragment extends BaseFragment implements AppBarLayout.OnOffsetC
 
 	// This event is received when a schedule has been changed from the wearable device
 	public void onEvent(ScheduleEvent scheduleEvent) {
+		if (getActivity() == null) {
+			return;
+		}
+
 		getActivity().runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
