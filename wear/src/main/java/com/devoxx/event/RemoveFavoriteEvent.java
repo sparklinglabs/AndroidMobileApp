@@ -7,12 +7,10 @@ package com.devoxx.event;
 public class RemoveFavoriteEvent {
 
     private String talkId;
-    private Long eventId;
 
 
-    public RemoveFavoriteEvent(String talkId, Long eventId) {
+    public RemoveFavoriteEvent(String talkId) {
         this.talkId = talkId;
-        this.eventId = eventId;
     }
 
     public String getTalkId() {
@@ -23,11 +21,4 @@ public class RemoveFavoriteEvent {
         this.talkId = talkId;
     }
 
-    public Long getEventId() {
-        return eventId;
-    }
-
-    public void setEventId(Long eventId) {
-        this.eventId = eventId;
-    }
 }

@@ -37,6 +37,8 @@
             android:theme="@android:style/Theme.DeviceDefault.Light">
         </activity>
 
+        <activity android:name="android.support.wearable.activity.ConfirmationActivity" />
+
 
     </application>
 

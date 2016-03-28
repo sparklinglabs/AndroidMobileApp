@@ -373,19 +373,11 @@ public class SlotActivity extends Activity implements WearableListView.ClickList
                 slotName = slot.getTalk().getTitle();
                 trackColorLinearLayout.setBackground(getDrawable(getTrackColor(slot.getTalk().getTrackId())));
 
-                /*
-                if ((slot.getTalk().getEventId() != null) && (slot.getTalk().getEventId() > 0L)) {
-                    favoriteImage.setVisibility(View.VISIBLE);
-                } else {
-                    favoriteImage.setVisibility(View.GONE);
-                }
-                */
-
                 favoriteImage.setVisibility(View.GONE);
 
                 Uri uri = new Uri.Builder()
                         .scheme(PutDataRequest.WEAR_URI_SCHEME)
-                        .path(Constants.FAVORITE_PATH + "/" + slot.getTalk().getId())
+                        .path(Constants.CHANNEL_ID + Constants.FAVORITE_PATH + "/" + slot.getTalk().getId())
                         .build();
 
                 Wearable.DataApi.getDataItems(mApiClient, uri)
@@ -407,8 +399,8 @@ public class SlotActivity extends Activity implements WearableListView.ClickList
                                             return;
                                         }
 
-                                        Long eventId = favoriteMap.getLong("eventId");
-                                        if (eventId > 0L) {
+                                        Boolean favorite = favoriteMap.getBoolean("favorite");
+                                        if (favorite) {
                                             favoriteImage.setVisibility(View.VISIBLE);
                                         }
 

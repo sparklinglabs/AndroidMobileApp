@@ -25,6 +25,7 @@ import com.devoxx.data.manager.NotificationsManager;
 import com.devoxx.data.manager.SlotsDataManager;
 import com.devoxx.data.manager.SpeakersDataManager;
 import com.devoxx.data.model.RealmSpeaker;
+import com.devoxx.event.ScheduleEvent;
 import com.devoxx.utils.Logger;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.wearable.DataApi;
@@ -44,6 +45,8 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import pl.tajchert.buswear.EventBus;
 
 @EService
 public class WearService extends WearableListenerService implements GoogleApiClient.ConnectionCallbacks {
@@ -130,6 +133,18 @@ public class WearService extends WearableListenerService implements GoogleApiCli
         // send the favorite's status of a talk
         if (path.startsWith(Constants.CHANNEL_ID + Constants.FAVORITE_PATH)) {
             sendFavorite(data);
+            return;
+        }
+
+        // Add the favorite's status to a talk
+        if (path.equalsIgnoreCase(Constants.CHANNEL_ID + Constants.ADD_FAVORITE_PATH)) {
+            addFavorite(data);
+            return;
+        }
+
+        // Remove the favorite's status of a talk
+        if (path.equalsIgnoreCase(Constants.CHANNEL_ID + Constants.REMOVE_FAVORITE_PATH)) {
+            removeFavorite(data);
             return;
         }
     }
@@ -259,6 +274,7 @@ public class WearService extends WearableListenerService implements GoogleApiCli
                 DataMap talkDataMap = new DataMap();
 
                 talkDataMap.putString("id", slot.talk.id);
+                talkDataMap.putBoolean("favorite", notificationsManager.isNotificationAvailable(slot.slotId));
                 talkDataMap.putString("trackId", slot.talk.trackId);
                 talkDataMap.putString("title", slot.talk.title);
                 talkDataMap.putString("lang", slot.talk.lang);
@@ -552,6 +568,37 @@ public class WearService extends WearableListenerService implements GoogleApiCli
         // send the favorite's status to the watch
         sendToWearable(putDataMapRequest);
     }
+
+    // remove the favorite from the talk
+    private void removeFavorite(String talkId) {
+
+        SlotApiModel slotApiModel = getSlotByTalkId(talkId);
+        if (slotApiModel == null) {
+            return;
+        }
+
+        notificationsManager.removeNotification(slotApiModel.slotId);
+
+        EventBus.getDefault().postLocal(new ScheduleEvent());
+
+        sendFavorite(talkId);
+    }
+
+    // add the favorite to the talk
+    private void addFavorite(String talkId) {
+
+        SlotApiModel slotApiModel = getSlotByTalkId(talkId);
+        if (slotApiModel == null) {
+            return;
+        }
+
+        notificationsManager.scheduleNotification(slotApiModel, false);
+
+        EventBus.getDefault().postLocal(new ScheduleEvent());
+
+        sendFavorite(talkId);
+    }
+
 
 
 

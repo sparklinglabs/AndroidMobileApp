@@ -42,6 +42,7 @@ import com.devoxx.data.user.UserManager;
 import com.devoxx.data.vote.interfaces.IOnVoteForTalkListener;
 import com.devoxx.data.vote.interfaces.ITalkVoter;
 import com.devoxx.data.vote.voters.TalkVoter;
+import com.devoxx.event.ScheduleEvent;
 import com.devoxx.navigation.Navigator;
 import com.devoxx.utils.DeviceUtil;
 import com.devoxx.utils.InfoUtil;
@@ -63,6 +64,8 @@ import org.joda.time.format.DateTimeFormat;
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
+
+import pl.tajchert.buswear.EventBus;
 
 @EFragment(R.layout.fragment_talk)
 public class TalkFragment extends BaseFragment implements AppBarLayout.OnOffsetChangedListener {
@@ -146,6 +149,8 @@ public class TalkFragment extends BaseFragment implements AppBarLayout.OnOffsetC
 		if (deviceUtil.isLandscapeTablet() && slotApiModel != null) {
 			setupFragment(slotApiModel, notifyAboutChange);
 		}
+
+		EventBus.getDefault().register(this);
 	}
 
 	@Click(R.id.talkDetailsScheduleBtn) void onScheduleButtonClick() {
@@ -156,6 +161,12 @@ public class TalkFragment extends BaseFragment implements AppBarLayout.OnOffsetC
 			notificationsManager.scheduleNotification(slotModel, true);
 		}
 
+		showScheduleChange();
+
+		sendToWearable();
+	}
+
+	private void showScheduleChange() {
 		if (deviceUtil.isLandscapeTablet()) {
 			// Notify ScheduleLineupFragment about change.
 			getActivity().sendBroadcast(ScheduleLineupFragment.getRefreshIntent());
@@ -164,10 +175,18 @@ public class TalkFragment extends BaseFragment implements AppBarLayout.OnOffsetC
 		}
 
 		setupScheduleButton();
-
-		sendToWearable();
 	}
 
+
+	// This event is received when a schedule has been changed from the wearable device
+	public void onEvent(ScheduleEvent scheduleEvent) {
+		getActivity().runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				showScheduleChange();
+			}
+		});
+	}
 
 
 	private void sendToWearable() {

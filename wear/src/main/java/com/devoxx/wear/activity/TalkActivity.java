@@ -11,7 +11,6 @@ import com.devoxx.common.utils.Constants;
 import com.devoxx.event.AddFavoriteEvent;
 import com.devoxx.event.ConfirmationEvent;
 import com.devoxx.event.FavoriteEvent;
-import com.devoxx.event.FavoriteRemovedEvent;
 import com.devoxx.event.GetSpeakerEvent;
 import com.devoxx.event.GetTalkEvent;
 import com.devoxx.event.GetTalkSummaryEvent;
@@ -535,33 +534,20 @@ public class TalkActivity extends Activity implements GoogleApiClient.Connection
         getSpeakerFromCache(getSpeakerEvent.getUuid());
     }
 
-    public void onEvent(FavoriteRemovedEvent favoriteRemovedEvent) {
-        //mTalk.setEventId(0L);
-        EventBus.getDefault().postLocal(new TalkEvent(mTalk));
-    }
-
     public void onEvent(AddFavoriteEvent addFavoritesEvent) {
 
-        /*
         if (addFavoritesEvent == null) {
             return;
         }
 
-        if (addFavoritesEvent.getTalk() == null) {
+        if (addFavoritesEvent.getTalkId() == null) {
             return;
         }
 
-        TalkSpeakerApiModel talk = addFavoritesEvent.getTalk();
         DataMap dataMap = new DataMap();
-        dataMap.putString("talkId", talk.getId());
-        dataMap.putString("title", talk.getTitle());
-        dataMap.putString("summary", talk.getSummary());
-        dataMap.putString("roomName", talk.getRoomName());
-        dataMap.putLong("fromTimeMillis", talk.getFromTimeMillis());
-        dataMap.putLong("toTimeMillis", talk.getToTimeMillis());
+        dataMap.putString("talkId", addFavoritesEvent.getTalkId());
 
-        sendMessage(Constants.ADD_FAVORITE_PATH, dataMap.toByteArray());
-        */
+        sendMessage(Constants.CHANNEL_ID + Constants.ADD_FAVORITE_PATH, addFavoritesEvent.getTalkId());
 
     }
 
@@ -577,9 +563,8 @@ public class TalkActivity extends Activity implements GoogleApiClient.Connection
 
         DataMap dataMap = new DataMap();
         dataMap.putString("talkId", removeFavoritesEvent.getTalkId());
-        dataMap.putLong("eventId", removeFavoritesEvent.getEventId());
 
-        sendMessage(Constants.REMOVE_FAVORITE_PATH, dataMap.toByteArray());
+        sendMessage(Constants.CHANNEL_ID + Constants.REMOVE_FAVORITE_PATH, removeFavoritesEvent.getTalkId());
 
     }
 }

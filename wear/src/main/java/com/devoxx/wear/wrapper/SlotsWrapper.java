@@ -76,6 +76,7 @@ public class SlotsWrapper {
                 TalkFullApiModel talkSlot = new TalkFullApiModel();
 
                 talkSlot.setId(talkDataMap.getString("id"));
+                talkSlot.setFavorite(talkDataMap.getBoolean("favorite"));
                 talkSlot.setLang(talkDataMap.getString("lang"));
                 talkSlot.setSummary(talkDataMap.getString("summary"));
                 talkSlot.setTalkType(talkDataMap.getString("talkType"));

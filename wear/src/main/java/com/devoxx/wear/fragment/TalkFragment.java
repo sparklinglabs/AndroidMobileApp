@@ -13,8 +13,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.devoxx.R;
+import com.devoxx.event.AddFavoriteEvent;
 import com.devoxx.event.FavoriteEvent;
 import com.devoxx.event.GetTalkEvent;
+import com.devoxx.event.RemoveFavoriteEvent;
 import com.devoxx.event.TalkEvent;
 import com.devoxx.model.TalkFullApiModel;
 
@@ -67,20 +69,18 @@ public class TalkFragment extends Fragment {
                             return;
                         }
 
-                        /*
-                        String confirmationMessage = "";
-                        if ((mTalk.getEventId() != null) && (mTalk.getEventId() > 0)) {
+                        String confirmationMessage;
+                        if (mTalk.getFavorite()) {
                             // remove from my favorites
                             confirmationMessage = getString(R.string.remove_favorites);
-                            EventBus.getDefault().postLocal(new RemoveFavoriteEvent(mTalk.getId(), mTalk.getEventId()));
+                            EventBus.getDefault().postLocal(new RemoveFavoriteEvent(mTalk.getId()));
                         } else {
                             // add to my favorites
                             confirmationMessage = getString(R.string.add_favorites);
-                            EventBus.getDefault().postLocal(new AddFavoriteEvent(mTalk));
+                            EventBus.getDefault().postLocal(new AddFavoriteEvent(mTalk.getId()));
                         }
 
                         startConfirmationActivity(ConfirmationActivity.SUCCESS_ANIMATION, confirmationMessage);
-                        */
                     }
                 });
             }

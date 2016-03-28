@@ -1,20 +1,23 @@
 package com.devoxx.event;
 
 
-import com.devoxx.model.TalkFullApiModel;
-
 /**
  * Created by eloudsa on 20/09/15.
  */
 public class AddFavoriteEvent {
 
-    private TalkFullApiModel talk;
+    private String talkId;
 
-    public AddFavoriteEvent(TalkFullApiModel talkCalendar) {
-        this.talk = talkCalendar;
+
+    public AddFavoriteEvent(String talkId) {
+        this.talkId = talkId;
     }
 
-    public TalkFullApiModel getTalk() {
-        return talk;
+    public String getTalkId() {
+        return talkId;
+    }
+
+    public void setTalkId(String talkId) {
+        this.talkId = talkId;
     }
 }
