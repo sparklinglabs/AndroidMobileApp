@@ -111,15 +111,9 @@ public class NotificationsManager {
 	private void schedulePostNotificationAlarm(NotificationConfiguration cfg) {
 		final PendingIntent pendingIntent = createPostNotificationPendingIntent(cfg);
 		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-			// TODO: SEL -> To be uncommented
-			//alarmManager.set(AlarmManager.RTC_WAKEUP, cfg.getPostTalkNotificationTime(), pendingIntent);
-			// TODO: SEL -> To be removed
-			alarmManager.set(AlarmManager.RTC_WAKEUP, 1461916800000L, pendingIntent);
+			alarmManager.set(AlarmManager.RTC_WAKEUP, cfg.getPostTalkNotificationTime(), pendingIntent);
 		} else {
-			// TODO: SEL -> To be uncommented
-			//alarmManager.setExact(AlarmManager.RTC_WAKEUP, cfg.getPostTalkNotificationTime(), pendingIntent);
-			// TODO: SEL -> To be removed
-			alarmManager.set(AlarmManager.RTC_WAKEUP, 1461916800000L, pendingIntent);
+			alarmManager.setExact(AlarmManager.RTC_WAKEUP, cfg.getPostTalkNotificationTime(), pendingIntent);
 		}
 	}
 
@@ -369,15 +363,9 @@ public class NotificationsManager {
 		final PendingIntent alarmIntent = createPendingIntentForAlarmReceiver(cfg);
 
 		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-			// TODO: SEL -> To be uncommented
-			//alarmManager.set(AlarmManager.RTC_WAKEUP, cfg.getTalkNotificationTime(), alarmIntent);
-			// TODO: SEL -> To be removed
-			alarmManager.set(AlarmManager.RTC_WAKEUP, 1461916800000L, alarmIntent);
+			alarmManager.set(AlarmManager.RTC_WAKEUP, cfg.getTalkNotificationTime(), alarmIntent);
 		} else {
-			// TODO: SEL -> To be uncommented
-			//alarmManager.setExact(AlarmManager.RTC_WAKEUP, cfg.getTalkNotificationTime(), alarmIntent);
-			// TODO: SEL -> To be removed
-			alarmManager.set(AlarmManager.RTC_WAKEUP, 1461916800000L, alarmIntent);
+			alarmManager.setExact(AlarmManager.RTC_WAKEUP, cfg.getTalkNotificationTime(), alarmIntent);
 		}
 	}
 
