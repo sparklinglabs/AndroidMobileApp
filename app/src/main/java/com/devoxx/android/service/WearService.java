@@ -1,5 +1,6 @@
 package com.devoxx.android.service;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -147,6 +148,13 @@ public class WearService extends WearableListenerService implements GoogleApiCli
             removeFavorite(data);
             return;
         }
+
+        // Twitter
+        if (path.equalsIgnoreCase(Constants.CHANNEL_ID + Constants.TWITTER_PATH)) {
+            followOnTwitter(data);
+            return;
+        }
+
     }
 
 
@@ -174,6 +182,26 @@ public class WearService extends WearableListenerService implements GoogleApiCli
         mApiClient.connect();
 
     }
+
+
+    //
+    // Twitter
+    //
+
+    // Open the Twitter application or the browser if the app is not installed
+    private void followOnTwitter(String inputData) {
+        String twitterName = inputData == null ? "" : inputData.trim().toLowerCase();
+        twitterName = twitterName.replaceFirst("@", "");
+
+        if (twitterName.isEmpty()) {
+            return;
+        }
+
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://twitter.com/" + twitterName));
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        this.startActivity(intent);
+    }
+
 
 
     private void sendSchedules() {

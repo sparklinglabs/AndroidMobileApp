@@ -1,7 +1,5 @@
 package com.devoxx.wear.fragment;
 
-import android.app.Fragment;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
@@ -28,7 +26,7 @@ import pl.tajchert.buswear.EventBus;
 /**
  * Created by eloudsa on 24/08/15.
  */
-public class TalkSpeakerFragment extends Fragment {
+public class TalkSpeakerFragment extends BaseFragment {
 
     private final static String TAG = TalkSpeakerFragment.class.getCanonicalName();
 
@@ -55,7 +53,7 @@ public class TalkSpeakerFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 startConfirmationActivity(ConfirmationActivity.OPEN_ON_PHONE_ANIMATION, getString(R.string.confirmation_open_on_phone));
-                EventBus.getDefault().postLocal(new ConfirmationEvent(Constants.TWITTER_PATH, (String) mMainView.findViewById(R.id.twitterIcon).getTag()));
+                EventBus.getDefault().postLocal(new ConfirmationEvent(Constants.CHANNEL_ID + Constants.TWITTER_PATH, (String) mMainView.findViewById(R.id.twitterIcon).getTag()));
             }
         });
 
@@ -64,14 +62,6 @@ public class TalkSpeakerFragment extends Fragment {
     }
 
 
-    private void startConfirmationActivity(int animationType, String message) {
-        Intent confirmationActivity = new Intent(getActivity(), ConfirmationActivity.class)
-                .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_ANIMATION)
-                .putExtra(ConfirmationActivity.EXTRA_ANIMATION_TYPE, animationType)
-                .putExtra(ConfirmationActivity.EXTRA_MESSAGE, message);
-
-        getActivity().startActivity(confirmationActivity);
-    }
 
     @Override
     public void onResume() {

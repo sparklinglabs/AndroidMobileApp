@@ -1,7 +1,5 @@
 package com.devoxx.wear.fragment;
 
-import android.app.Fragment;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.wearable.activity.ConfirmationActivity;
 import android.support.wearable.view.WatchViewStub;
@@ -28,7 +26,7 @@ import pl.tajchert.buswear.EventBus;
 /**
  * Created by eloudsa on 24/08/15.
  */
-public class TalkFragment extends Fragment {
+public class TalkFragment extends BaseFragment {
 
     private final static String TAG = TalkFragment.class.getCanonicalName();
 
@@ -89,14 +87,6 @@ public class TalkFragment extends Fragment {
         return mMainView;
     }
 
-    private void startConfirmationActivity(int animationType, String message) {
-        Intent confirmationActivity = new Intent(getActivity(), ConfirmationActivity.class)
-                .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_ANIMATION)
-                .putExtra(ConfirmationActivity.EXTRA_ANIMATION_TYPE, animationType)
-                .putExtra(ConfirmationActivity.EXTRA_MESSAGE, message);
-
-        getActivity().startActivity(confirmationActivity);
-    }
 
 
     @Override
