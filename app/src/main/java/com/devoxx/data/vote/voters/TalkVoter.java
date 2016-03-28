@@ -7,6 +7,7 @@ import com.devoxx.connection.model.SlotApiModel;
 import com.devoxx.connection.vote.VoteApi;
 import com.devoxx.connection.vote.VoteConnection;
 import com.devoxx.connection.vote.model.VoteApiModel;
+import com.devoxx.connection.vote.model.VoteDetailsApiModel;
 import com.devoxx.data.RealmProvider;
 import com.devoxx.data.conference.ConferenceManager;
 import com.devoxx.data.model.RealmConference;
@@ -24,13 +25,18 @@ import org.androidannotations.annotations.UiThread;
 import android.content.Context;
 import android.graphics.Color;
 import android.os.Build;
+import android.support.annotation.NonNull;
 import android.support.v4.graphics.drawable.DrawableCompat;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.EditText;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import io.realm.Realm;
 import retrofit.Call;
@@ -66,7 +72,17 @@ public class TalkVoter implements ITalkVoter {
 						final View customView = dialog.getCustomView();
 						final RatingBar ratingBar = (RatingBar) customView.findViewById(R.id.talkRatingBar);
 						final int rating = (int) ratingBar.getRating();
-						voteForTalk(rating, slot.talk.id, listener);
+
+						final String content = extractText(customView, R.id.talkRatingContentFeedback);
+						final String delivery = extractText(customView, R.id.talkRatingDeliveryRemarks);
+						final String other = extractText(customView, R.id.talkRatingOther);
+
+						voteForTalk(rating, slot.talk.id, listener, content, delivery, other);
+					}
+
+					@NonNull private String extractText(View customView, int inputId) {
+						return ((EditText) customView.
+								findViewById(inputId)).getText().toString();
 					}
 				})
 				.build();
@@ -106,11 +122,12 @@ public class TalkVoter implements ITalkVoter {
 	}
 
 	@Background
-	protected void voteForTalk(int rating, String talkId, IOnVoteForTalkListener listener) {
+	protected void voteForTalk(int rating, String talkId, IOnVoteForTalkListener listener, String content, String delivery, String other) {
 		final Realm realm = realmProvider.getRealm();
 		try {
 			final VoteApi voteApi = voteConnection.getVoteApi();
-			final Call<VoteApiModel> call = voteApi.vote(getConfCode(), prepareVoteModel(talkId, rating));
+			final Call<VoteApiModel> call = voteApi.vote(getConfCode(),
+					prepareVoteModel(talkId, rating, content, delivery, other));
 			final Response<VoteApiModel> response = call.execute();
 
 			if (response.isSuccess()) {
@@ -162,8 +179,18 @@ public class TalkVoter implements ITalkVoter {
 		}
 	}
 
-	private VoteApiModel prepareVoteModel(String talkId, int rating) {
+	private VoteApiModel prepareVoteModel(String talkId, int rating, String content, String delivery, String other) {
 		final String userId = userManager.getUserCode();
-		return new VoteApiModel(talkId, rating, userId);
+		final List<VoteDetailsApiModel> details = new ArrayList<>();
+		appendDetails(details, "content", content, rating);
+		appendDetails(details, "delivery", delivery, rating);
+		appendDetails(details, "other", other, rating);
+		return new VoteApiModel(talkId, rating, userId, details);
+	}
+
+	private void appendDetails(List<VoteDetailsApiModel> result, String key, String value, int rating) {
+		if (!TextUtils.isEmpty(value)) {
+			result.add(new VoteDetailsApiModel(key, rating, value));
+		}
 	}
 }
