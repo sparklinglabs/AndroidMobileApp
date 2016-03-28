@@ -171,6 +171,10 @@ public class NotificationsManager {
 
 	private void cancelPostTalkNotificationOnAlarmManager(String slotId) {
 		final NotificationConfiguration cfg = getConfiguration(slotId);
+		if (cfg == null) {
+			// talk schedule is already cancelled
+			return;
+		}
 		final PendingIntent toBeCancelled = createPostNotificationPendingIntent(cfg);
 		toBeCancelled.cancel();
 		alarmManager.cancel(toBeCancelled);
@@ -178,6 +182,10 @@ public class NotificationsManager {
 
 	private void cancelTalkNotificationOnAlarmManager(String slotId) {
 		final NotificationConfiguration cfg = getConfiguration(slotId);
+		if (cfg == null) {
+			// talk schedule already cancelled
+			return;
+		}
 		final PendingIntent toBeCancelled = createPendingIntentForAlarmReceiver(cfg);
 		toBeCancelled.cancel();
 		alarmManager.cancel(toBeCancelled);
@@ -336,6 +344,10 @@ public class NotificationsManager {
 		final Realm realm = realmProvider.getRealm();
 		final RealmNotification rn = realm.where(RealmNotification.class).equalTo("slotId", slotID).findFirst();
 		realm.close();
+		if (rn == null) {
+			// talk schedule is already cancelled
+			return null;
+		}
 		return NotificationConfiguration.create(rn);
 	}
 
