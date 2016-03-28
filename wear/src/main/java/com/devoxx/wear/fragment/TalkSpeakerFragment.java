@@ -14,7 +14,7 @@ import android.widget.TextView;
 
 import com.devoxx.R;
 import com.devoxx.common.utils.Constants;
-import com.devoxx.event.ConfirmationEvent;
+import com.devoxx.event.TwitterEvent;
 import com.devoxx.event.DisplaySpeakerEvent;
 import com.devoxx.event.GetSpeakerEvent;
 import com.devoxx.event.SpeakerDetailEvent;
@@ -53,7 +53,7 @@ public class TalkSpeakerFragment extends BaseFragment {
             @Override
             public void onClick(View v) {
                 startConfirmationActivity(ConfirmationActivity.OPEN_ON_PHONE_ANIMATION, getString(R.string.confirmation_open_on_phone));
-                EventBus.getDefault().postLocal(new ConfirmationEvent(Constants.CHANNEL_ID + Constants.TWITTER_PATH, (String) mMainView.findViewById(R.id.twitterIcon).getTag()));
+                EventBus.getDefault().postLocal(new TwitterEvent(Constants.CHANNEL_ID + Constants.TWITTER_PATH, (String) mMainView.findViewById(R.id.twitterIcon).getTag()));
             }
         });
 

@@ -60,9 +60,6 @@ public class SlotActivity extends Activity implements WearableListView.ClickList
     private String mDayOfWeek;
     private Long mDayMillis;
 
-    // Conference information
-    private String mCountryCode;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,7 +67,6 @@ public class SlotActivity extends Activity implements WearableListView.ClickList
 
 
         // Retrieve the schedule's link
-        mCountryCode = "BE";
         mDayOfWeek = "monday";
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
@@ -178,7 +174,6 @@ public class SlotActivity extends Activity implements WearableListView.ClickList
         Intent slotIntent = new Intent(SlotActivity.this, TalkActivity.class);
 
         Bundle b = new Bundle();
-        b.putString("countryCode", mCountryCode);
         b.putString("talkId", slot.getTalk().getId());
         b.putString("talkTitle", slot.getTalk().getTitle());
         b.putString("roomName", slot.getRoomName());

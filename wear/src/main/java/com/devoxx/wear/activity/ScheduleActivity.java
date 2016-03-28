@@ -259,7 +259,7 @@ public class ScheduleActivity extends Activity implements WearableListView.Click
         Intent scheduleIntent = new Intent(ScheduleActivity.this, SlotActivity.class);
 
         Bundle b = new Bundle();
-        // TODO: remove countryCode
+
         b.putString("dayOfWeek", schedule.getDayName());
         b.putLong("dayMillis", schedule.getDayMillis());
         scheduleIntent.putExtras(b);

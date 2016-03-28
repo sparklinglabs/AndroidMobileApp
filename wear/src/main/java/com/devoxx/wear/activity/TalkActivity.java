@@ -9,7 +9,7 @@ import android.support.wearable.view.GridViewPager;
 import com.devoxx.R;
 import com.devoxx.common.utils.Constants;
 import com.devoxx.event.AddFavoriteEvent;
-import com.devoxx.event.ConfirmationEvent;
+import com.devoxx.event.TwitterEvent;
 import com.devoxx.event.FavoriteEvent;
 import com.devoxx.event.GetSpeakerEvent;
 import com.devoxx.event.GetTalkEvent;
@@ -70,15 +70,11 @@ public class TalkActivity extends Activity implements GoogleApiClient.Connection
     private Long mFromTimeMillis;
     private Long mToTimeMillis;
 
-    // Conference information
-    private String mCountryCode;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mCountryCode = "BE";
         mTalkId = "";
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
@@ -153,14 +149,6 @@ public class TalkActivity extends Activity implements GoogleApiClient.Connection
     @Override
     public void onConnected(Bundle bundle) {
         Wearable.DataApi.addListener(mApiClient, this);
-
-        // Uncomment the following to reset the channel
-        Uri uri = new Uri.Builder()
-                .scheme(PutDataRequest.WEAR_URI_SCHEME)
-                .path(Constants.CHANNEL_ID + Constants.TALK_PATH + "/" + mTalkId)
-                .build();
-
-        Wearable.DataApi.deleteDataItems(mApiClient, uri, DataApi.FILTER_PREFIX);
     }
 
     @Override
@@ -488,10 +476,10 @@ public class TalkActivity extends Activity implements GoogleApiClient.Connection
     // Events
     //
 
-    public void onEvent(ConfirmationEvent confirmationEvent) {
+    public void onEvent(TwitterEvent twitterEvent) {
 
         // Retrieve the list of speakers from the mobile
-        sendMessage(confirmationEvent.getPath(), confirmationEvent.getMessage());
+        sendMessage(twitterEvent.getPath(), twitterEvent.getMessage());
     }
 
 
@@ -514,22 +502,6 @@ public class TalkActivity extends Activity implements GoogleApiClient.Connection
         if (getSpeakerEvent == null) {
             return;
         }
-
-        /*
-        // Uncomment the following to reset the channel
-        Uri uri = new Uri.Builder()
-                .scheme(PutDataRequest.WEAR_URI_SCHEME)
-                .path(Constants.CHANNEL_ID + Constants.SPEAKER_PATH + "/" + getSpeakerEvent.getUuid())
-                .build();
-
-        Wearable.DataApi.deleteDataItems(mApiClient, uri).setResultCallback(new ResultCallback() {
-
-            @Override
-            public void onResult(Result result) {
-                Log.d(TAG, "Deleting rows");
-            }
-        });
-        */
 
         getSpeakerFromCache(getSpeakerEvent.getUuid());
     }

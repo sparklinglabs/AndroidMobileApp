@@ -3,12 +3,12 @@ package com.devoxx.event;
 /**
  * Created by eloudsa on 30/08/15.
  */
-public class ConfirmationEvent {
+public class TwitterEvent {
 
     private String path;
     private String message;
 
-    public ConfirmationEvent(String path, String message) {
+    public TwitterEvent(String path, String message) {
         this.path = path;
         this.message = message;
     }
