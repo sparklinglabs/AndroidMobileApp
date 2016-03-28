@@ -50,7 +50,7 @@ import java.util.List;
 import pl.tajchert.buswear.EventBus;
 
 @EService
-public class WearService extends WearableListenerService implements GoogleApiClient.ConnectionCallbacks {
+public class WearService extends WearableListenerService  {
 
     private final static String TAG = WearService.class.getCanonicalName();
 
@@ -457,30 +457,6 @@ public class WearService extends WearableListenerService implements GoogleApiCli
                         }
                     }
                 });
-
-        /*
-        // do we have to retrieve the avatar's image?
-        if (((speaker.getAvatarImage() != null) && (speaker.getAvatarImage().isEmpty() == false))) {
-            return;
-        }
-
-        // retrieve and send speaker's image (if any)
-        if (speaker.getAvatarURL() != null) {
-
-            final ImageTarget imageTarget = new ImageTarget(dataPath, speakerDataMap);
-
-            new Handler(Looper.getMainLooper()).post(new Runnable() {
-                @Override
-                public void run() {
-                    Picasso.with(WearService.this)
-                            .load(speaker.getAvatarURL())
-                            .resize(100, 100)
-                            .centerCrop()
-                            .into(imageTarget);
-                }
-            });
-        }
-        */
     }
 
 
@@ -657,14 +633,6 @@ public class WearService extends WearableListenerService implements GoogleApiCli
         return slotApiModel;
     }
 
-        @Override
-    public void onConnected(Bundle bundle) {
-
-        //deleteDataItem(Constants.CHANNEL_ID);
-
-    }
-
-
     private void deleteDataItem(String path) {
 
         Uri uri = new Uri.Builder()
@@ -676,8 +644,4 @@ public class WearService extends WearableListenerService implements GoogleApiCli
 
     }
 
-    @Override
-    public void onConnectionSuspended(int i) {
-
-    }
 }
