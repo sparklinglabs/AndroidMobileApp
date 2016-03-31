@@ -43,14 +43,14 @@ public class TalkWrapper {
 
         TalkFullApiModel talk = new TalkFullApiModel();
 
-        talk.setId(dataTalkMap.getString("id"));
-        talk.setFavorite(dataTalkMap.getBoolean("favorite"));
-        talk.setTalkType(dataTalkMap.getString("talkType"));
-        talk.setTrack(dataTalkMap.getString("track"));
-        talk.setTrackId(dataTalkMap.getString("trackId"));
-        talk.setTitle(dataTalkMap.getString("title"));
-        talk.setLang(dataTalkMap.getString("lang"));
-        talk.setSummary(dataTalkMap.getString("summary"));
+        talk.setId(dataTalkMap.getString(Constants.DATAMAP_ID, ""));
+        talk.setFavorite(dataTalkMap.getBoolean(Constants.DATAMAP_FAVORITE, false));
+        talk.setTalkType(dataTalkMap.getString(Constants.DATAMAP_TALK_TYPE, ""));
+        talk.setTrack(dataTalkMap.getString(Constants.DATAMAP_TRACK, ""));
+        talk.setTrackId(dataTalkMap.getString(Constants.DATAMAP_TRACK_ID, ""));
+        talk.setTitle(dataTalkMap.getString(Constants.DATAMAP_TITLE, ""));
+        talk.setLang(dataTalkMap.getString(Constants.DATAMAP_LANG, ""));
+        talk.setSummary(dataTalkMap.getString(Constants.DATAMAP_SUMMARY, ""));
 
 
         List<DataMap> speakersDataMap = dataTalkMap.getDataMapArrayList(Constants.SPEAKERS_PATH);
@@ -63,8 +63,8 @@ public class TalkWrapper {
 
             TalkSpeakerApiModel speaker = new TalkSpeakerApiModel();
 
-            speaker.setUuid(speakerDataMap.getString("uuid"));
-            speaker.setName(speakerDataMap.getString("name"));
+            speaker.setUuid(speakerDataMap.getString(Constants.DATAMAP_UUID, ""));
+            speaker.setName(speakerDataMap.getString(Constants.DATAMAP_NAME, ""));
 
             talk.addSpeaker(speaker);
         }

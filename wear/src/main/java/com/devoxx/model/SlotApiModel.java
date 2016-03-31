@@ -14,7 +14,6 @@ public class SlotApiModel  {
 	private String toTime;
 	private String fromTime;
 	private String roomName;
-	private String slotId;
 	private String day;
 	private boolean notAllocated;
 	private long fromTimeMillis;
@@ -75,14 +74,6 @@ public class SlotApiModel  {
 
 	public void setRoomName(String roomName) {
 		this.roomName = roomName;
-	}
-
-	public String getSlotId() {
-		return slotId;
-	}
-
-	public void setSlotId(String slotId) {
-		this.slotId = slotId;
 	}
 
 	public String getDay() {

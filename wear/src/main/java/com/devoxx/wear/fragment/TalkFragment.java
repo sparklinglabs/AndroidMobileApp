@@ -11,6 +11,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.devoxx.R;
+import com.devoxx.common.utils.Constants;
 import com.devoxx.event.AddFavoriteEvent;
 import com.devoxx.event.FavoriteEvent;
 import com.devoxx.event.GetTalkEvent;
@@ -46,7 +47,7 @@ public class TalkFragment extends BaseFragment {
 
         EventBus.getDefault().register(this);
 
-        final String pageTitle = (getArguments() != null ? getArguments().getString("talkTitle") : "");
+        final String pageTitle = (getArguments() != null ? getArguments().getString(Constants.DATAMAP_TITLE) : "");
 
 
         mMainView = inflater.inflate(R.layout.talk_fragment, container, false);
@@ -128,7 +129,7 @@ public class TalkFragment extends BaseFragment {
             return;
         }
 
-        Boolean favorite = favoriteEvent.getFavorite();
+        boolean favorite = favoriteEvent.getFavorite();
 
         mTalk.setFavorite(favorite);
 

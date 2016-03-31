@@ -49,8 +49,8 @@ public class SchedulesWrapper {
             // retrieve the speaker's information
 
             schedulesList.add(new ScheduleModel(
-                    scheduleDataMap.getString("dayName"),
-                    scheduleDataMap.getLong("dayMillis")));
+                    scheduleDataMap.getString(Constants.DATAMAP_DAY_NAME, ""),
+                    scheduleDataMap.getLong(Constants.DATAMAP_DAY_MILLIS, 0L)));
         }
 
         return schedulesList;
@@ -85,7 +85,7 @@ public class SchedulesWrapper {
             return null;
         }
 
-        return countryMap.getString("country");
+        return countryMap.getString(Constants.DATAMAP_COUNTRY, "");
     }
 
 }

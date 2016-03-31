@@ -4,9 +4,9 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
 
@@ -17,6 +17,7 @@ import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SizeReadyCallback;
 import com.bumptech.glide.request.target.Target;
 import com.devoxx.common.utils.Constants;
+import com.devoxx.common.wear.GoogleApiConnector;
 import com.devoxx.connection.model.SlotApiModel;
 import com.devoxx.connection.model.TalkSpeakerApiModel;
 import com.devoxx.data.conference.ConferenceManager;
@@ -28,13 +29,9 @@ import com.devoxx.data.manager.SpeakersDataManager;
 import com.devoxx.data.model.RealmSpeaker;
 import com.devoxx.event.ScheduleEvent;
 import com.devoxx.utils.Logger;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataMap;
 import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.PutDataMapRequest;
-import com.google.android.gms.wearable.PutDataRequest;
-import com.google.android.gms.wearable.Wearable;
 import com.google.android.gms.wearable.WearableListenerService;
 
 import org.androidannotations.annotations.Bean;
@@ -67,26 +64,18 @@ public class WearService extends WearableListenerService  {
     NotificationsManager notificationsManager;
 
 
-    protected GoogleApiClient mApiClient;
+    private GoogleApiConnector mGoogleApiConnector;
 
 
     @Override
     public void onCreate() {
         super.onCreate();
-
-        // Connect to Play Services
-        mApiClient = new GoogleApiClient.Builder(this)
-                .addApi(Wearable.API)
-                .build();
-        mApiClient.connect();
+        mGoogleApiConnector = new GoogleApiConnector(this);
     }
 
     @Override
     public void onDestroy() {
-        if ((mApiClient != null) && (mApiClient.isConnected())) {
-            mApiClient.disconnect();
-        }
-
+        mGoogleApiConnector.disconnect();
         super.onDestroy();
     }
 
@@ -97,92 +86,46 @@ public class WearService extends WearableListenerService  {
         String path = messageEvent.getPath();
         String data = new String(messageEvent.getData());
 
-
-        // send schedules to the Wearable
         if (path.startsWith(Constants.CHANNEL_ID + Constants.SCHEDULES_PATH)) {
+
+            // send schedules to the Wearable
             sendSchedules();
-            return;
-        }
+        } else if (path.startsWith(Constants.CHANNEL_ID + Constants.SLOTS_PATH)) {
 
-        // send slots to the Wearable
-        if (path.startsWith(Constants.CHANNEL_ID + Constants.SLOTS_PATH)) {
-
+            // send slots to the Wearable
             try {
                 sendSlots(Long.parseLong(data));
 
             } catch (Exception ex) {
                 Log.e(TAG, ex.getLocalizedMessage());
             }
+        } else if (path.startsWith(Constants.CHANNEL_ID + Constants.TALK_PATH)) {
 
-            return;
-        }
-
-        // send the talk to the Wearable
-        if (path.startsWith(Constants.CHANNEL_ID + Constants.TALK_PATH)) {
+            // send the talk to the Wearable
             sendTalk(data);
-            return;
-        }
+        } else if (path.startsWith(Constants.CHANNEL_ID + Constants.SPEAKER_PATH)) {
 
-
-        // send the speaker to the Wearable
-        if (path.startsWith(Constants.CHANNEL_ID + Constants.SPEAKER_PATH)) {
+            // send the speaker to the Wearable
             sendSpeaker(data);
-            return;
-        }
+        } else if (path.startsWith(Constants.CHANNEL_ID + Constants.FAVORITE_PATH)) {
 
-
-        // send the favorite's status of a talk
-        if (path.startsWith(Constants.CHANNEL_ID + Constants.FAVORITE_PATH)) {
+            // send the favorite's status of a talk
             sendFavorite(data);
-            return;
-        }
+        } else if (path.equalsIgnoreCase(Constants.CHANNEL_ID + Constants.ADD_FAVORITE_PATH)) {
 
-        // Add the favorite's status to a talk
-        if (path.equalsIgnoreCase(Constants.CHANNEL_ID + Constants.ADD_FAVORITE_PATH)) {
+            // Add the favorite's status to a talk
             addFavorite(data);
-            return;
-        }
+        } else if (path.equalsIgnoreCase(Constants.CHANNEL_ID + Constants.REMOVE_FAVORITE_PATH)) {
 
-        // Remove the favorite's status of a talk
-        if (path.equalsIgnoreCase(Constants.CHANNEL_ID + Constants.REMOVE_FAVORITE_PATH)) {
+            // Remove the favorite's status of a talk
             removeFavorite(data);
-            return;
-        }
+        } else if (path.equalsIgnoreCase(Constants.CHANNEL_ID + Constants.TWITTER_PATH)) {
 
-        // Twitter
-        if (path.equalsIgnoreCase(Constants.CHANNEL_ID + Constants.TWITTER_PATH)) {
+            // Twitter
             followOnTwitter(data);
-            return;
         }
 
     }
-
-
-    private void sendToWearable(final PutDataMapRequest putDataMapRequest) {
-
-        if ((mApiClient != null) && (mApiClient.isConnected())) {
-            Wearable.DataApi.putDataItem(mApiClient, putDataMapRequest.asPutDataRequest());
-            return;
-        }
-
-
-        mApiClient = new GoogleApiClient.Builder(getApplicationContext())
-                .addApi(Wearable.API)
-                .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
-                    @Override
-                    public void onConnected(Bundle bundle) {
-                        Wearable.DataApi.putDataItem(mApiClient, putDataMapRequest.asPutDataRequest());
-                    }
-
-                    @Override
-                    public void onConnectionSuspended(int cause) {
-
-                    }
-                }).build();
-        mApiClient.connect();
-
-    }
-
 
     //
     // Twitter
@@ -190,16 +133,17 @@ public class WearService extends WearableListenerService  {
 
     // Open the Twitter application or the browser if the app is not installed
     private void followOnTwitter(String inputData) {
-        String twitterName = inputData == null ? "" : inputData.trim().toLowerCase();
-        twitterName = twitterName.replaceFirst("@", "");
 
-        if (twitterName.isEmpty()) {
-            return;
+        String twitterName = inputData;
+
+        if (TextUtils.isEmpty(twitterName) == false) {
+            twitterName = twitterName.toLowerCase().replaceFirst("@", "");
+
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://twitter.com/" + twitterName));
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            this.startActivity(intent);
         }
 
-        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://twitter.com/" + twitterName));
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        this.startActivity(intent);
     }
 
 
@@ -215,12 +159,12 @@ public class WearService extends WearableListenerService  {
 
         // set the header (timestamp is used to force a onDataChanged event on the wearable)
         final DataMap headerMap = new DataMap();
-        headerMap.putString("timestamp", new Date().toString());
+        headerMap.putString(Constants.DATAMAP_TIMESTAMP, new Date().toString());
         putDataMapRequest.getDataMap().putDataMap(Constants.HEADER_PATH, headerMap);
 
         // Prepare and save the country code
         final DataMap countryMap = new DataMap();
-        countryMap.putString("country", conferenceManager.getActiveConference().get().getCountry());
+        countryMap.putString(Constants.DATAMAP_COUNTRY, conferenceManager.getActiveConference().get().getCountry());
         putDataMapRequest.getDataMap().putDataMap(Constants.COUNTRY_PATH, countryMap);
 
         // Prepare and save the schedule
@@ -231,8 +175,8 @@ public class WearService extends WearableListenerService  {
 
             // process and push schedule's data
             String dayName = Uri.parse(day.getName()).getLastPathSegment();
-            scheduleDataMap.putString("dayName", dayName);
-            scheduleDataMap.putLong("dayMillis", day.getDayMs());
+            scheduleDataMap.putString(Constants.DATAMAP_DAY_NAME, dayName);
+            scheduleDataMap.putLong(Constants.DATAMAP_DAY_MILLIS, day.getDayMs());
 
             schedulesDataMap.add(scheduleDataMap);
         }
@@ -241,7 +185,7 @@ public class WearService extends WearableListenerService  {
         putDataMapRequest.getDataMap().putDataMapArrayList(Constants.LIST_PATH, schedulesDataMap);
 
         // send the schedules
-        sendToWearable(putDataMapRequest);
+        mGoogleApiConnector.sendMessage(putDataMapRequest);
     }
 
 
@@ -271,7 +215,7 @@ public class WearService extends WearableListenerService  {
 
         // set the header (timestamp is used to force a onDataChanged event on the wearable)
         final DataMap headerMap = new DataMap();
-        headerMap.putString("timestamp", new Date().toString());
+        headerMap.putString(Constants.DATAMAP_TIMESTAMP, new Date().toString());
         putDataMapRequest.getDataMap().putDataMap(Constants.HEADER_PATH, headerMap);
 
         ArrayList<DataMap> slotsDataMap = new ArrayList<>();
@@ -283,31 +227,31 @@ public class WearService extends WearableListenerService  {
             final SlotApiModel slot = slotApiModelList.get(index);
 
             // process the data
-            scheduleDataMap.putString("roomName", slot.roomName);
-            scheduleDataMap.putLong("fromTimeMillis", slot.fromTimeMillis);
-            scheduleDataMap.putLong("toTimeMillis", slot.toTimeMillis);
+            scheduleDataMap.putString(Constants.DATAMAP_ROOM_NAME, slot.roomName);
+            scheduleDataMap.putLong(Constants.DATAMAP_FROM_TIME_MILLIS, slot.fromTimeMillis);
+            scheduleDataMap.putLong(Constants.DATAMAP_TO_TIME_MILLIS, slot.toTimeMillis);
 
             if (slot.isBreak()) {
                 DataMap breakDataMap = new DataMap();
 
                 //breakDataMap.putString("id", slot.getBreak().getId());
-                breakDataMap.putString("nameEN", slot.slotBreak.nameEN);
-                breakDataMap.putString("nameFR", slot.slotBreak.nameEN);
+                breakDataMap.putString(Constants.DATAMAP_NAME_EN, slot.slotBreak.nameEN);
+                breakDataMap.putString(Constants.DATAMAP_NAME_FR, slot.slotBreak.nameFR);
 
-                scheduleDataMap.putDataMap("break", breakDataMap);
+                scheduleDataMap.putDataMap(Constants.DATAMAP_BREAK, breakDataMap);
             }
 
 
             if (slot.isTalk()) {
                 DataMap talkDataMap = new DataMap();
 
-                talkDataMap.putString("id", slot.talk.id);
-                talkDataMap.putBoolean("favorite", notificationsManager.isNotificationAvailable(slot.slotId));
-                talkDataMap.putString("trackId", slot.talk.trackId);
-                talkDataMap.putString("title", slot.talk.title);
-                talkDataMap.putString("lang", slot.talk.lang);
+                talkDataMap.putString(Constants.DATAMAP_ID, slot.talk.id);
+                talkDataMap.putBoolean(Constants.DATAMAP_FAVORITE, notificationsManager.isNotificationAvailable(slot.slotId));
+                talkDataMap.putString(Constants.DATAMAP_TRACK_ID, slot.talk.trackId);
+                talkDataMap.putString(Constants.DATAMAP_TITLE, slot.talk.title);
+                talkDataMap.putString(Constants.DATAMAP_LANG, slot.talk.lang);
 
-                scheduleDataMap.putDataMap("talk", talkDataMap);
+                scheduleDataMap.putDataMap(Constants.DATAMAP_TALK, talkDataMap);
             }
 
             slotsDataMap.add(scheduleDataMap);
@@ -317,7 +261,7 @@ public class WearService extends WearableListenerService  {
         putDataMapRequest.getDataMap().putDataMapArrayList(Constants.LIST_PATH, slotsDataMap);
 
         // send the slots
-        sendToWearable(putDataMapRequest);
+        mGoogleApiConnector.sendMessage(putDataMapRequest);
     }
 
 
@@ -333,21 +277,20 @@ public class WearService extends WearableListenerService  {
 
         // set the header (timestamp is used to force a onDataChanged event on the wearable)
         final DataMap headerMap = new DataMap();
-        headerMap.putString("timestamp", new Date().toString());
+        headerMap.putString(Constants.DATAMAP_TIMESTAMP, new Date().toString());
         putDataMapRequest.getDataMap().putDataMap(Constants.HEADER_PATH, headerMap);
 
         final DataMap talkDataMap = new DataMap();
 
         // process the data
-        talkDataMap.putString("timestamp", new Date().toString());
-        talkDataMap.putString("id", talkId);
-        talkDataMap.putBoolean("favorite", notificationsManager.isNotificationAvailable(slotApiModel.slotId));
-        talkDataMap.putString("talkType", slotApiModel.talk.talkType);
-        talkDataMap.putString("track", slotApiModel.talk.track);
-        talkDataMap.putString("trackId", slotApiModel.talk.track);
-        talkDataMap.putString("title", slotApiModel.talk.title);
-        talkDataMap.putString("lang", slotApiModel.talk.lang);
-        talkDataMap.putString("summary", slotApiModel.talk.summary);
+        talkDataMap.putString(Constants.DATAMAP_ID, talkId);
+        talkDataMap.putBoolean(Constants.DATAMAP_FAVORITE, notificationsManager.isNotificationAvailable(slotApiModel.slotId));
+        talkDataMap.putString(Constants.DATAMAP_TALK_TYPE, slotApiModel.talk.talkType);
+        talkDataMap.putString(Constants.DATAMAP_TRACK, slotApiModel.talk.track);
+        talkDataMap.putString(Constants.DATAMAP_TRACK_ID, slotApiModel.talk.track);
+        talkDataMap.putString(Constants.DATAMAP_TITLE, slotApiModel.talk.title);
+        talkDataMap.putString(Constants.DATAMAP_LANG, slotApiModel.talk.lang);
+        talkDataMap.putString(Constants.DATAMAP_SUMMARY, slotApiModel.talk.summary);
 
         ArrayList<DataMap> speakersDataMap = new ArrayList<>();
 
@@ -362,8 +305,8 @@ public class WearService extends WearableListenerService  {
                 final DataMap speakerDataMap = new DataMap();
 
                 String uuid = Uri.parse(speaker.link.href).getLastPathSegment();
-                speakerDataMap.putString("uuid", uuid);
-                speakerDataMap.putString("name", speaker.getName());
+                speakerDataMap.putString(Constants.DATAMAP_UUID, uuid);
+                speakerDataMap.putString(Constants.DATAMAP_NAME, speaker.getName());
 
                 speakersDataMap.add(speakerDataMap);
             }
@@ -377,7 +320,9 @@ public class WearService extends WearableListenerService  {
         putDataMapRequest.getDataMap().putDataMap(Constants.DETAIL_PATH, talkDataMap);
 
         // send the talk
-        sendToWearable(putDataMapRequest);
+        //sendToWearable(putDataMapRequest);
+
+        mGoogleApiConnector.sendMessage(putDataMapRequest);
     }
 
     // Send the speaker's detail to the watch.
@@ -407,26 +352,26 @@ public class WearService extends WearableListenerService  {
 
                         // set the header (timestamp is used to force a onDataChanged event on the wearable)
                         final DataMap headerMap = new DataMap();
-                        headerMap.putString("timestamp", new Date().toString());
+                        headerMap.putString(Constants.DATAMAP_TIMESTAMP, new Date().toString());
                         putDataMapRequest.getDataMap().putDataMap(Constants.HEADER_PATH, headerMap);
 
                         final DataMap speakerDataMap = new DataMap();
 
                         // process the data
-                        speakerDataMap.putString("uuid", uuid);
-                        speakerDataMap.putString("firstName", speaker.getFirstName());
-                        speakerDataMap.putString("lastName", speaker.getLastName());
-                        speakerDataMap.putString("company", speaker.getCompany());
-                        speakerDataMap.putString("bio", speaker.getBio());
-                        speakerDataMap.putString("blog", speaker.getBlog());
-                        speakerDataMap.putString("twitter", speaker.getTwitter());
-                        speakerDataMap.putString("avatarURL", speaker.getAvatarURL());
+                        speakerDataMap.putString(Constants.DATAMAP_UUID, uuid);
+                        speakerDataMap.putString(Constants.DATAMAP_FIRST_NAME, speaker.getFirstName());
+                        speakerDataMap.putString(Constants.DATAMAP_LAST_NAME, speaker.getLastName());
+                        speakerDataMap.putString(Constants.DATAMAP_COMPANY, speaker.getCompany());
+                        speakerDataMap.putString(Constants.DATAMAP_BIO, speaker.getBio());
+                        speakerDataMap.putString(Constants.DATAMAP_BLOG, speaker.getBlog());
+                        speakerDataMap.putString(Constants.DATAMAP_TWITTER, speaker.getTwitter());
+                        speakerDataMap.putString(Constants.DATAMAP_AVATAR_URL, speaker.getAvatarURL());
 
                         // store the list in the datamap to send it to the wear
                         putDataMapRequest.getDataMap().putDataMap(Constants.DETAIL_PATH, speakerDataMap);
 
                         // send the speaker
-                        sendToWearable(putDataMapRequest);
+                        mGoogleApiConnector.sendMessage(putDataMapRequest);
 
                         if ((speaker.getAvatarURL() == null) || (speaker.getAvatarURL().isEmpty())) {
                             return;
@@ -485,7 +430,7 @@ public class WearService extends WearableListenerService  {
         public void onResourceReady(Object resource, GlideAnimation glideAnimation) {
 
             // reset the existing speaker's data item
-            deleteDataItem(mDataPath);
+            mGoogleApiConnector.deleteItems(mDataPath);
 
             Bitmap bitmap = (Bitmap) resource;
 
@@ -496,7 +441,8 @@ public class WearService extends WearableListenerService  {
             String encoded = Base64.encodeToString(byteArray, Base64.DEFAULT);
 
             // update the data map with the avatar
-            mSpeakerDataMap.putString("avatarImage", encoded);
+            mSpeakerDataMap.putString(Constants.DATAMAP_TIMESTAMP, new Date().toString());
+            mSpeakerDataMap.putString(Constants.DATAMAP_AVATAR_IMAGE, encoded);
 
             // as the datamap has changed, a onDataChanged event will be fired on the remote node
 
@@ -505,7 +451,7 @@ public class WearService extends WearableListenerService  {
             putDataMapRequest.getDataMap().putDataMap(Constants.DETAIL_PATH, mSpeakerDataMap);
 
             // send the speaker with its profile image
-            sendToWearable(putDataMapRequest);
+            mGoogleApiConnector.sendMessage(putDataMapRequest);
 
         }
 
@@ -559,18 +505,18 @@ public class WearService extends WearableListenerService  {
 
         // set the header (timestamp is used to force a onDataChanged event on the wearable)
         final DataMap headerMap = new DataMap();
-        headerMap.putString("timestamp", new Date().toString());
+        headerMap.putString(Constants.DATAMAP_TIMESTAMP, new Date().toString());
         putDataMapRequest.getDataMap().putDataMap(Constants.HEADER_PATH, headerMap);
 
         // store the data
         DataMap dataMap = new DataMap();
-        dataMap.putBoolean("favorite", notificationsManager.isNotificationAvailable(slotApiModel.slotId));
+        dataMap.putBoolean(Constants.DATAMAP_FAVORITE, notificationsManager.isNotificationAvailable(slotApiModel.slotId));
 
         // store the event in the datamap to send it to the wear
         putDataMapRequest.getDataMap().putDataMap(Constants.DETAIL_PATH, dataMap);
 
         // send the favorite's status to the watch
-        sendToWearable(putDataMapRequest);
+        mGoogleApiConnector.sendMessage(putDataMapRequest);
     }
 
     // remove the favorite from the talk
@@ -631,17 +577,6 @@ public class WearService extends WearableListenerService  {
         }
 
         return slotApiModel;
-    }
-
-    private void deleteDataItem(String path) {
-
-        Uri uri = new Uri.Builder()
-                .scheme(PutDataRequest.WEAR_URI_SCHEME)
-                .path(path)
-                .build();
-
-        Wearable.DataApi.deleteDataItems(mApiClient, uri, DataApi.FILTER_PREFIX);
-
     }
 
 }

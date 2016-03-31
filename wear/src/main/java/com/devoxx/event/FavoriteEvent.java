@@ -5,17 +5,17 @@ package com.devoxx.event;
  */
 public class FavoriteEvent {
 
-    private Boolean favorite;
+    private boolean favorite;
 
-    public FavoriteEvent(Boolean favorite) {
+    public FavoriteEvent(boolean favorite) {
         this.favorite = favorite;
     }
 
-    public Boolean getFavorite() {
+    public boolean getFavorite() {
         return favorite;
     }
 
-    public void setFavorite(Boolean favorite) {
+    public void setFavorite(boolean favorite) {
         this.favorite = favorite;
     }
 }

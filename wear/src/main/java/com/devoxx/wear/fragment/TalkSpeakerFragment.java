@@ -6,6 +6,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.wearable.activity.ConfirmationActivity;
+import android.text.TextUtils;
 import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -47,7 +48,7 @@ public class TalkSpeakerFragment extends BaseFragment {
 
         mMainView = inflater.inflate(R.layout.talk_speaker_fragment, container, false);
 
-        mSpeakerId = (getArguments() != null ? getArguments().getString("speakerId") : "");
+        mSpeakerId = (getArguments() != null ? getArguments().getString(Constants.DATAMAP_UUID) : "");
 
         mMainView.findViewById(R.id.twitterIcon).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -155,8 +156,10 @@ public class TalkSpeakerFragment extends BaseFragment {
                     ((CircleImageView) mMainView.findViewById(R.id.profile_image)).setImageDrawable(drawable);
                 }
 
-                String twitterName = mCurrentSpeaker.getTwitter() == null ? "" : mCurrentSpeaker.getTwitter().trim().toLowerCase();
-                if (twitterName.length() > 0) {
+
+                if (TextUtils.isEmpty(mCurrentSpeaker.getTwitter()) == false) {
+                    String twitterName = mCurrentSpeaker.getTwitter().toLowerCase();
+
                     mMainView.findViewById(R.id.twitterLayout).setVisibility(View.VISIBLE);
                     mMainView.findViewById(R.id.twitterIcon).setTag(twitterName);
                 } else {

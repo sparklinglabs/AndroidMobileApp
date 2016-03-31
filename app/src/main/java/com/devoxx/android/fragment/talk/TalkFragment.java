@@ -57,6 +57,7 @@ import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EFragment;
 import org.androidannotations.annotations.FragmentArg;
 import org.androidannotations.annotations.SystemService;
+import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.ViewById;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -179,17 +180,9 @@ public class TalkFragment extends BaseFragment implements AppBarLayout.OnOffsetC
 
 
 	// This event is received when a schedule has been changed from the wearable device
+	@UiThread
 	public void onEvent(ScheduleEvent scheduleEvent) {
-		if (getActivity() == null) {
-			return;
-		}
-
-		getActivity().runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-				showScheduleChange();
-			}
-		});
+		showScheduleChange();
 	}
 
 

@@ -32,7 +32,7 @@ public class TalkSummaryFragment extends Fragment {
     private String mTalkSummary;
     private String mTalkType;
 
-    private Boolean mEllipsize = false;
+    private boolean mEllipsize = false;
 
     private final int ELLIPSIS_SIZE = 60;
 

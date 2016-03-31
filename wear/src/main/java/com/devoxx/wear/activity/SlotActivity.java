@@ -54,7 +54,7 @@ public class SlotActivity extends Activity implements WearableListView.ClickList
     private ListViewAdapter mListViewAdapter;
 
     // Avoid double tap
-    private Boolean mClicked = false;
+    private boolean mClicked = false;
 
     // Schedule's day
     private String mDayOfWeek;
@@ -70,8 +70,8 @@ public class SlotActivity extends Activity implements WearableListView.ClickList
         mDayOfWeek = "monday";
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
-            mDayOfWeek = bundle.getString("dayOfWeek");
-            mDayMillis = bundle.getLong("dayMillis");
+            mDayOfWeek = bundle.getString(Constants.DATAMAP_DAY_NAME);
+            mDayMillis = bundle.getLong(Constants.DATAMAP_DAY_MILLIS);
         }
 
         // Compose the data path
@@ -174,11 +174,11 @@ public class SlotActivity extends Activity implements WearableListView.ClickList
         Intent slotIntent = new Intent(SlotActivity.this, TalkActivity.class);
 
         Bundle b = new Bundle();
-        b.putString("talkId", slot.getTalk().getId());
-        b.putString("talkTitle", slot.getTalk().getTitle());
-        b.putString("roomName", slot.getRoomName());
-        b.putLong("fromTimeMillis", slot.getFromTimeMillis());
-        b.putLong("toTimeMillis", slot.getToTimeMillis());
+        b.putString(Constants.DATAMAP_TALK_ID, slot.getTalk().getId());
+        b.putString(Constants.DATAMAP_TITLE, slot.getTalk().getTitle());
+        b.putString(Constants.DATAMAP_ROOM_NAME, slot.getRoomName());
+        b.putLong(Constants.DATAMAP_FROM_TIME_MILLIS, slot.getFromTimeMillis());
+        b.putLong(Constants.DATAMAP_TO_TIME_MILLIS, slot.getToTimeMillis());
         slotIntent.putExtras(b);
 
         SlotActivity.this.startActivity(slotIntent);
@@ -394,7 +394,7 @@ public class SlotActivity extends Activity implements WearableListView.ClickList
                                             return;
                                         }
 
-                                        Boolean favorite = favoriteMap.getBoolean("favorite");
+                                        boolean favorite = favoriteMap.getBoolean(Constants.DATAMAP_FAVORITE, false);
                                         if (favorite) {
                                             favoriteImage.setVisibility(View.VISIBLE);
                                         }
@@ -485,51 +485,54 @@ public class SlotActivity extends Activity implements WearableListView.ClickList
         // we display a color related to the type of track
         private int getTrackColor(String trackId) {
 
-            if (trackId == null) {
-                return R.color.none_color;
+            int trackColor;
+
+            switch (trackId.toLowerCase()) {
+                case Constants.TRACK_STARTUP:
+                    trackColor =  R.color.startup_color;
+                    break;
+
+                case Constants.TRACK_SERVER:
+                    trackColor =  R.color.ssj_color;
+                    break;
+
+                case Constants.TRACK_JAVA:
+                    trackColor =  R.color.java_color;
+                    break;
+
+                case Constants.TRACK_MOBILE:
+                    trackColor =  R.color.mobile_color;
+                    break;
+
+                case Constants.TRACK_ARCHITECTURE:
+                    trackColor =  R.color.archisec_color;
+                    break;
+
+                case Constants.TRACK_METHODS_DEVOPS:
+                    trackColor =  R.color.methodevops_color;
+                    break;
+
+                case Constants.TRACK_FUTURE:
+                    trackColor =  R.color.future_color;
+                    break;
+
+                case Constants.TRACK_LANGUAGE:
+                    trackColor =  R.color.lang_color;
+                    break;
+
+                case Constants.TRACK_CLOUD:
+                    trackColor =  R.color.cloud_color;
+                    break;
+
+                case Constants.TRACK_WEB:
+                    trackColor =  R.color.web_color;
+                    break;
+
+                default:
+                    trackColor = R.color.none_color;
             }
 
-            if (trackId.equalsIgnoreCase("startup")) {
-                return R.color.startup_color;
-            }
-
-            if (trackId.equalsIgnoreCase("ssj")) {
-                return R.color.ssj_color;
-            }
-
-            if (trackId.equalsIgnoreCase("java")) {
-                return R.color.java_color;
-            }
-
-            if (trackId.equalsIgnoreCase("mobile")) {
-                return R.color.mobile_color;
-            }
-
-            if (trackId.equalsIgnoreCase("archisec")) {
-                return R.color.archisec_color;
-            }
-
-            if (trackId.equalsIgnoreCase("methodevops")) {
-                return R.color.methodevops_color;
-            }
-
-            if (trackId.equalsIgnoreCase("future")) {
-                return R.color.future_color;
-            }
-
-            if (trackId.equalsIgnoreCase("lang")) {
-                return R.color.lang_color;
-            }
-
-            if (trackId.equalsIgnoreCase("cloud")) {
-                return R.color.cloud_color;
-            }
-
-            if (trackId.equalsIgnoreCase("web")) {
-                return R.color.web_color;
-            }
-
-            return R.color.none_color;
+            return trackColor;
 
         }
 

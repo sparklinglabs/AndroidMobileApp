@@ -7,6 +7,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.wearable.view.FragmentGridPagerAdapter;
 
+import com.devoxx.common.utils.Constants;
 import com.devoxx.model.TalkSpeakerApiModel;
 import com.devoxx.wear.fragment.TalkFragment;
 import com.devoxx.wear.fragment.TalkSpeakerFragment;
@@ -91,7 +92,7 @@ public class TalkGridPageAdapter extends FragmentGridPagerAdapter {
 
             mTalkFragment = new TalkFragment();
 
-            bundle.putString("talkTitle", page.getTitle());
+            bundle.putString(Constants.DATAMAP_TITLE, page.getTitle());
             mTalkFragment.setArguments(bundle);
 
             mFragments.put(pageId, mTalkFragment);
@@ -113,7 +114,7 @@ public class TalkGridPageAdapter extends FragmentGridPagerAdapter {
         // default is a card for the speaker(s)
         mTalkSpeakerFragment = new TalkSpeakerFragment();
 
-        bundle.putString("speakerId", page.getPageId());
+        bundle.putString(Constants.DATAMAP_UUID, page.getPageId());
         mTalkSpeakerFragment.setArguments(bundle);
 
         mFragments.put(pageId, mTalkSpeakerFragment);

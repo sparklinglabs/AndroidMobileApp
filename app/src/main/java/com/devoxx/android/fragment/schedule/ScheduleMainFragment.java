@@ -20,6 +20,7 @@ import com.devoxx.navigation.NeededUpdateListener;
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EFragment;
+import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.ViewById;
 import org.androidannotations.annotations.res.ColorRes;
 
@@ -183,19 +184,11 @@ public class ScheduleMainFragment extends BaseMenuFragment
 	}
 
 	// This event is used to refresh the view because the favorite status has been changed from the wearable device
+	@UiThread
 	public void onEvent(ScheduleEvent scheduleEvent) {
-		if (getActivity() == null) {
-			return;
+		if (isActivityLive()) {
+			invalidateViewPager();
 		}
-
-		getActivity().runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-				if (isActivityLive()) {
-					invalidateViewPager();
-				}
-			}
-		});
 	}
 
 }

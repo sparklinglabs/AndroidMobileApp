@@ -47,7 +47,7 @@ public class ScheduleActivity extends Activity implements WearableListView.Click
     private ListViewAdapter mListViewAdapter;
 
     // Avoid double tap
-    private Boolean mClicked = false;
+    private boolean mClicked = false;
 
     //create a counter to count the number of instances of this activity
     public static AtomicInteger mActivitiesLaunched = new AtomicInteger(0);
@@ -260,8 +260,8 @@ public class ScheduleActivity extends Activity implements WearableListView.Click
 
         Bundle b = new Bundle();
 
-        b.putString("dayOfWeek", schedule.getDayName());
-        b.putLong("dayMillis", schedule.getDayMillis());
+        b.putString(Constants.DATAMAP_DAY_NAME, schedule.getDayName());
+        b.putLong(Constants.DATAMAP_DAY_MILLIS, schedule.getDayMillis());
         scheduleIntent.putExtras(b);
 
         ScheduleActivity.this.startActivity(scheduleIntent);
@@ -275,7 +275,7 @@ public class ScheduleActivity extends Activity implements WearableListView.Click
 
     // Inner class providing the WearableListview's adapter
     public class ListViewAdapter extends WearableListView.Adapter {
-        private List<ScheduleModel> mDataset;
+        private List<ScheduleModel> mDataset = null;
         private final Context mContext;
 
         // Provide a suitable constructor (depends on the kind of dataset)
@@ -328,10 +328,7 @@ public class ScheduleActivity extends Activity implements WearableListView.Click
         // (invoked by the WearableListView's layout manager)
         @Override
         public int getItemCount() {
-            if (mDataset == null) {
-                return 0;
-            }
-            return mDataset.size();
+            return mDataset == null ? 0 : mDataset.size();
         }
 
         public void refresh(List<ScheduleModel> schedulesList) {

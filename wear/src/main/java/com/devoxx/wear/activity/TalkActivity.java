@@ -78,11 +78,11 @@ public class TalkActivity extends Activity implements GoogleApiClient.Connection
         mTalkId = "";
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
-            mTalkId = bundle.getString("talkId");
-            mTalkTitle = bundle.getString("talkTitle");
-            mRoomName = bundle.getString("roomName");
-            mFromTimeMillis = bundle.getLong("fromTimeMillis");
-            mToTimeMillis = bundle.getLong("toTimeMillis");
+            mTalkId = bundle.getString(Constants.DATAMAP_TALK_ID);
+            mTalkTitle = bundle.getString(Constants.DATAMAP_TITLE);
+            mRoomName = bundle.getString(Constants.DATAMAP_ROOM_NAME);
+            mFromTimeMillis = bundle.getLong(Constants.DATAMAP_FROM_TIME_MILLIS);
+            mToTimeMillis = bundle.getLong(Constants.DATAMAP_TO_TIME_MILLIS);
         }
 
         setContentView(R.layout.talk_activity);
@@ -279,7 +279,7 @@ public class TalkActivity extends Activity implements GoogleApiClient.Connection
                     return;
                 }
 
-                Boolean favorite = favoriteMap.getBoolean("favorite");
+                boolean favorite = favoriteMap.getBoolean(Constants.DATAMAP_FAVORITE);
                 mTalk.setFavorite(favorite);
                 EventBus.getDefault().postLocal(new FavoriteEvent(favorite));
 
@@ -387,7 +387,7 @@ public class TalkActivity extends Activity implements GoogleApiClient.Connection
                                 if (dataMap == null) {
                                     // Prepare the data map
                                     DataMap favoriteDataMap = new DataMap();
-                                    favoriteDataMap.putString("talkId", talkId);
+                                    favoriteDataMap.putString(Constants.DATAMAP_TALK_ID, talkId);
 
                                     // unable to fetch data -> retrieve the favorite status from the Mobile
                                     sendMessage(Constants.CHANNEL_ID + Constants.FAVORITE_PATH , talkId);
@@ -401,8 +401,7 @@ public class TalkActivity extends Activity implements GoogleApiClient.Connection
                                     return;
                                 }
 
-                                EventBus.getDefault().postLocal(new FavoriteEvent(favoriteMap.getBoolean("favorite")));
-
+                                EventBus.getDefault().postLocal(new FavoriteEvent(favoriteMap.getBoolean(Constants.DATAMAP_FAVORITE, false)));
 
                                 dataItems.release();
                             }
@@ -517,7 +516,7 @@ public class TalkActivity extends Activity implements GoogleApiClient.Connection
         }
 
         DataMap dataMap = new DataMap();
-        dataMap.putString("talkId", addFavoritesEvent.getTalkId());
+        dataMap.putString(Constants.DATAMAP_TALK_ID, addFavoritesEvent.getTalkId());
 
         sendMessage(Constants.CHANNEL_ID + Constants.ADD_FAVORITE_PATH, addFavoritesEvent.getTalkId());
 
@@ -534,7 +533,7 @@ public class TalkActivity extends Activity implements GoogleApiClient.Connection
         }
 
         DataMap dataMap = new DataMap();
-        dataMap.putString("talkId", removeFavoritesEvent.getTalkId());
+        dataMap.putString(Constants.DATAMAP_TALK_ID, removeFavoritesEvent.getTalkId());
 
         sendMessage(Constants.CHANNEL_ID + Constants.REMOVE_FAVORITE_PATH, removeFavoritesEvent.getTalkId());
 

@@ -38,12 +38,12 @@ public class SpeakerDetailWrapper {
 
         // retrieve the speaker's information
         TalkSpeakerApiModel speaker = new TalkSpeakerApiModel();
-        speaker.setUuid(speakerDataMap.getString("uuid"));
-        speaker.setFirstName(speakerDataMap.getString("firstName"));
-        speaker.setLastName(speakerDataMap.getString("lastName"));
-        speaker.setTwitter(speakerDataMap.getString("twitter"));
-        speaker.setAvatarURL(speakerDataMap.getString("avatarURL"));
-        speaker.setAvatarImage(speakerDataMap.getString("avatarImage"));
+        speaker.setUuid(speakerDataMap.getString(Constants.DATAMAP_UUID, ""));
+        speaker.setFirstName(speakerDataMap.getString(Constants.DATAMAP_FIRST_NAME, ""));
+        speaker.setLastName(speakerDataMap.getString(Constants.DATAMAP_LAST_NAME, ""));
+        speaker.setTwitter(speakerDataMap.getString(Constants.DATAMAP_TWITTER, ""));
+        speaker.setAvatarURL(speakerDataMap.getString(Constants.DATAMAP_AVATAR_URL, ""));
+        speaker.setAvatarImage(speakerDataMap.getString(Constants.DATAMAP_AVATAR_IMAGE, ""));
 
         return speaker;
 
