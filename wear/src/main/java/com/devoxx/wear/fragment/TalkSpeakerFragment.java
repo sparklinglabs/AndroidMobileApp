@@ -157,7 +157,7 @@ public class TalkSpeakerFragment extends BaseFragment {
                 }
 
 
-                if (TextUtils.isEmpty(mCurrentSpeaker.getTwitter()) == false) {
+                if (!TextUtils.isEmpty(mCurrentSpeaker.getTwitter())) {
                     String twitterName = mCurrentSpeaker.getTwitter().toLowerCase();
 
                     mMainView.findViewById(R.id.twitterLayout).setVisibility(View.VISIBLE);
