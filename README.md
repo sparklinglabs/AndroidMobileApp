@@ -7,7 +7,7 @@ Created and handcrafted with care by [scalac.io 'Best Scala hAkkers!'](http://ww
 # Project setup:
 Following setup is needed to get project compile with **Retrolambda** library!
 
-Please setup proper **JAVA8_HOME_PATH** variable in **app/build.gradle** file.
+Please setup proper **java8_path** variable in **devoxx.properties** file.
 For example on MacOSX (ElCapitan) it should be: **/Library/Java/JavaVirtualMachines/jdk1.8.0_65.jdk/Contents/Home/**
 
 Remember to setup all required credentials!
