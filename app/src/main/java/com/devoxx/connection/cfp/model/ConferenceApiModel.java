@@ -30,6 +30,7 @@ public class ConferenceApiModel implements Serializable {
 	public String cfpVersion;
 	public String youTubeId;
 	public String hashtag;
+	public String integration_id;
 
 	@Override
 	public String toString() {
@@ -55,6 +56,7 @@ public class ConferenceApiModel implements Serializable {
 				", wwwURL='" + wwwURL + '\'' +
 				", youTubeId='" + youTubeId + '\'' +
 				", hashtag='" + hashtag + '\'' +
+				", integration_id='" + integration_id + '\'' +
 				'}';
 	}
 }

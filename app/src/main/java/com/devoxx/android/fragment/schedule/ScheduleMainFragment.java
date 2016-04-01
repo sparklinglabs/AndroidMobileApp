@@ -95,11 +95,10 @@ public class ScheduleMainFragment extends BaseMenuFragment
 		}
 	}
 
-	@Override
-	public void onDestroy() {
+	@Override public void onDestroyView() {
+		super.onDestroyView();
 		viewPager.removeOnPageChangeListener(this);
 		searchManager.clearLastQuery();
-		super.onDestroy();
 	}
 
 	@Override

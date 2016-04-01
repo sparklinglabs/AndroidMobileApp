@@ -8,7 +8,9 @@ public interface ITalkVoter {
 
 	boolean isVotingEnabled();
 
-	boolean canVoteOnTalk(String talkId);
+	boolean isAlreadyVoted(String talkId);
 
 	void showVoteDialog(Context context, SlotApiModel slot, IOnVoteForTalkListener listener);
+
+	boolean canVoteForTalk(SlotApiModel slotModel);
 }

@@ -4,8 +4,8 @@ import com.devoxx.connection.cfp.model.ConferenceApiModel;
 
 import java.util.List;
 
-import retrofit.Call;
-import retrofit.http.GET;
+import retrofit2.Call;
+import retrofit2.http.GET;
 
 public interface CfpApi {
 	@GET("/cfpdevoxx/cfp.json") Call<List<ConferenceApiModel>> conferences();

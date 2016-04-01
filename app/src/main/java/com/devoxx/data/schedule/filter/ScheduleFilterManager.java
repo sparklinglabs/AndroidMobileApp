@@ -151,10 +151,10 @@ public class ScheduleFilterManager {
 					.filter(value -> {
 						if (value.isTalk()) {
 							for (RealmScheduleTrackItemFilter filter : activeFilters) {
-								if (value.talk.track.toLowerCase()
-										.contains(filter.getTrackId().toLowerCase())
-										|| value.talk.track.toLowerCase()
-										.contains(filter.getTrackName().toLowerCase())) {
+								final String track = filter.getTrackId().toLowerCase();
+								final boolean properTrack = value.talk != null
+										&& value.talk.trackId.equalsIgnoreCase(track);
+								if (properTrack) {
 									return true;
 								}
 							}

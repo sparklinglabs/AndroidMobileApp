@@ -11,6 +11,7 @@ import com.devoxx.data.model.RealmConference;
 import com.devoxx.data.schedule.filter.ScheduleFilterManager;
 import com.devoxx.data.schedule.filter.model.RealmScheduleDayItemFilter;
 import com.devoxx.data.schedule.filter.model.RealmScheduleTrackItemFilter;
+import com.devoxx.integrations.IntegrationProvider;
 import com.devoxx.navigation.Navigator;
 import com.devoxx.utils.InfoUtil;
 
@@ -19,6 +20,7 @@ import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EFragment;
 import org.androidannotations.annotations.OptionsItem;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
@@ -53,6 +55,9 @@ public abstract class BaseMenuFragment extends BaseFragment
 	@Bean
 	protected ConferenceManager conferenceManager;
 
+	@Bean
+	protected IntegrationProvider integrationProvider;
+
 	private MaterialDialog filtersDialog;
 	private String lastQuery;
 
@@ -70,8 +75,10 @@ public abstract class BaseMenuFragment extends BaseFragment
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 		if (isAdded()) {
 			inflater.inflate(getMenuRes(), menu);
-			setupFilterMenuIfNeeded(menu);
+			setupFilterMenuIfNeeded(getContext(), menu);
 			setupSearchViewIfNeeded(menu);
+			integrationProvider.provideIntegrationController()
+					.setupIntegrationToolbarMenuItem(menu);
 		}
 		super.onCreateOptionsMenu(menu, inflater);
 	}
@@ -109,13 +116,13 @@ public abstract class BaseMenuFragment extends BaseFragment
 		scheduleFilterManager.defaultFilters();
 	}
 
-	private Drawable buildCounterDrawable(int count, int backgroundImageId) {
-		final LayoutInflater inflater = LayoutInflater.from(getContext());
-		final RelativeLayout rl = new RelativeLayout(getContext());
+	public static Drawable buildCounterDrawable(Context context, int count, int backgroundImageId, int textResId) {
+		final LayoutInflater inflater = LayoutInflater.from(context);
+		final RelativeLayout rl = new RelativeLayout(context);
 		rl.setLayoutParams(new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
 				ViewGroup.LayoutParams.WRAP_CONTENT));
 		final RelativeLayout view = (RelativeLayout) inflater.inflate(
-				R.layout.toolbar_menu_item_with_badge_view, rl, true);
+				textResId, rl, true);
 		view.setBackgroundResource(backgroundImageId);
 
 		final TextView textView = (TextView) view.findViewById(R.id.count);
@@ -135,15 +142,16 @@ public abstract class BaseMenuFragment extends BaseFragment
 		final Bitmap bitmap = Bitmap.createBitmap(view.getDrawingCache());
 		view.setDrawingCacheEnabled(false);
 
-		return new BitmapDrawable(getResources(), bitmap);
+		return new BitmapDrawable(context.getResources(), bitmap);
 	}
 
-	private void setupFilterMenuIfNeeded(Menu menu) {
+	private void setupFilterMenuIfNeeded(Context context, Menu menu) {
 		MenuItem menuItem = menu.findItem(R.id.action_filter);
 		if (menuItem != null) {
 			if (scheduleFilterManager.isSomeFiltersActive()) {
 				final int activeFiltersCount = scheduleFilterManager.unselectedFiltersCount();
-				menuItem.setIcon(buildCounterDrawable(activeFiltersCount, R.drawable.ic_filter_white_24px));
+				menuItem.setIcon(buildCounterDrawable(context, activeFiltersCount, R.drawable.ic_filter_white_24px,
+						R.layout.toolbar_menu_item_with_badge_view));
 			} else {
 				menu.findItem(R.id.action_filter).setIcon(R.drawable.ic_filter_outline_white_24px);
 			}
@@ -224,6 +232,13 @@ public abstract class BaseMenuFragment extends BaseFragment
 		final List<RealmScheduleDayItemFilter> dayFilters = scheduleFilterManager.getDayFilters();
 		final List<RealmScheduleTrackItemFilter> trackFilters = scheduleFilterManager.getTrackFilters();
 		filtersDialog = FiltersDialog.showFiltersDialog(getContext(), dayFilters, trackFilters, this);
+	}
+
+	@OptionsItem(R.id.action_integration)
+	protected void onIntegrationIconClick() {
+		integrationProvider.provideIntegrationController()
+				.handleToolbarIconClick(conferenceManager.getActiveConference()
+						.get().getIntegrationId(), getActivity());
 	}
 
 	@OptionsItem(R.id.action_settings)

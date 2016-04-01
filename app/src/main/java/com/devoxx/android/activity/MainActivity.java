@@ -15,6 +15,8 @@ import com.devoxx.data.manager.SlotsDataManager;
 import com.devoxx.data.manager.SpeakersDataManager;
 import com.devoxx.data.model.RealmConference;
 import com.devoxx.data.schedule.search.SearchManager;
+import com.devoxx.integrations.IntegrationProvider;
+import com.devoxx.integrations.huntly.HuntlyPresenter;
 import com.devoxx.navigation.Navigator;
 import com.devoxx.utils.FontUtils;
 import com.devoxx.utils.InfoUtil;
@@ -23,6 +25,7 @@ import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EActivity;
+import org.androidannotations.annotations.Receiver;
 import org.androidannotations.annotations.ViewById;
 import org.androidannotations.annotations.res.ColorRes;
 import org.androidannotations.annotations.sharedpreferences.Pref;
@@ -69,6 +72,9 @@ public class MainActivity extends BaseActivity {
 	@Bean
 	SearchManager searchManager;
 
+	@Bean
+	IntegrationProvider integrationProvider;
+
 	@Pref
 	Settings_ settings;
 
@@ -85,10 +91,10 @@ public class MainActivity extends BaseActivity {
 	View secondFragmentContainer;
 
 	@ColorRes(R.color.primary_text)
-	int selectedTablColor;
+	int selectedTabColor;
 
 	@ColorRes(R.color.tab_text_unselected)
-	int unselectedTablColor;
+	int unselectedTabColor;
 
 
 	private String fromNotificationSlotId;
@@ -125,7 +131,7 @@ public class MainActivity extends BaseActivity {
 
 	private void handleMenuClick(final int id) {
 		lastClickedMenuId = id;
-		setupMenuApperance(lastClickedMenuId);
+		setupMenuAppearance(lastClickedMenuId);
 		switch (lastClickedMenuId) {
 			case R.id.menu_schedule:
 				openSchedule();
@@ -153,6 +159,20 @@ public class MainActivity extends BaseActivity {
 	protected void onSaveInstanceState(Bundle outState) {
 		outState.putInt(LAST_CLICKED_ITEM_ID, lastClickedMenuId);
 		super.onSaveInstanceState(outState);
+	}
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+		supportInvalidateOptionsMenu();
+		integrationProvider.provideIntegrationController()
+				.handleAppResume(conferenceManager.getActiveConference()
+						.get().getIntegrationId(), this);
+	}
+
+	@Receiver(actions = HuntlyPresenter.INTEGRATION_DIALOG_DISMISSED,
+			registerAt = Receiver.RegisterAt.OnCreateOnDestroy) void onIntegrationDialogDismissed() {
+		supportInvalidateOptionsMenu();
 	}
 
 	@Override
@@ -191,7 +211,7 @@ public class MainActivity extends BaseActivity {
 		super.onActivityResult(requestCode, resultCode, data);
 	}
 
-	private void setupMenuApperance(int id) {
+	private void setupMenuAppearance(int id) {
 		final int size = menuContainer.getChildCount();
 		for (int i = 0; i < size; i++) {
 			final ViewGroup child = (ViewGroup) menuContainer.getChildAt(i);
@@ -200,7 +220,7 @@ public class MainActivity extends BaseActivity {
 
 			final ImageView icon = (ImageView) child.getChildAt(0);
 			if (shouldBeSelected) {
-				icon.setColorFilter(selectedTablColor);
+				icon.setColorFilter(selectedTabColor);
 			} else {
 				icon.clearColorFilter();
 			}
@@ -277,5 +297,4 @@ public class MainActivity extends BaseActivity {
 		getSupportActionBar().setDisplayHomeAsUpEnabled(false);
 		getSupportActionBar().setTitle("");
 	}
-
 }

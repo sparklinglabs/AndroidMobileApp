@@ -14,7 +14,9 @@ import com.devoxx.data.manager.SpeakersDataManager;
 import com.devoxx.data.model.RealmConference;
 import com.devoxx.data.schedule.filter.ScheduleFilterManager;
 import com.devoxx.data.user.UserManager;
-import com.devoxx.utils.Logger;
+import com.devoxx.integrations.IntegrationController;
+import com.devoxx.integrations.IntegrationProvider;
+import com.devoxx.integrations.huntly.HuntlyController;
 
 import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.Bean;
@@ -68,6 +70,9 @@ public class ConferenceManager {
 	Context context;
 
 	@Bean
+	IntegrationProvider integrationProvider;
+
+	@Bean
 	ConferenceDownloader conferenceDownloader;
 
 	@Bean
@@ -90,6 +95,9 @@ public class ConferenceManager {
 
 	@Bean
 	UserManager userManager;
+
+	@Bean
+	HuntlyController huntlyController;
 
 	@Pref
 	Settings_ settings;
@@ -211,6 +219,10 @@ public class ConferenceManager {
 			final List<ConferenceDay> conferenceDays = getConferenceDays();
 			scheduleFilterManager.createDayFiltersDefinition(conferenceDays);
 
+			final IntegrationController integrationController = integrationProvider.provideIntegrationController();
+			integrationController.register();
+			integrationController.downloadNeededData(conferenceApiModel.integration_id);
+
 			notifyConferenceListenerSuccess(confDataListener, isAnyTalks);
 		} catch (IOException e) {
 			clearCurrentConferenceData();
@@ -244,16 +256,13 @@ public class ConferenceManager {
 	}
 
 	public List<ConferenceDay> getConferenceDays() {
-//        final Optional<RealmConference> realmConference = getActiveConference();
-//        if (realmConference.isPresent()) {
-//
-//        }
-
 		// TODO Take dates from model!
-		final String fromDate = "2015-11-09T01:00:00.000Z";
-		final String toDate = "2015-11-13T23:00:00.000Z";
-//        final String fromDate = realmConference.getFromDate();
-//        final String toDate = realmConference.getToDate();
+//		final String fromDate = "2015-11-09T01:00:00.000Z";
+//		final String toDate = "2015-11-13T23:00:00.000Z";
+
+		final RealmConference realmConference = getActiveConference().get();
+		final String fromDate = realmConference.getFromDate();
+		final String toDate = realmConference.getToDate();
 		final DateTime fromConfDate = parseConfDate(fromDate);
 		final DateTime toConfDate = parseConfDate(toDate);
 		final DateTime now = new DateTime(getNow());
@@ -286,14 +295,14 @@ public class ConferenceManager {
 	}
 
 	public void clearCurrentConferenceData() {
-		Logger.l("clearCurrentConferenceData");
-
 		clearCurrentConference();
 		clearSlotsData();
 		clearTracksData();
 		clearSpeakersData();
 		clearFiltersDefinitions();
 		clearCache();
+		
+		integrationProvider.provideIntegrationController().clear();
 		userManager.clearCode();
 	}
 
@@ -301,22 +310,8 @@ public class ConferenceManager {
 		return Stream.of(conferenceDays).filter(ConferenceDay::isRunning).findFirst();
 	}
 
-	public long getNow() {
-		//TODO Tests!
-//        final String test = "2015-11-10T10:00:00.000Z";
-//
-//        final DateTime now = new DateTime();
-//        final DateTime result = parseConfDate(test).withMinuteOfHour(now.getMinuteOfHour())
-//                .withHourOfDay(now.getHourOfDay());
-//
-//        return result.getMillis();
+	public static long getNow() {
 		return System.currentTimeMillis();
-	}
-
-	public boolean isFutureConference(ConferenceApiModel conference) {
-//        return parseConfDate(conference.fromDate).getMillis() > System.currentTimeMillis();
-		// TODO Tests!
-		return !conference.country.toLowerCase().contains("belg");
 	}
 
 	private void clearFiltersDefinitions() {
