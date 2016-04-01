@@ -13,6 +13,15 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
 import android.widget.Toast;
 
+import com.devoxx.BuildConfig;
+import com.devoxx.R;
+import com.devoxx.android.activity.MainActivity_;
+import com.devoxx.android.fragment.schedule.ScheduleLineupFragment;
+import com.devoxx.android.receiver.AlarmReceiver_;
+import com.devoxx.connection.model.SlotApiModel;
+import com.devoxx.data.RealmProvider;
+import com.devoxx.data.model.RealmNotification;
+
 import org.androidannotations.annotations.AfterInject;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
@@ -21,22 +30,11 @@ import org.androidannotations.annotations.SystemService;
 
 import java.text.DateFormat;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import io.realm.Realm;
 import io.realm.RealmResults;
-
-import com.devoxx.android.activity.MainActivity_;
-import com.devoxx.android.fragment.schedule.ScheduleLineupFragment;
-import com.devoxx.android.receiver.AlarmReceiver_;
-import com.devoxx.connection.model.SlotApiModel;
-import com.devoxx.data.RealmProvider;
-import com.devoxx.data.model.RealmNotification;
-
-import com.devoxx.BuildConfig;
-import com.devoxx.R;
 
 @EBean(scope = EBean.Scope.Singleton)
 public class NotificationsManager {
@@ -167,6 +165,10 @@ public class NotificationsManager {
 
 	private void cancelPostTalkNotificationOnAlarmManager(String slotId) {
 		final NotificationConfiguration cfg = getConfiguration(slotId);
+		if (cfg == null) {
+			// talk schedule is already cancelled
+			return;
+		}
 		final PendingIntent toBeCancelled = createPostNotificationPendingIntent(cfg);
 		toBeCancelled.cancel();
 		alarmManager.cancel(toBeCancelled);
@@ -174,6 +176,10 @@ public class NotificationsManager {
 
 	private void cancelTalkNotificationOnAlarmManager(String slotId) {
 		final NotificationConfiguration cfg = getConfiguration(slotId);
+		if (cfg == null) {
+			// talk schedule already cancelled
+			return;
+		}
 		final PendingIntent toBeCancelled = createPendingIntentForAlarmReceiver(cfg);
 		toBeCancelled.cancel();
 		alarmManager.cancel(toBeCancelled);
@@ -332,6 +338,10 @@ public class NotificationsManager {
 		final Realm realm = realmProvider.getRealm();
 		final RealmNotification rn = realm.where(RealmNotification.class).equalTo("slotId", slotID).findFirst();
 		realm.close();
+		if (rn == null) {
+			// talk schedule is already cancelled
+			return null;
+		}
 		return NotificationConfiguration.create(rn);
 	}
 
@@ -351,6 +361,7 @@ public class NotificationsManager {
 
 	private void scheduleTalkNotificationAlarm(NotificationConfiguration cfg) {
 		final PendingIntent alarmIntent = createPendingIntentForAlarmReceiver(cfg);
+
 		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
 			alarmManager.set(AlarmManager.RTC_WAKEUP, cfg.getTalkNotificationTime(), alarmIntent);
 		} else {
