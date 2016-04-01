@@ -26,12 +26,14 @@ android {
 
     signingConfigs {
         debug {
-            storeFile file("debug.keystore")
+            def signFilePath = "${project(':app').projectDir}/debug.keystore"
+            storeFile file(signFilePath)
         }
         release {
             keyAlias keystoreProperties['keyAlias']
             keyPassword keystoreProperties['keyPassword']
-            storeFile file("${projectDir}/${keystoreProperties['storeFile']}")
+            def signFilePath = "${project(':app').projectDir}/${keystoreProperties['storeFile']}"
+            storeFile file(signFilePath)
             storePassword keystoreProperties['storePassword']
         }
     }
@@ -79,7 +81,6 @@ dependencies {
 
     apt 'org.androidannotations:androidannotations:3.3.2'
     compile 'org.androidannotations:androidannotations-api:3.3.2'
-
 
     // Event Bus: BusWear
     compile 'pl.tajchert:buswear:0.9.5'
