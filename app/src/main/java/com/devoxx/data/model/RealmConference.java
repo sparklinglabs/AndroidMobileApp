@@ -39,6 +39,7 @@ public class RealmConference extends RealmObject {
 	private String cfpVersion;
 	private String youTubeId;
 	private String hashtag;
+	private String integrationId;
 	private RealmList<RealmFloor> floors;
 
 	public RealmConference() {
@@ -70,6 +71,7 @@ public class RealmConference extends RealmObject {
 		hashtag = model.hashtag;
 		talkURL = model.talkURL;
 		splashImgURL = model.splashImgURL;
+		integrationId = model.integration_id;
 		floors = new RealmList<>();
 		for (FloorApiModel floor : model.floors) {
 			floors.add(new RealmFloor(floor));
@@ -285,5 +287,13 @@ public class RealmConference extends RealmObject {
 
 	public void setConfIcon(String confIcon) {
 		this.confIcon = confIcon;
+	}
+
+	public String getIntegrationId() {
+		return integrationId;
+	}
+
+	public void setIntegrationId(String integrationId) {
+		this.integrationId = integrationId;
 	}
 }

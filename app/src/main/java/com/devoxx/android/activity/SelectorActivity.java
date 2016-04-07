@@ -13,6 +13,7 @@ import com.devoxx.data.conference.ConferenceManager;
 import com.devoxx.data.model.RealmConference;
 import com.devoxx.utils.BlurTransformation;
 import com.devoxx.utils.FontUtils;
+import com.devoxx.utils.GooglePlayServicesUtils;
 import com.devoxx.utils.InfoUtil;
 import com.devoxx.utils.ViewUtils;
 
@@ -125,7 +126,6 @@ public class SelectorActivity extends BaseActivity implements ConferenceManager.
 			conferenceManager.updateSlotsIfNeededInBackground();
 
 			navigateToHome();
-			finish();
 		} else if (isLoadingData) {
 			selectorView.hideIcons();
 			selectorView.showProgress();
@@ -139,6 +139,10 @@ public class SelectorActivity extends BaseActivity implements ConferenceManager.
 
 			conferenceManager.fetchAvailableConferences();
 			selectorView.setListener(this);
+
+			if (!GooglePlayServicesUtils.requestGooglePlayServices(this)) {
+				infoUtil.showToast("Google Play Services needs to be updated.");
+			}
 		}
 	}
 

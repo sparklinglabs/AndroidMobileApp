@@ -85,3 +85,4 @@ crashlytics-build.properties
 devoxx_android_key.jks
 fabric.properties
 devoxx.properties
+/huntly_integration

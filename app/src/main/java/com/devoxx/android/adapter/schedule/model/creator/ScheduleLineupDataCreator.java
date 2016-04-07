@@ -37,12 +37,6 @@ public class ScheduleLineupDataCreator {
 	private Collector<SlotApiModel, ?, Map<TripleTuple<Long, Long, String>, List<SlotApiModel>>>
 			triplesCollector = createTriplesCollector();
 
-	private Function<SlotApiModel, Comparable>
-			sortTriplesPredicate = value -> value.fromTimeMillis;
-
-	private Function<? super TripleTuple<Long, Long, String>, ? extends Comparable>
-			sortKeysPredicate = value -> value.first;
-
 	@NonNull
 	public List<ScheduleItem> prepareInitialData(long lineupDayMs) {
 		final List<SlotApiModel> slotsRaw = slotsDataManager.getSlotsForDay(lineupDayMs);
@@ -52,11 +46,15 @@ public class ScheduleLineupDataCreator {
 	@NonNull
 	public List<ScheduleItem> prepareResult(List<SlotApiModel> slotApiModels) {
 		final Map<TripleTuple<Long, Long, String>, List<SlotApiModel>> map = Stream.of(slotApiModels)
-				.sortBy(sortTriplesPredicate)
+				.sorted((lhs, rhs) -> lhs.fromTimeMillis < rhs.fromTimeMillis ? -1 : (lhs.fromTimeMillis == rhs.fromTimeMillis ? 0 : 1))
 				.collect(triplesCollector);
 
 		final List<TripleTuple<Long, Long, String>> sortedKeys = Stream.of(map.keySet())
-				.sortBy(sortKeysPredicate)
+				.sorted((lhsVal, rhsVal) -> {
+					final long lhs = lhsVal.first;
+					final long rhs = rhsVal.first;
+					return lhs < rhs ? -1 : (lhs == rhs ? 0 : 1);
+				})
 				.collect(Collectors.<TripleTuple<Long, Long, String>>toList());
 
 		return buildListItems(map, sortedKeys);

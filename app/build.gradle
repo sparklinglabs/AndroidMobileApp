@@ -16,7 +16,7 @@ apply plugin: 'android-apt'
 apply plugin: 'me.tatarka.retrolambda'
 
 def PACKAGE_NAME = "com.devoxx"
-def VERSION_CODE = 110
+def VERSION_CODE = 111
 def VERSION_NAME = "1.0.${VERSION_CODE}"
 
 def keystorePropertiesFile = rootProject.file("devoxx.properties");
@@ -53,28 +53,24 @@ android {
         }
     }
 
+    productFlavors {
+        withIntegration {
+            buildConfigField 'boolean', 'INTEGRATION', "true"
+        }
+        noIntegration {
+            buildConfigField 'boolean', 'INTEGRATION', "false"
+        }
+    }
+
     buildTypes {
         release {
             debuggable false
             minifyEnabled false
-            buildConfigField "boolean", "LOGGING", "false"
-            buildConfigField "boolean", "DEV_ROTATION_ALL", "false"
             manifestPlaceholders = [applicationLabel: "@string/app_name", mapKey: mapKey]
             signingConfig signingConfigs.release
         }
-        devoxx {
+        debug {
             debuggable true
-            versionNameSuffix "@devoxx"
-            buildConfigField "boolean", "LOGGING", "true"
-            buildConfigField "boolean", "DEV_ROTATION_ALL", "false"
-            signingConfig signingConfigs.debug
-            manifestPlaceholders = [applicationLabel: "@string/app_name", mapKey: mapKey]
-        }
-        devoxxDev {
-            debuggable true
-            versionNameSuffix "@devoxx"
-            buildConfigField "boolean", "LOGGING", "true"
-            buildConfigField "boolean", "DEV_ROTATION_ALL", "true"
             signingConfig signingConfigs.debug
             manifestPlaceholders = [applicationLabel: "@string/app_name", mapKey: mapKey]
         }
@@ -120,21 +116,26 @@ dependencies {
     compile 'com.google.android.gms:play-services-maps:8.4.0'
     compile 'com.google.android.gms:play-services-vision:8.4.0'
     compile 'com.google.android.gms:play-services-wearable:8.4.0'
+    compile 'com.google.android.gms:play-services-ads:8.4.0'
 
     compile 'org.jetbrains:annotations:13.0'
     compile 'com.makeramen:roundedimageview:2.2.0'
 
-    compile 'com.squareup.retrofit:retrofit:2.0.0-beta2'
-    compile 'com.squareup.retrofit:converter-gson:2.0.0-beta2'
+    compile 'com.squareup.okhttp3:okhttp:3.2.0'
+    compile('com.squareup.retrofit2:retrofit:2.0.0') {
+        exclude module: 'okhttp'
+    }
+    compile 'com.squareup.retrofit2:converter-gson:2.0.0'
+    compile 'com.squareup.okhttp3:logging-interceptor:3.0.1'
     compile 'com.google.code.gson:gson:2.4'
 
-    compile 'com.annimon:stream:1.0.3'
+    compile 'com.annimon:stream:1.0.8'
     compile 'io.realm:realm-android:0.84.0'
 
     compile 'net.danlew:android.joda:2.9.0'
 
-    apt 'org.androidannotations:androidannotations:3.3.2'
-    compile 'org.androidannotations:androidannotations-api:3.3.2'
+    apt 'org.androidannotations:androidannotations:4.0.0'
+    compile 'org.androidannotations:androidannotations-api:4.0.0'
 
     compile 'com.github.bumptech.glide:glide:3.6.1'
 
@@ -154,6 +155,8 @@ dependencies {
     compile project(path: ':scanner')
 
     compile project(path: ':common')
+
+    compile project(path: ':huntly_integration')
 
 }
 

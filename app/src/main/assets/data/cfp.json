@@ -45,11 +45,13 @@
     "regURL": "https://reg.devoxx.fr",
     "cfpURL": "https://cfp.devoxx.fr",
     "talkURL": "",
-    "votingURL": "https://api-voting.devoxx.com",
+    "votingURL": "https://api-voting.devoxx.com/",
     "votingEnabled": "true",
+    "votingImageName": "wine",
     "cfpEndpoint": "https://cfp.devoxx.fr/api",
     "cfpVersion": "1.0",
-    "youTubeURL": "https://www.youtube.com/c/devoxx2015"
+    "youTubeURL": "https://www.youtube.com/c/devoxx2015",
+    "integration_id": "devoxx_france"
   },
   {
     "id": "DevoxxUK2016",
@@ -63,26 +65,26 @@
     "longitude": "-0.127758",
     "floors": [
       {
-        "img": "todo provide image",
-        "title": "First floor",
+        "img": "https://s3-eu-west-1.amazonaws.com/cfpdevoxx/uk/DevoxxUKExhibitionFloorplan.jpg",
+        "title": "Exhibition",
         "tabpos": "1",
         "target": "phone"
       },
       {
-        "img": "todo provide image",
-        "title": "Second floor",
+        "img": "https://s3-eu-west-1.amazonaws.com/cfpdevoxx/uk/SessionRoomsDevoxxUK2016.jpg",
+        "title": "Session Rooms",
         "tabpos": "2",
         "target": "phone"
       },
       {
-        "img": "todo provide image",
-        "title": "First floor",
+        "img": "https://s3-eu-west-1.amazonaws.com/cfpdevoxx/uk/DevoxxUKExhibitionFloorplan.jpg",
+        "title": "Exhibition",
         "tabpos": "1",
         "target": "tablet"
       },
       {
-        "img": "todo provide image",
-        "title": "Second floor",
+        "img": "https://s3-eu-west-1.amazonaws.com/cfpdevoxx/uk/SessionRoomsDevoxxUK2016.jpg",
+        "title": "Session Rooms",
         "tabpos": "2",
         "target": "tablet"
       }
@@ -97,11 +99,13 @@
     "regURL": "https://www.eventbrite.co.uk/e/devoxx-uk-2016-tickets-19399397119",
     "cfpURL": "https://cfp.devoxx.co.uk/",
     "talkURL": "",
-    "votingURL": "https://api-voting.devoxx.com",
+    "votingURL": "https://api-voting.devoxx.com/",
     "votingEnabled": "true",
+    "votingImageName": "beer",
     "cfpEndpoint": "https://cfp.devoxx.co.uk/api",
     "cfpVersion": "1.0",
-    "youTubeURL": "https://www.youtube.com/c/devoxx2015"
+    "youTubeURL": "https://www.youtube.com/c/devoxx2015",
+    "integration_id": "devoxx_uk"
   },
   {
     "id": "DevoxxPL2015",
@@ -149,11 +153,13 @@
     "regURL": "http://reg.devoxx.pl/",
     "cfpURL": "http://cfp.devoxx.pl/",
     "talkURL": "",
-    "votingURL": "https://api-voting.devoxx.com",
+    "votingURL": "https://api-voting.devoxx.com/",
     "votingEnabled": "true",
+    "votingImageName": "vodka",
     "cfpEndpoint": "http://cfp.devoxx.pl/api",
     "cfpVersion": "1.0",
-    "youTubeURL": "https://www.youtube.com/c/devoxx2015"
+    "youTubeURL": "https://www.youtube.com/c/devoxx2015",
+    "integration_id": "devoxx_poland"
   },
   {
     "id": "DV15",
@@ -201,11 +207,13 @@
     "regURL": "http://reg.devoxx.be/",
     "cfpURL": "https://cfp.devoxx.be/",
     "talkURL": "https://cfp.devoxx.be/2015/talk/",
-    "votingURL": "https://api-voting.devoxx.com",
+    "votingURL": "https://api-voting.devoxx.com/",
     "votingEnabled": "true",
+    "votingImageName": "beer",
     "cfpEndpoint": "https://cfp.devoxx.be/api",
     "cfpVersion": "1.0",
-    "youTubeURL": "https://www.youtube.com/c/devoxx2015"
+    "youTubeURL": "https://www.youtube.com/c/devoxx2015",
+    "integration_id": "devoxx_belgium"
   },
   {
     "id": "DevoxxMA2015",
@@ -215,8 +223,8 @@
     "venue": "Studio des Arts Vivants",
     "address": "Route d'Azemmour, Casablanca",
     "country": "Morocco",
-    "latitude": "33.574319",
-    "longitude": "-7.7535457",
+    "latitude": "33.5743264",
+    "longitude": "-7.6840528",
     "floors": [
       {
         "img": "todo provide image",
@@ -247,17 +255,18 @@
     "sessions": "150",
     "hashtag": "#DevoxxMA",
     "splashImgURL": "https://s3-eu-west-1.amazonaws.com/cfpdevoxx/morocco/DevoxxMoroccoHomePage.jpg",
-    "fromDate": "2016-11-14T08:00:00.000Z",
-    "toDate": "2016-11-16T22:00:00.000Z",
+    "fromDate": "2016-11-1T08:00:00.000Z",
+    "toDate": "2016-11-3T22:00:00.000Z",
     "wwwURL": "http://www.devoxx.ma",
     "regURL": "http://reg.devoxx.ma/",
     "cfpURL": "http://cfp.devoxx.ma/",
     "talkURL": "http://cfp.devoxx.ma/2015/talk/",
-    "votingURL": "https://api-voting.devoxx.com",
+    "votingURL": "https://api-voting.devoxx.com/",
     "votingEnabled": "true",
+    "votingImageName": "thee",
     "cfpEndpoint": "http://cfp.devoxx.ma/api",
     "cfpVersion": "1.0",
-    "youTubeURL": "https://www.youtube.com/user/JMaghreb"
+    "youTubeURL": "https://www.youtube.com/user/JMaghreb",
+    "integration_id": "devoxx_morocco"
   }
 ]
- 

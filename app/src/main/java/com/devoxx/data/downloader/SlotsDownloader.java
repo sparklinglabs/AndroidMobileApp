@@ -18,7 +18,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import retrofit.Call;
+import retrofit2.Call;
 
 @EBean
 public class SlotsDownloader {
@@ -78,6 +78,9 @@ public class SlotsDownloader {
 		final Call<SpecificScheduleApiModel> call =
 				devoxxApi.specificSchedule(confCode, day);
 
-		result.addAll(call.execute().body().slots);
+		final List<SlotApiModel> slotApiModels = call.execute().body().slots;
+		Logger.l("downloadTalkSlotsForDay, " + day + ", result: " + slotApiModels.size());
+
+		result.addAll(slotApiModels);
 	}
 }

@@ -38,6 +38,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -124,15 +125,11 @@ public class SpeakersFragment extends BaseMenuFragment {
 		final List<SpeakersGroup> list = Stream.of(speakers)
 				.groupBy(speakerFirstLetterGroupping())
 				.map(speakersGroupMapper())
-				.sortBy(speakersGroupSorter())
+				.sorted((lhs, rhs) -> lhs.getGroupLetter().compareTo(rhs.getGroupLetter()))
 				.collect(Collectors.<SpeakersGroup>toList());
 
 		itemAdapter.setSpeakers(list);
 		itemAdapter.notifyDataSetChanged();
-	}
-
-	private static Function<SpeakersGroup, Comparable> speakersGroupSorter() {
-		return SpeakersGroup::getGroupLetter;
 	}
 
 	private static Function<Map.Entry<String,

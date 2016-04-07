@@ -1,7 +1,9 @@
 package com.devoxx.android.activity;
 
 import com.devoxx.R;
+import com.devoxx.data.conference.ConferenceManager;
 import com.devoxx.data.user.UserManager;
+import com.devoxx.integrations.IntegrationProvider;
 import com.devoxx.utils.InfoUtil;
 import com.google.android.gms.vision.barcode.Barcode;
 
@@ -11,6 +13,7 @@ import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.ViewById;
 
 import android.content.Intent;
+import android.support.v4.util.Pair;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.EditText;
@@ -27,6 +30,12 @@ public class RegisterUserActivity extends BaseActivity {
 	InfoUtil infoUtil;
 
 	@Bean
+	IntegrationProvider integrationProvider;
+
+	@Bean
+	ConferenceManager conferenceManager;
+
+	@Bean
 	UserManager userManager;
 
 	@ViewById(R.id.registerUserInfo)
@@ -35,7 +44,7 @@ public class RegisterUserActivity extends BaseActivity {
 	@ViewById(R.id.registerUserinput)
 	EditText codeInput;
 
-	private String userId;
+	private InfoExtractor infoExtractor = new EmptyExtractor();
 
 	@Click(R.id.registerUserViaQr) void onScannerClick() {
 		final Intent intent = new Intent(this, BarcodeCaptureActivity.class);
@@ -47,6 +56,7 @@ public class RegisterUserActivity extends BaseActivity {
 		final String message;
 		final boolean finishScreen;
 
+		final String userId = infoExtractor.getUserId().second;
 		final String input = codeInput.getText().toString();
 		final String finalCode = validateInput(userId) ?
 				userId : validateInput(input) ? input : null;
@@ -55,6 +65,9 @@ public class RegisterUserActivity extends BaseActivity {
 			userManager.saveUserCode(finalCode);
 			message = getString(R.string.register_success_message);
 			finishScreen = true;
+			integrationProvider.provideIntegrationController()
+					.userRegistered(conferenceManager.getActiveConference()
+							.get().getIntegrationId(), finalCode, infoExtractor);
 		} else {
 			message = getString(R.string.register_failed_message);
 			finishScreen = false;
@@ -77,21 +90,74 @@ public class RegisterUserActivity extends BaseActivity {
 
 		if (data != null && data.hasExtra(BarcodeCaptureActivity.BarcodeObject)) {
 			final Barcode barcode = data.getParcelableExtra(BarcodeCaptureActivity.BarcodeObject);
-			final String code = barcode.displayValue;
-			extractInfo(code);
+			infoExtractor = new InfoExtractor(barcode.displayValue);
+			fillUserInfo();
 		}
 	}
 
-	private void extractInfo(String data) {
-		final String[] dataParts = data.split(",");
-		userId = dataParts[0];
-		final String userCompany = dataParts[1];
-		final String userName = dataParts[2];
-		final String userSurname = dataParts[3];
+	private void fillUserInfo() {
+		final String userId = infoExtractor.getUserId().second;
+		final String userCompany = infoExtractor.getUserCompany().second;
+		final String userName = infoExtractor.getUserName().second;
+		final String userSurname = infoExtractor.getUserSurname().second;
 
 		userInfo.setVisibility(View.VISIBLE);
 		userInfo.setText(String.format("%s\n%s\n%s\n%s", userName, userSurname, userCompany, userId));
 
 		codeInput.setVisibility(View.GONE);
+	}
+
+	public static class InfoExtractor {
+		private String[] dataParts;
+
+		public InfoExtractor(String data) {
+			dataParts = data.split(",");
+		}
+
+		public Pair<String, String> getUserName() {
+			return new Pair<>("userName", dataParts[1]);
+		}
+
+		public Pair<String, String> getUserSurname() {
+			return new Pair<>("userSurname", dataParts[2]);
+		}
+
+		public Pair<String, String> getUserCompany() {
+			return new Pair<>("userCompany", dataParts[3]);
+		}
+
+		public Pair<String, String> getUserJob() {
+			return new Pair<>("userJob", dataParts[4]);
+		}
+
+		public Pair<String, String> getUserId() {
+			return new Pair<>("userId", dataParts[0]);
+		}
+	}
+
+	private static class EmptyExtractor extends InfoExtractor {
+		public EmptyExtractor() {
+			super("");
+		}
+
+		@Override public Pair<String, String> getUserName() {
+			return new Pair<>("userName", "");
+		}
+
+		@Override public Pair<String, String> getUserSurname() {
+			return new Pair<>("userSurname", "");
+		}
+
+		@Override public Pair<String, String> getUserCompany() {
+			return new Pair<>("userCompany", "");
+		}
+
+		@Override public Pair<String, String> getUserId() {
+			return new Pair<>("userId", "");
+		}
+
+		public Pair<String, String> getUserJob() {
+			return new Pair<>("userJob", "");
+		}
 	}
 }

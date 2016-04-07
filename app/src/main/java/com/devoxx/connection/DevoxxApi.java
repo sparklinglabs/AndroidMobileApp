@@ -9,14 +9,14 @@ import com.devoxx.connection.model.SpeakerShortApiModel;
 import com.devoxx.connection.model.SpecificScheduleApiModel;
 import com.devoxx.connection.model.TalkFullApiModel;
 import com.devoxx.connection.model.TracksApiModel;
-import com.squareup.okhttp.ResponseBody;
 
 import java.util.List;
 
-import retrofit.Call;
-import retrofit.http.GET;
-import retrofit.http.Path;
-import retrofit.http.Url;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.http.GET;
+import retrofit2.http.Path;
+import retrofit2.http.Url;
 
 public interface DevoxxApi {
 

@@ -1,5 +1,49 @@
 package com.devoxx.android.fragment.talk;
 
+import com.annimon.stream.Optional;
+import com.devoxx.R;
+import com.devoxx.android.fragment.common.BaseFragment;
+import com.devoxx.android.fragment.schedule.ScheduleLineupFragment;
+import com.devoxx.android.view.talk.TalkDetailsHeader;
+import com.devoxx.android.view.talk.TalkDetailsSectionClickableItem;
+import com.devoxx.android.view.talk.TalkDetailsSectionClickableItem_;
+import com.devoxx.android.view.talk.TalkDetailsSectionItem;
+import com.devoxx.android.view.talk.TalkDetailsSectionItem_;
+import com.devoxx.BuildConfig;
+import com.devoxx.common.utils.Constants;
+import com.devoxx.connection.Connection;
+import com.devoxx.connection.model.SlotApiModel;
+import com.devoxx.connection.model.TalkFullApiModel;
+import com.devoxx.connection.model.TalkSpeakerApiModel;
+import com.devoxx.data.conference.ConferenceManager;
+import com.devoxx.data.manager.NotificationsManager;
+import com.devoxx.data.manager.SpeakersDataManager;
+import com.devoxx.data.model.RealmConference;
+import com.devoxx.data.user.UserManager;
+import com.devoxx.data.vote.interfaces.IOnVoteForTalkListener;
+import com.devoxx.data.vote.interfaces.ITalkVoter;
+import com.devoxx.data.vote.voters.TalkVoter;
+import com.devoxx.event.ScheduleEvent;
+import com.devoxx.integrations.IntegrationProvider;
+import com.devoxx.navigation.Navigator;
+import com.devoxx.utils.DeviceUtil;
+import com.devoxx.utils.InfoUtil;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.wearable.DataMap;
+import com.google.android.gms.wearable.PutDataMapRequest;
+import com.google.android.gms.wearable.Wearable;
+
+import org.androidannotations.annotations.AfterViews;
+import org.androidannotations.annotations.Bean;
+import org.androidannotations.annotations.Click;
+import org.androidannotations.annotations.EFragment;
+import org.androidannotations.annotations.FragmentArg;
+import org.androidannotations.annotations.SystemService;
+import org.androidannotations.annotations.UiThread;
+import org.androidannotations.annotations.ViewById;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
@@ -19,48 +63,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-
-import com.annimon.stream.Optional;
-import com.devoxx.R;
-import com.devoxx.android.fragment.common.BaseFragment;
-import com.devoxx.android.fragment.schedule.ScheduleLineupFragment;
-import com.devoxx.android.view.talk.TalkDetailsHeader;
-import com.devoxx.android.view.talk.TalkDetailsSectionClickableItem;
-import com.devoxx.android.view.talk.TalkDetailsSectionClickableItem_;
-import com.devoxx.android.view.talk.TalkDetailsSectionItem;
-import com.devoxx.android.view.talk.TalkDetailsSectionItem_;
-import com.devoxx.common.utils.Constants;
-import com.devoxx.connection.Connection;
-import com.devoxx.connection.model.SlotApiModel;
-import com.devoxx.connection.model.TalkFullApiModel;
-import com.devoxx.connection.model.TalkSpeakerApiModel;
-import com.devoxx.data.conference.ConferenceManager;
-import com.devoxx.data.manager.NotificationsManager;
-import com.devoxx.data.manager.SpeakersDataManager;
-import com.devoxx.data.model.RealmConference;
-import com.devoxx.data.user.UserManager;
-import com.devoxx.data.vote.interfaces.IOnVoteForTalkListener;
-import com.devoxx.data.vote.interfaces.ITalkVoter;
-import com.devoxx.data.vote.voters.TalkVoter;
-import com.devoxx.event.ScheduleEvent;
-import com.devoxx.navigation.Navigator;
-import com.devoxx.utils.DeviceUtil;
-import com.devoxx.utils.InfoUtil;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.wearable.DataMap;
-import com.google.android.gms.wearable.PutDataMapRequest;
-import com.google.android.gms.wearable.Wearable;
-
-import org.androidannotations.annotations.AfterViews;
-import org.androidannotations.annotations.Bean;
-import org.androidannotations.annotations.Click;
-import org.androidannotations.annotations.EFragment;
-import org.androidannotations.annotations.FragmentArg;
-import org.androidannotations.annotations.SystemService;
-import org.androidannotations.annotations.UiThread;
-import org.androidannotations.annotations.ViewById;
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
 
 import java.io.IOException;
 import java.util.List;
@@ -101,6 +103,9 @@ public class TalkFragment extends BaseFragment implements AppBarLayout.OnOffsetC
 
 	@Bean(TalkVoter.class)
 	ITalkVoter talkVoter;
+
+	@Bean
+	IntegrationProvider integrationProvider;
 
 	@SystemService
 	LayoutInflater li;
@@ -269,12 +274,14 @@ public class TalkFragment extends BaseFragment implements AppBarLayout.OnOffsetC
 	@Click(R.id.talkDetailsLikeBtn) void onVoteClick() {
 		if (userManager.isFirstTimeUser()) {
 			userManager.openUserScanBadge();
-		} else if (talkVoter.canVoteOnTalk(slotModel.talk.id)) {
+		} else if (!talkVoter.isAlreadyVoted(slotModel.talk.id)) {
 			talkVoter.showVoteDialog(getActivity(), slotModel, new IOnVoteForTalkListener() {
 				@Override
 				public void onVoteForTalkSucceed() {
-					infoUtil.showToast("Voted...");
 					setupVoteIcon();
+					integrationProvider.provideIntegrationController()
+							.talkVoted(conferenceManager.getActiveConference()
+									.get().getIntegrationId(), getActivity());
 				}
 
 				@Override
@@ -332,10 +339,16 @@ public class TalkFragment extends BaseFragment implements AppBarLayout.OnOffsetC
 	}
 
 	private void setupVoteIcon() {
-		if (talkVoter.canVoteOnTalk(slotModel.talk.id)) {
-			voteButton.setImageResource(R.drawable.ic_heart_outline);
+		if (BuildConfig.DEBUG || (talkVoter.isVotingEnabled() && talkVoter.canVoteForTalk(slotModel))) {
+			voteButton.setVisibility(View.VISIBLE);
+
+			if (talkVoter.isAlreadyVoted(slotModel.talk.id)) {
+				voteButton.setImageResource(R.drawable.ic_heart);
+			} else {
+				voteButton.setImageResource(R.drawable.ic_heart_outline);
+			}
 		} else {
-			voteButton.setImageResource(R.drawable.ic_heart);
+			voteButton.setVisibility(View.GONE);
 		}
 	}
 

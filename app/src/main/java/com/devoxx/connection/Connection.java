@@ -6,11 +6,6 @@ import com.devoxx.Configuration;
 import com.devoxx.connection.cfp.CfpApi;
 import com.devoxx.data.conference.ConferenceManager;
 import com.devoxx.data.model.RealmConference;
-import com.devoxx.utils.Logger;
-import com.squareup.okhttp.Interceptor;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.Response;
 
 import org.androidannotations.annotations.AfterInject;
 import org.androidannotations.annotations.Bean;
@@ -23,10 +18,10 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
-import java.io.IOException;
-
-import retrofit.GsonConverterFactory;
-import retrofit.Retrofit;
+import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 @EBean(scope = EBean.Scope.Singleton)
 public class Connection {
@@ -54,15 +49,17 @@ public class Connection {
 		connectionConfigurationStore.edit().activeConferenceApiUrl()
 				.put(conferenceEndpoint).apply();
 
-		final OkHttpClient client = new OkHttpClient();
+		final OkHttpClient.Builder builder = new OkHttpClient.Builder();
 
-		if (BuildConfig.LOGGING) {
-			client.interceptors().add(new LoggingInterceptor());
+		if (BuildConfig.DEBUG) {
+			final HttpLoggingInterceptor httpLoggingInterceptor = new HttpLoggingInterceptor();
+			httpLoggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+			builder.addInterceptor(httpLoggingInterceptor);
 		}
 
 		final Retrofit retrofit = new Retrofit.Builder()
 				.baseUrl(conferenceEndpoint)
-				.client(client)
+				.client(builder.build())
 				.addConverterFactory(GsonConverterFactory.create())
 				.build();
 		devoxxApi = retrofit.create(DevoxxApi.class);
@@ -87,14 +84,17 @@ public class Connection {
 	}
 
 	private void initiCfpApi() {
-		final OkHttpClient client = new OkHttpClient();
-		if (BuildConfig.LOGGING) {
-			client.interceptors().add(new LoggingInterceptor());
+		final OkHttpClient.Builder builder = new OkHttpClient.Builder();
+
+		if (BuildConfig.DEBUG) {
+			final HttpLoggingInterceptor httpLoggingInterceptor = new HttpLoggingInterceptor();
+			httpLoggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+			builder.addInterceptor(httpLoggingInterceptor);
 		}
 
 		final Retrofit retrofit = new Retrofit.Builder()
 				.baseUrl(Configuration.CFP_API_URL)
-				.client(client)
+				.client(builder.build())
 				.addConverterFactory(GsonConverterFactory.create())
 				.build();
 		cfpApi = retrofit.create(CfpApi.class);
@@ -103,24 +103,5 @@ public class Connection {
 	public boolean isOnline() {
 		final NetworkInfo netInfo = cm.getActiveNetworkInfo();
 		return netInfo != null && netInfo.isConnectedOrConnecting();
-	}
-
-	class LoggingInterceptor implements Interceptor {
-		@Override
-		public Response intercept(Chain chain) throws IOException {
-			Request request = chain.request();
-
-			long t1 = System.nanoTime();
-			Logger.l(String.format("Sending request %s on %s%n%s",
-					request.url(), chain.connection(), request.headers()));
-
-			Response response = chain.proceed(request);
-
-			long t2 = System.nanoTime();
-			Logger.l(String.format("Received response for %s in %.1fms%n%s",
-					response.request().url(), (t2 - t1) / 1e6d, response.headers()));
-
-			return response;
-		}
 	}
 }

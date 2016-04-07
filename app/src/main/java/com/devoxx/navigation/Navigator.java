@@ -1,17 +1,8 @@
 package com.devoxx.navigation;
 
-import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.net.Uri;
-import android.os.Build;
-import android.support.v4.app.Fragment;
-
 import com.devoxx.R;
 import com.devoxx.android.activity.MainActivity;
 import com.devoxx.android.activity.SpeakerDetailsHostActivity_;
-import com.devoxx.android.activity.TalkDetailsHostActivity;
 import com.devoxx.android.activity.TalkDetailsHostActivity_;
 import com.devoxx.android.fragment.map.MapMainFragment_;
 import com.devoxx.android.fragment.map.MapMenuLandscapeFragment_;
@@ -23,6 +14,14 @@ import com.devoxx.utils.DeviceUtil;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
 import org.androidannotations.annotations.sharedpreferences.Pref;
+
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.Build;
+import android.support.v4.app.Fragment;
 
 @EBean
 public class Navigator {
@@ -118,12 +117,8 @@ public class Navigator {
 	}
 
 	public void reportIssue(Activity activity) {
-		final Intent emailIntent = new Intent(android.content.Intent.ACTION_SEND);
-		emailIntent.setType("plain/text");
-		emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL, new String[]{"beta@devoxx.com"});
-		emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "My Devoxx Feedback/Issue");
-		emailIntent.putExtra(android.content.Intent.EXTRA_TEXT, buildBasicInfo(activity));
-		activity.startActivity(Intent.createChooser(emailIntent, "Send mail..."));
+		final Uri uri = Uri.parse("https://github.com/devoxx/AndroidMobileApp/issues");
+		activity.startActivity(new Intent(Intent.ACTION_VIEW, uri));
 	}
 
 	private static final String PLACEHOLDER = "Feedback: %1$s %2$s (%3$s) Android %4$s (API %5$s) %6$s %7$s\n\n";

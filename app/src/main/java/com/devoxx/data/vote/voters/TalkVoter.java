@@ -7,6 +7,7 @@ import com.devoxx.connection.model.SlotApiModel;
 import com.devoxx.connection.vote.VoteApi;
 import com.devoxx.connection.vote.VoteConnection;
 import com.devoxx.connection.vote.model.VoteApiModel;
+import com.devoxx.connection.vote.model.VoteApiSimpleModel;
 import com.devoxx.connection.vote.model.VoteDetailsApiModel;
 import com.devoxx.data.RealmProvider;
 import com.devoxx.data.conference.ConferenceManager;
@@ -21,6 +22,7 @@ import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
 import org.androidannotations.annotations.UiThread;
+import org.joda.time.DateTime;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -39,14 +41,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.realm.Realm;
-import retrofit.Call;
-import retrofit.Response;
+import retrofit2.Call;
+import retrofit2.Response;
 
 @EBean
 public class TalkVoter implements ITalkVoter {
 
 	private static final int NOT_READY_VOTE_HTTP_CODE = 500;
 	private static final int ALREADY_VOTED_HTTP_CODE = 409;
+
 	@Bean
 	VoteConnection voteConnection;
 
@@ -102,19 +105,40 @@ public class TalkVoter implements ITalkVoter {
 		speakers.setText(slot.talk.getReadableSpeakers());
 	}
 
-	@Override
-	public boolean isVotingEnabled() {
-		final Optional<RealmConference> conferenceOptional = conferenceManager.getActiveConference();
-		return conferenceOptional.isPresent() && Boolean.parseBoolean(conferenceOptional.get().getVotingEnabled());
+	@Override public boolean canVoteForTalk(SlotApiModel slotModel) {
+		final DateTime now = new DateTime(ConferenceManager.getNow());
+		final DateTime talkStart = new DateTime(slotModel.fromTimeMillis);
+		return now.isAfter(talkStart);
 	}
 
 	@Override
-	public boolean canVoteOnTalk(String talkId) {
+	public boolean isVotingEnabled() {
+		final Optional<RealmConference> conferenceOptional = conferenceManager.getActiveConference();
+		final RealmConference realmConference = conferenceOptional.orElse(null);
+		final boolean isConferenceAvailable = realmConference != null;
+		boolean isVoteEnabled = isConferenceAvailable
+				&& Boolean.parseBoolean(realmConference.getVotingEnabled());
+
+		if (isConferenceAvailable) {
+			final String fromDate = realmConference.getFromDate();
+			final String toDate = realmConference.getToDate();
+			final DateTime fromConfDate = ConferenceManager.parseConfDate(fromDate);
+			final DateTime toConfDate = ConferenceManager.parseConfDate(toDate);
+			final DateTime now = new DateTime(ConferenceManager.getNow());
+
+			isVoteEnabled &= now.isAfter(fromConfDate) && now.isBefore(toConfDate);
+		}
+
+		return isVoteEnabled;
+	}
+
+	@Override
+	public boolean isAlreadyVoted(String talkId) {
 		final Realm realm = realmProvider.getRealm();
 		final VotedTalkModel model = realm.where(VotedTalkModel.class)
 				.equalTo("talkId", talkId).findFirst();
 		realm.close();
-		return model == null;
+		return model != null;
 	}
 
 	private String getConfCode() {
@@ -126,11 +150,10 @@ public class TalkVoter implements ITalkVoter {
 		final Realm realm = realmProvider.getRealm();
 		try {
 			final VoteApi voteApi = voteConnection.getVoteApi();
-			final Call<VoteApiModel> call = voteApi.vote(getConfCode(),
-					prepareVoteModel(talkId, rating, content, delivery, other));
-			final Response<VoteApiModel> response = call.execute();
+			final Call<VoteApiSimpleModel> call = createRequest(rating, talkId, content, delivery, other, voteApi);
+			final Response<VoteApiSimpleModel> response = call.execute();
 
-			if (response.isSuccess()) {
+			if (response.isSuccessful()) {
 				rememberVote(realm, talkId);
 				notifyAboutSuccess(listener);
 			} else if (response.code() == NOT_READY_VOTE_HTTP_CODE) {
@@ -179,13 +202,18 @@ public class TalkVoter implements ITalkVoter {
 		}
 	}
 
-	private VoteApiModel prepareVoteModel(String talkId, int rating, String content, String delivery, String other) {
+	private Call<VoteApiSimpleModel> createRequest(int rating, String talkId, String content, String delivery, String other, VoteApi voteApi) {
 		final String userId = userManager.getUserCode();
-		final List<VoteDetailsApiModel> details = new ArrayList<>();
-		appendDetails(details, "content", content, rating);
-		appendDetails(details, "delivery", delivery, rating);
-		appendDetails(details, "other", other, rating);
-		return new VoteApiModel(talkId, rating, userId, details);
+		if (TextUtils.isEmpty(content) && TextUtils.isEmpty(delivery) && TextUtils.isEmpty(other)) {
+			return voteApi.vote(getConfCode(), new VoteApiSimpleModel(talkId, rating, userId));
+		} else {
+			final List<VoteDetailsApiModel> details = new ArrayList<>();
+			appendDetails(details, "Content", content, rating);
+			appendDetails(details, "Delivery", delivery, rating);
+			appendDetails(details, "Other", other, rating);
+			final VoteApiModel model = new VoteApiModel(talkId, userId, details);
+			return voteApi.vote(getConfCode(), model);
+		}
 	}
 
 	private void appendDetails(List<VoteDetailsApiModel> result, String key, String value, int rating) {

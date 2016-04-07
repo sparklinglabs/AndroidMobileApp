@@ -10,8 +10,8 @@ import org.androidannotations.annotations.EBean;
 import java.io.IOException;
 import java.util.List;
 
-import retrofit.Call;
-import retrofit.Response;
+import retrofit2.Call;
+import retrofit2.Response;
 
 @EBean
 public class ConferenceDownloader {

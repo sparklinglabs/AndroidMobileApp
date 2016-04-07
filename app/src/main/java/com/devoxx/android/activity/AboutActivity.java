@@ -1,12 +1,6 @@
 package com.devoxx.android.activity;
 
 
-import android.support.design.widget.AppBarLayout;
-import android.support.design.widget.CollapsingToolbarLayout;
-import android.support.design.widget.FloatingActionButton;
-import android.support.v7.widget.Toolbar;
-import android.widget.TextView;
-
 import com.annimon.stream.Optional;
 import com.devoxx.R;
 import com.devoxx.data.conference.ConferenceManager;
@@ -19,6 +13,13 @@ import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.OptionsItem;
 import org.androidannotations.annotations.ViewById;
+
+import android.support.design.widget.AppBarLayout;
+import android.support.design.widget.CollapsingToolbarLayout;
+import android.support.design.widget.FloatingActionButton;
+import android.support.v7.widget.Toolbar;
+import android.text.util.Linkify;
+import android.widget.TextView;
 
 @EActivity(R.layout.activity_about)
 public class AboutActivity extends BaseActivity {
@@ -47,7 +48,13 @@ public class AboutActivity extends BaseActivity {
 	@ViewById(R.id.aboutDescription)
 	TextView description;
 
+	@ViewById(R.id.aboutLink)
+	TextView linkView;
+
 	@AfterViews void afterViews() {
+		linkView.setText("https://devoxx.be/credits/");
+		Linkify.addLinks(linkView, Linkify.WEB_URLS);
+
 		collapsingToolbarLayout.setTitle(getString(R.string.about));
 		setSupportActionBar(toolbar);
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);

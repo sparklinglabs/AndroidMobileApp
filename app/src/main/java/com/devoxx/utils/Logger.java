@@ -8,7 +8,7 @@ import java.util.Date;
 
 public class Logger {
 
-	public static final boolean isEnabled = BuildConfig.LOGGING;
+	public static final boolean isEnabled = BuildConfig.DEBUG;
 	public static final String TAG = "Devoxx";
 
 	public static void l(boolean message) {

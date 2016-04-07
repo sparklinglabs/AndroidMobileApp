@@ -9,7 +9,6 @@ import com.devoxx.data.cache.SpeakerCache;
 import com.devoxx.data.cache.SpeakersCache;
 import com.devoxx.data.model.RealmSpeaker;
 import com.devoxx.data.model.RealmSpeakerShort;
-import com.squareup.okhttp.ResponseBody;
 
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
@@ -19,7 +18,8 @@ import java.io.IOException;
 import java.util.List;
 
 import io.realm.Realm;
-import retrofit.Call;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
 
 @EBean
 public class SpeakersDownloader {
