@@ -3,7 +3,7 @@ apply plugin: 'android-apt'
 
 
 def PACKAGE_NAME = "com.devoxx"
-def VERSION_CODE = 111
+def VERSION_CODE = 112
 def VERSION_NAME = "1.0.${VERSION_CODE}"
 
 def keystorePropertiesFile = rootProject.file("devoxx.properties");
