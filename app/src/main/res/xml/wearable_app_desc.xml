@@ -1,0 +1,5 @@
+<wearableApp package="com.devoxx">
+    <versionCode>112</versionCode>
+    <versionName>1.0.112</versionName>
+    <rawPathResId>wear_app</rawPathResId>
+</wearableApp>

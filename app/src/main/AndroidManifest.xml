@@ -128,6 +128,9 @@
             android:value="${mapKey}"
             tools:node="replace"
             tools:replace="android:value"/>
+        <meta-data
+            android:name="com.google.android.wearable.beta.app"
+            android:resource="@xml/wearable_app_desc"/>
     </application>
 
 </manifest>

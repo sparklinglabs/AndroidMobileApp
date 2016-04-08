@@ -10,11 +10,11 @@ def keystorePropertiesFile = rootProject.file("devoxx.properties");
 def keystoreProperties = new Properties()
 keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 
-def mapKey = keystoreProperties['mapKey']
-
 android {
     compileSdkVersion 22
     buildToolsVersion "22.0.1"
+
+    publishNonDefault true
 
     defaultConfig {
         applicationId PACKAGE_NAME
@@ -38,30 +38,24 @@ android {
         }
     }
 
+    productFlavors {
+        withIntegration {
+            buildConfigField 'boolean', 'INTEGRATION', "true"
+        }
+        noIntegration {
+            buildConfigField 'boolean', 'INTEGRATION', "false"
+        }
+    }
+
     buildTypes {
         release {
             debuggable false
             minifyEnabled false
-            buildConfigField "boolean", "LOGGING", "false"
-            buildConfigField "boolean", "DEV_ROTATION_ALL", "false"
-            manifestPlaceholders = [applicationLabel: "@string/app_name", mapKey: mapKey]
             signingConfig signingConfigs.release
         }
-        devoxx {
+        debug {
             debuggable true
-            versionNameSuffix "@devoxx"
-            buildConfigField "boolean", "LOGGING", "true"
-            buildConfigField "boolean", "DEV_ROTATION_ALL", "false"
             signingConfig signingConfigs.debug
-            manifestPlaceholders = [applicationLabel: "@string/app_name", mapKey: mapKey]
-        }
-        devoxxDev {
-            debuggable true
-            versionNameSuffix "@devoxx"
-            buildConfigField "boolean", "LOGGING", "true"
-            buildConfigField "boolean", "DEV_ROTATION_ALL", "true"
-            signingConfig signingConfigs.debug
-            manifestPlaceholders = [applicationLabel: "@string/app_name", mapKey: mapKey]
         }
     }
 }

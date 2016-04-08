@@ -107,7 +107,8 @@ dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
 
     // Android Wear support
-    wearApp project(':wear')
+    withIntegrationWearApp project(path: ':wear', configuration: 'withIntegrationRelease')
+    noIntegrationWearApp project(path: ':wear', configuration: 'noIntegrationRelease')
 
     compile "com.android.support:appcompat-v7:${SUPPORT_LIBRARY_VERSION}"
     compile "com.android.support:design:${SUPPORT_LIBRARY_VERSION}"

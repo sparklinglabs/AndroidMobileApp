@@ -1,15 +1,5 @@
 package com.devoxx.android.service;
 
-import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
-import android.net.Uri;
-import android.os.Handler;
-import android.os.Looper;
-import android.text.TextUtils;
-import android.util.Base64;
-import android.util.Log;
-
 import com.annimon.stream.Optional;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.Request;
@@ -37,6 +27,16 @@ import com.google.android.gms.wearable.WearableListenerService;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EService;
 
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
+import android.text.TextUtils;
+import android.util.Base64;
+import android.util.Log;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.UnknownHostException;
@@ -47,536 +47,533 @@ import java.util.List;
 import pl.tajchert.buswear.EventBus;
 
 @EService
-public class WearService extends WearableListenerService  {
+public class WearService extends WearableListenerService {
 
-    private final static String TAG = WearService.class.getCanonicalName();
+	private final static String TAG = WearService.class.getCanonicalName();
 
-    @Bean
-    ConferenceManager conferenceManager;
+	@Bean
+	ConferenceManager conferenceManager;
 
-    @Bean
-    SlotsDataManager slotsDataManager;
+	@Bean
+	SlotsDataManager slotsDataManager;
 
-    @Bean
-    SpeakersDataManager speakersDataManager;
+	@Bean
+	SpeakersDataManager speakersDataManager;
 
-    @Bean
-    NotificationsManager notificationsManager;
+	@Bean
+	NotificationsManager notificationsManager;
 
+	private GoogleApiConnector mGoogleApiConnector;
 
-    private GoogleApiConnector mGoogleApiConnector;
+	@Override
+	public void onCreate() {
+		super.onCreate();
+		mGoogleApiConnector = new GoogleApiConnector(this);
+	}
 
+	@Override
+	public void onDestroy() {
+		mGoogleApiConnector.disconnect();
+		super.onDestroy();
+	}
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        mGoogleApiConnector = new GoogleApiConnector(this);
-    }
+	@Override
+	public void onMessageReceived(MessageEvent messageEvent) {
+		if (!conferenceManager.isConferenceChoosen()) {
+			return;
+		}
 
-    @Override
-    public void onDestroy() {
-        mGoogleApiConnector.disconnect();
-        super.onDestroy();
-    }
+		final String path = messageEvent.getPath();
+		final String data = new String(messageEvent.getData());
 
-    @Override
-    public void onMessageReceived(MessageEvent messageEvent) {
+		if (path.startsWith(Constants.CHANNEL_ID + Constants.SCHEDULES_PATH)) {
 
-        // Processing the incoming message
-        String path = messageEvent.getPath();
-        String data = new String(messageEvent.getData());
+			// send schedules to the Wearable
+			sendSchedules();
+		} else if (path.startsWith(Constants.CHANNEL_ID + Constants.SLOTS_PATH)) {
 
-        if (path.startsWith(Constants.CHANNEL_ID + Constants.SCHEDULES_PATH)) {
+			// send slots to the Wearable
+			try {
+				sendSlots(Long.parseLong(data));
 
-            // send schedules to the Wearable
-            sendSchedules();
-        } else if (path.startsWith(Constants.CHANNEL_ID + Constants.SLOTS_PATH)) {
+			} catch (Exception ex) {
+				Log.e(TAG, ex.getLocalizedMessage());
+			}
+		} else if (path.startsWith(Constants.CHANNEL_ID + Constants.TALK_PATH)) {
 
-            // send slots to the Wearable
-            try {
-                sendSlots(Long.parseLong(data));
+			// send the talk to the Wearable
+			sendTalk(data);
+		} else if (path.startsWith(Constants.CHANNEL_ID + Constants.SPEAKER_PATH)) {
 
-            } catch (Exception ex) {
-                Log.e(TAG, ex.getLocalizedMessage());
-            }
-        } else if (path.startsWith(Constants.CHANNEL_ID + Constants.TALK_PATH)) {
+			// send the speaker to the Wearable
+			sendSpeaker(data);
+		} else if (path.startsWith(Constants.CHANNEL_ID + Constants.FAVORITE_PATH)) {
 
-            // send the talk to the Wearable
-            sendTalk(data);
-        } else if (path.startsWith(Constants.CHANNEL_ID + Constants.SPEAKER_PATH)) {
+			// send the favorite's status of a talk
+			sendFavorite(data);
+		} else if (path.equalsIgnoreCase(Constants.CHANNEL_ID + Constants.ADD_FAVORITE_PATH)) {
 
-            // send the speaker to the Wearable
-            sendSpeaker(data);
-        } else if (path.startsWith(Constants.CHANNEL_ID + Constants.FAVORITE_PATH)) {
+			// Add the favorite's status to a talk
+			addFavorite(data);
+		} else if (path.equalsIgnoreCase(Constants.CHANNEL_ID + Constants.REMOVE_FAVORITE_PATH)) {
 
-            // send the favorite's status of a talk
-            sendFavorite(data);
-        } else if (path.equalsIgnoreCase(Constants.CHANNEL_ID + Constants.ADD_FAVORITE_PATH)) {
+			// Remove the favorite's status of a talk
+			removeFavorite(data);
+		} else if (path.equalsIgnoreCase(Constants.CHANNEL_ID + Constants.TWITTER_PATH)) {
 
-            // Add the favorite's status to a talk
-            addFavorite(data);
-        } else if (path.equalsIgnoreCase(Constants.CHANNEL_ID + Constants.REMOVE_FAVORITE_PATH)) {
+			// Twitter
+			followOnTwitter(data);
+		}
 
-            // Remove the favorite's status of a talk
-            removeFavorite(data);
-        } else if (path.equalsIgnoreCase(Constants.CHANNEL_ID + Constants.TWITTER_PATH)) {
+	}
 
-            // Twitter
-            followOnTwitter(data);
-        }
+	//
+	// Twitter
+	//
 
-    }
+	// Open the Twitter application or the browser if the app is not installed
+	private void followOnTwitter(String inputData) {
 
-    //
-    // Twitter
-    //
+		String twitterName = inputData;
 
-    // Open the Twitter application or the browser if the app is not installed
-    private void followOnTwitter(String inputData) {
+		if (TextUtils.isEmpty(twitterName) == false) {
+			twitterName = twitterName.toLowerCase().replaceFirst("@", "");
 
-        String twitterName = inputData;
+			Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://twitter.com/" + twitterName));
+			intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+			this.startActivity(intent);
+		}
 
-        if (TextUtils.isEmpty(twitterName) == false) {
-            twitterName = twitterName.toLowerCase().replaceFirst("@", "");
+	}
 
-            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://twitter.com/" + twitterName));
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            this.startActivity(intent);
-        }
 
-    }
+	private void sendSchedules() {
 
+		// TODO: ensure that we have data
 
+		final List<ConferenceDay> days = conferenceManager.getConferenceDays();
 
-    private void sendSchedules() {
+		final PutDataMapRequest putDataMapRequest = PutDataMapRequest.create(Constants.CHANNEL_ID + Constants.SCHEDULES_PATH);
 
-        // TODO: ensure that we have data
 
-        final List<ConferenceDay> days = conferenceManager.getConferenceDays();
+		// set the header (timestamp is used to force a onDataChanged event on the wearable)
+		final DataMap headerMap = new DataMap();
+		headerMap.putString(Constants.DATAMAP_TIMESTAMP, new Date().toString());
+		putDataMapRequest.getDataMap().putDataMap(Constants.HEADER_PATH, headerMap);
 
-        final PutDataMapRequest putDataMapRequest = PutDataMapRequest.create(Constants.CHANNEL_ID + Constants.SCHEDULES_PATH);
+		// Prepare and save the country code
+		final DataMap countryMap = new DataMap();
+		countryMap.putString(Constants.DATAMAP_COUNTRY, conferenceManager.getActiveConference().get().getCountry());
+		putDataMapRequest.getDataMap().putDataMap(Constants.COUNTRY_PATH, countryMap);
 
+		// Prepare and save the schedule
+		ArrayList<DataMap> schedulesDataMap = new ArrayList<>();
+		for (ConferenceDay day : days) {
 
-        // set the header (timestamp is used to force a onDataChanged event on the wearable)
-        final DataMap headerMap = new DataMap();
-        headerMap.putString(Constants.DATAMAP_TIMESTAMP, new Date().toString());
-        putDataMapRequest.getDataMap().putDataMap(Constants.HEADER_PATH, headerMap);
+			final DataMap scheduleDataMap = new DataMap();
 
-        // Prepare and save the country code
-        final DataMap countryMap = new DataMap();
-        countryMap.putString(Constants.DATAMAP_COUNTRY, conferenceManager.getActiveConference().get().getCountry());
-        putDataMapRequest.getDataMap().putDataMap(Constants.COUNTRY_PATH, countryMap);
+			// process and push schedule's data
+			String dayName = Uri.parse(day.getName()).getLastPathSegment();
+			scheduleDataMap.putString(Constants.DATAMAP_DAY_NAME, dayName);
+			scheduleDataMap.putLong(Constants.DATAMAP_DAY_MILLIS, day.getDayMs());
 
-        // Prepare and save the schedule
-        ArrayList<DataMap> schedulesDataMap = new ArrayList<>();
-        for (ConferenceDay day : days) {
+			schedulesDataMap.add(scheduleDataMap);
+		}
 
-            final DataMap scheduleDataMap = new DataMap();
+		// store the list schedules
+		putDataMapRequest.getDataMap().putDataMapArrayList(Constants.LIST_PATH, schedulesDataMap);
 
-            // process and push schedule's data
-            String dayName = Uri.parse(day.getName()).getLastPathSegment();
-            scheduleDataMap.putString(Constants.DATAMAP_DAY_NAME, dayName);
-            scheduleDataMap.putLong(Constants.DATAMAP_DAY_MILLIS, day.getDayMs());
+		// send the schedules
+		mGoogleApiConnector.sendMessage(putDataMapRequest);
+	}
 
-            schedulesDataMap.add(scheduleDataMap);
-        }
 
-       // store the list schedules
-        putDataMapRequest.getDataMap().putDataMapArrayList(Constants.LIST_PATH, schedulesDataMap);
+	// Send the schedule's slots to the watch.
+	private void sendSlots(Long dayMs) {
 
-        // send the schedules
-        mGoogleApiConnector.sendMessage(putDataMapRequest);
-    }
+		// TODO: ensure that we have data
 
+		List<SlotApiModel> slotApiModelList = null;
 
-    // Send the schedule's slots to the watch.
-    private void sendSlots(Long dayMs) {
+		// fetch for the slot
+		final List<ConferenceDay> days = conferenceManager.getConferenceDays();
+		for (ConferenceDay day : days) {
+			if (day.getDayMs() == dayMs) {
+				slotApiModelList = slotsDataManager.getSlotsForDay(day.getDayMs());
+				break;
+			}
+		}
 
-        // TODO: ensure that we have data
+		if (slotApiModelList == null) {
+			// not found
+			return;
+		}
 
-        List<SlotApiModel> slotApiModelList = null;
 
-        // fetch for the slot
-        final List<ConferenceDay> days = conferenceManager.getConferenceDays();
-        for (ConferenceDay day : days) {
-            if (day.getDayMs() == dayMs) {
-                slotApiModelList = slotsDataManager.getSlotsForDay(day.getDayMs());
-                break;
-            }
-        }
+		final PutDataMapRequest putDataMapRequest = PutDataMapRequest.create(Constants.CHANNEL_ID + Constants.SLOTS_PATH + "/" + dayMs);
 
-        if (slotApiModelList == null) {
-            // not found
-            return;
-        }
+		// set the header (timestamp is used to force a onDataChanged event on the wearable)
+		final DataMap headerMap = new DataMap();
+		headerMap.putString(Constants.DATAMAP_TIMESTAMP, new Date().toString());
+		putDataMapRequest.getDataMap().putDataMap(Constants.HEADER_PATH, headerMap);
 
+		ArrayList<DataMap> slotsDataMap = new ArrayList<>();
 
-        final PutDataMapRequest putDataMapRequest = PutDataMapRequest.create(Constants.CHANNEL_ID + Constants.SLOTS_PATH + "/" + dayMs);
+		for (int index = 0; index < slotApiModelList.size(); index++) {
 
-        // set the header (timestamp is used to force a onDataChanged event on the wearable)
-        final DataMap headerMap = new DataMap();
-        headerMap.putString(Constants.DATAMAP_TIMESTAMP, new Date().toString());
-        putDataMapRequest.getDataMap().putDataMap(Constants.HEADER_PATH, headerMap);
+			final DataMap scheduleDataMap = new DataMap();
 
-        ArrayList<DataMap> slotsDataMap = new ArrayList<>();
+			final SlotApiModel slot = slotApiModelList.get(index);
 
-        for (int index = 0; index < slotApiModelList.size(); index++) {
+			// process the data
+			scheduleDataMap.putString(Constants.DATAMAP_ROOM_NAME, slot.roomName);
+			scheduleDataMap.putLong(Constants.DATAMAP_FROM_TIME_MILLIS, slot.fromTimeMillis);
+			scheduleDataMap.putLong(Constants.DATAMAP_TO_TIME_MILLIS, slot.toTimeMillis);
 
-            final DataMap scheduleDataMap = new DataMap();
+			if (slot.isBreak()) {
+				DataMap breakDataMap = new DataMap();
 
-            final SlotApiModel slot = slotApiModelList.get(index);
+				//breakDataMap.putString("id", slot.getBreak().getId());
+				breakDataMap.putString(Constants.DATAMAP_NAME_EN, slot.slotBreak.nameEN);
+				breakDataMap.putString(Constants.DATAMAP_NAME_FR, slot.slotBreak.nameFR);
 
-            // process the data
-            scheduleDataMap.putString(Constants.DATAMAP_ROOM_NAME, slot.roomName);
-            scheduleDataMap.putLong(Constants.DATAMAP_FROM_TIME_MILLIS, slot.fromTimeMillis);
-            scheduleDataMap.putLong(Constants.DATAMAP_TO_TIME_MILLIS, slot.toTimeMillis);
+				scheduleDataMap.putDataMap(Constants.DATAMAP_BREAK, breakDataMap);
+			}
 
-            if (slot.isBreak()) {
-                DataMap breakDataMap = new DataMap();
 
-                //breakDataMap.putString("id", slot.getBreak().getId());
-                breakDataMap.putString(Constants.DATAMAP_NAME_EN, slot.slotBreak.nameEN);
-                breakDataMap.putString(Constants.DATAMAP_NAME_FR, slot.slotBreak.nameFR);
+			if (slot.isTalk()) {
+				DataMap talkDataMap = new DataMap();
 
-                scheduleDataMap.putDataMap(Constants.DATAMAP_BREAK, breakDataMap);
-            }
+				talkDataMap.putString(Constants.DATAMAP_ID, slot.talk.id);
+				talkDataMap.putBoolean(Constants.DATAMAP_FAVORITE, notificationsManager.isNotificationAvailable(slot.slotId));
+				talkDataMap.putString(Constants.DATAMAP_TRACK_ID, slot.talk.trackId);
+				talkDataMap.putString(Constants.DATAMAP_TITLE, slot.talk.title);
+				talkDataMap.putString(Constants.DATAMAP_LANG, slot.talk.lang);
 
+				scheduleDataMap.putDataMap(Constants.DATAMAP_TALK, talkDataMap);
+			}
 
-            if (slot.isTalk()) {
-                DataMap talkDataMap = new DataMap();
+			slotsDataMap.add(scheduleDataMap);
+		}
 
-                talkDataMap.putString(Constants.DATAMAP_ID, slot.talk.id);
-                talkDataMap.putBoolean(Constants.DATAMAP_FAVORITE, notificationsManager.isNotificationAvailable(slot.slotId));
-                talkDataMap.putString(Constants.DATAMAP_TRACK_ID, slot.talk.trackId);
-                talkDataMap.putString(Constants.DATAMAP_TITLE, slot.talk.title);
-                talkDataMap.putString(Constants.DATAMAP_LANG, slot.talk.lang);
+		// store the list in the datamap to send it to the wear
+		putDataMapRequest.getDataMap().putDataMapArrayList(Constants.LIST_PATH, slotsDataMap);
 
-                scheduleDataMap.putDataMap(Constants.DATAMAP_TALK, talkDataMap);
-            }
+		// send the slots
+		mGoogleApiConnector.sendMessage(putDataMapRequest);
+	}
 
-            slotsDataMap.add(scheduleDataMap);
-        }
 
-        // store the list in the datamap to send it to the wear
-        putDataMapRequest.getDataMap().putDataMapArrayList(Constants.LIST_PATH, slotsDataMap);
+	private void sendTalk(String talkId) {
 
-        // send the slots
-        mGoogleApiConnector.sendMessage(putDataMapRequest);
-    }
 
+		SlotApiModel slotApiModel = getSlotByTalkId(talkId);
+		if (slotApiModel == null) {
+			return;
+		}
 
-    private void sendTalk(String talkId) {
+		final PutDataMapRequest putDataMapRequest = PutDataMapRequest.create(Constants.CHANNEL_ID + Constants.TALK_PATH + "/" + talkId);
 
+		// set the header (timestamp is used to force a onDataChanged event on the wearable)
+		final DataMap headerMap = new DataMap();
+		headerMap.putString(Constants.DATAMAP_TIMESTAMP, new Date().toString());
+		putDataMapRequest.getDataMap().putDataMap(Constants.HEADER_PATH, headerMap);
 
-        SlotApiModel slotApiModel = getSlotByTalkId(talkId);
-        if (slotApiModel == null) {
-            return;
-        }
+		final DataMap talkDataMap = new DataMap();
 
-        final PutDataMapRequest putDataMapRequest = PutDataMapRequest.create(Constants.CHANNEL_ID + Constants.TALK_PATH + "/" + talkId);
+		// process the data
+		talkDataMap.putString(Constants.DATAMAP_ID, talkId);
+		talkDataMap.putBoolean(Constants.DATAMAP_FAVORITE, notificationsManager.isNotificationAvailable(slotApiModel.slotId));
+		talkDataMap.putString(Constants.DATAMAP_TALK_TYPE, slotApiModel.talk.talkType);
+		talkDataMap.putString(Constants.DATAMAP_TRACK, slotApiModel.talk.track);
+		talkDataMap.putString(Constants.DATAMAP_TRACK_ID, slotApiModel.talk.track);
+		talkDataMap.putString(Constants.DATAMAP_TITLE, slotApiModel.talk.title);
+		talkDataMap.putString(Constants.DATAMAP_LANG, slotApiModel.talk.lang);
+		talkDataMap.putString(Constants.DATAMAP_SUMMARY, slotApiModel.talk.summary);
 
-        // set the header (timestamp is used to force a onDataChanged event on the wearable)
-        final DataMap headerMap = new DataMap();
-        headerMap.putString(Constants.DATAMAP_TIMESTAMP, new Date().toString());
-        putDataMapRequest.getDataMap().putDataMap(Constants.HEADER_PATH, headerMap);
+		ArrayList<DataMap> speakersDataMap = new ArrayList<>();
 
-        final DataMap talkDataMap = new DataMap();
+		// process each speaker's data
+		if (slotApiModel.talk.speakers != null) {
 
-        // process the data
-        talkDataMap.putString(Constants.DATAMAP_ID, talkId);
-        talkDataMap.putBoolean(Constants.DATAMAP_FAVORITE, notificationsManager.isNotificationAvailable(slotApiModel.slotId));
-        talkDataMap.putString(Constants.DATAMAP_TALK_TYPE, slotApiModel.talk.talkType);
-        talkDataMap.putString(Constants.DATAMAP_TRACK, slotApiModel.talk.track);
-        talkDataMap.putString(Constants.DATAMAP_TRACK_ID, slotApiModel.talk.track);
-        talkDataMap.putString(Constants.DATAMAP_TITLE, slotApiModel.talk.title);
-        talkDataMap.putString(Constants.DATAMAP_LANG, slotApiModel.talk.lang);
-        talkDataMap.putString(Constants.DATAMAP_SUMMARY, slotApiModel.talk.summary);
 
-        ArrayList<DataMap> speakersDataMap = new ArrayList<>();
+			for (int index = 0; index < slotApiModel.talk.speakers.size(); index++) {
 
-        // process each speaker's data
-        if (slotApiModel.talk.speakers != null) {
+				final TalkSpeakerApiModel speaker = slotApiModel.talk.speakers.get(index);
 
+				final DataMap speakerDataMap = new DataMap();
 
-            for (int index = 0; index < slotApiModel.talk.speakers.size(); index++) {
+				String uuid = Uri.parse(speaker.link.href).getLastPathSegment();
+				speakerDataMap.putString(Constants.DATAMAP_UUID, uuid);
+				speakerDataMap.putString(Constants.DATAMAP_NAME, speaker.getName());
 
-                final TalkSpeakerApiModel speaker = slotApiModel.talk.speakers.get(index);
+				speakersDataMap.add(speakerDataMap);
+			}
+		}
 
-                final DataMap speakerDataMap = new DataMap();
+		if (speakersDataMap.size() > 0) {
+			talkDataMap.putDataMapArrayList(Constants.SPEAKERS_PATH, speakersDataMap);
+		}
 
-                String uuid = Uri.parse(speaker.link.href).getLastPathSegment();
-                speakerDataMap.putString(Constants.DATAMAP_UUID, uuid);
-                speakerDataMap.putString(Constants.DATAMAP_NAME, speaker.getName());
+		// store the list in the datamap to send it to the wear
+		putDataMapRequest.getDataMap().putDataMap(Constants.DETAIL_PATH, talkDataMap);
 
-                speakersDataMap.add(speakerDataMap);
-            }
-        }
+		// send the talk
+		//sendToWearable(putDataMapRequest);
 
-        if (speakersDataMap.size() > 0) {
-            talkDataMap.putDataMapArrayList(Constants.SPEAKERS_PATH, speakersDataMap);
-        }
+		mGoogleApiConnector.sendMessage(putDataMapRequest);
+	}
 
-        // store the list in the datamap to send it to the wear
-        putDataMapRequest.getDataMap().putDataMap(Constants.DETAIL_PATH, talkDataMap);
+	// Send the speaker's detail to the watch.
+	private void sendSpeaker(final String uuid) {
 
-        // send the talk
-        //sendToWearable(putDataMapRequest);
 
-        mGoogleApiConnector.sendMessage(putDataMapRequest);
-    }
+		final String id = conferenceManager.getActiveConferenceId().get();
+		speakersDataManager.fetchSpeakerAsync(id, uuid,
+				new AbstractDataManager.IDataManagerListener<RealmSpeaker>() {
+					@Override
+					public void onDataStartFetching() {
 
-    // Send the speaker's detail to the watch.
-    private void sendSpeaker(final String uuid) {
+					}
 
+					@Override
+					public void onDataAvailable(List<RealmSpeaker> items) {
+						Logger.l("Should not be there");
+					}
 
-        final String id = conferenceManager.getActiveConferenceId().get();
-        speakersDataManager.fetchSpeakerAsync(id, uuid,
-                new AbstractDataManager.IDataManagerListener<RealmSpeaker>() {
-                    @Override
-                    public void onDataStartFetching() {
+					@Override
+					public void onDataAvailable(RealmSpeaker item) {
+						final RealmSpeaker speaker = speakersDataManager.getByUuid(uuid);
 
-                    }
+						final String dataPath = Constants.CHANNEL_ID + Constants.SPEAKER_PATH + "/" + uuid;
 
-                    @Override
-                    public void onDataAvailable(List<RealmSpeaker> items) {
-                        Logger.l("Should not be there");
-                    }
+						PutDataMapRequest putDataMapRequest = PutDataMapRequest.create(dataPath);
 
-                    @Override
-                    public void onDataAvailable(RealmSpeaker item) {
-                        final RealmSpeaker speaker = speakersDataManager.getByUuid(uuid);
+						// set the header (timestamp is used to force a onDataChanged event on the wearable)
+						final DataMap headerMap = new DataMap();
+						headerMap.putString(Constants.DATAMAP_TIMESTAMP, new Date().toString());
+						putDataMapRequest.getDataMap().putDataMap(Constants.HEADER_PATH, headerMap);
 
-                        final String dataPath = Constants.CHANNEL_ID + Constants.SPEAKER_PATH + "/" + uuid;
+						final DataMap speakerDataMap = new DataMap();
 
-                        PutDataMapRequest putDataMapRequest = PutDataMapRequest.create(dataPath);
+						// process the data
+						speakerDataMap.putString(Constants.DATAMAP_UUID, uuid);
+						speakerDataMap.putString(Constants.DATAMAP_FIRST_NAME, speaker.getFirstName());
+						speakerDataMap.putString(Constants.DATAMAP_LAST_NAME, speaker.getLastName());
+						speakerDataMap.putString(Constants.DATAMAP_COMPANY, speaker.getCompany());
+						speakerDataMap.putString(Constants.DATAMAP_BIO, speaker.getBio());
+						speakerDataMap.putString(Constants.DATAMAP_BLOG, speaker.getBlog());
+						speakerDataMap.putString(Constants.DATAMAP_TWITTER, speaker.getTwitter());
+						speakerDataMap.putString(Constants.DATAMAP_AVATAR_URL, speaker.getAvatarURL());
 
-                        // set the header (timestamp is used to force a onDataChanged event on the wearable)
-                        final DataMap headerMap = new DataMap();
-                        headerMap.putString(Constants.DATAMAP_TIMESTAMP, new Date().toString());
-                        putDataMapRequest.getDataMap().putDataMap(Constants.HEADER_PATH, headerMap);
+						// store the list in the datamap to send it to the wear
+						putDataMapRequest.getDataMap().putDataMap(Constants.DETAIL_PATH, speakerDataMap);
 
-                        final DataMap speakerDataMap = new DataMap();
+						// send the speaker
+						mGoogleApiConnector.sendMessage(putDataMapRequest);
 
-                        // process the data
-                        speakerDataMap.putString(Constants.DATAMAP_UUID, uuid);
-                        speakerDataMap.putString(Constants.DATAMAP_FIRST_NAME, speaker.getFirstName());
-                        speakerDataMap.putString(Constants.DATAMAP_LAST_NAME, speaker.getLastName());
-                        speakerDataMap.putString(Constants.DATAMAP_COMPANY, speaker.getCompany());
-                        speakerDataMap.putString(Constants.DATAMAP_BIO, speaker.getBio());
-                        speakerDataMap.putString(Constants.DATAMAP_BLOG, speaker.getBlog());
-                        speakerDataMap.putString(Constants.DATAMAP_TWITTER, speaker.getTwitter());
-                        speakerDataMap.putString(Constants.DATAMAP_AVATAR_URL, speaker.getAvatarURL());
+						if ((speaker.getAvatarURL() == null) || (speaker.getAvatarURL().isEmpty())) {
+							return;
+						}
 
-                        // store the list in the datamap to send it to the wear
-                        putDataMapRequest.getDataMap().putDataMap(Constants.DETAIL_PATH, speakerDataMap);
+						final ImageTarget imageTarget = new ImageTarget(dataPath, speakerDataMap);
 
-                        // send the speaker
-                        mGoogleApiConnector.sendMessage(putDataMapRequest);
+						new Handler(Looper.getMainLooper()).post(new Runnable() {
+							@Override
+							public void run() {
+								Glide.with(WearService.this)
+										.load(speaker.getAvatarURL())
+										.asBitmap()
+										.centerCrop()
+										.override(100, 100)
+										.into(imageTarget);
+							}
+						});
 
-                        if ((speaker.getAvatarURL() == null) || (speaker.getAvatarURL().isEmpty())) {
-                            return;
-                        }
+					}
 
-                        final ImageTarget imageTarget = new ImageTarget(dataPath, speakerDataMap);
+					@Override
+					public void onDataError(IOException e) {
+						if (e instanceof UnknownHostException) {
+							Logger.l("Connection error");
+						} else {
+							Logger.l("Something went wrong");
+						}
+					}
+				});
+	}
 
-                        new Handler(Looper.getMainLooper()).post(new Runnable() {
-                            @Override
-                            public void run() {
-                                Glide.with(WearService.this)
-                                        .load(speaker.getAvatarURL())
-                                        .asBitmap()
-                                        .centerCrop()
-                                        .override(100, 100)
-                                        .into(imageTarget);
-                            }
-                        });
 
-                    }
+	public class ImageTarget implements Target {
 
-                    @Override
-                    public void onDataError(IOException e) {
-                        if (e instanceof UnknownHostException) {
-                            Logger.l("Connection error");
-                        } else {
-                            Logger.l("Something went wrong");
-                        }
-                    }
-                });
-    }
+		private String mDataPath;
+		private DataMap mSpeakerDataMap;
 
 
-    public class ImageTarget implements Target {
+		public ImageTarget(String dataPath, DataMap speakerDataMap) {
+			mDataPath = dataPath;
+			mSpeakerDataMap = speakerDataMap;
+		}
 
-        private String mDataPath;
-        private DataMap mSpeakerDataMap;
+		@Override
+		public void onLoadStarted(Drawable placeholder) {
 
+		}
 
-        public ImageTarget(String dataPath, DataMap speakerDataMap) {
-            mDataPath = dataPath;
-            mSpeakerDataMap = speakerDataMap;
-        }
+		@Override
+		public void onLoadFailed(Exception e, Drawable errorDrawable) {
 
-        @Override
-        public void onLoadStarted(Drawable placeholder) {
+		}
 
-        }
+		@Override
+		public void onResourceReady(Object resource, GlideAnimation glideAnimation) {
 
-        @Override
-        public void onLoadFailed(Exception e, Drawable errorDrawable) {
+			// reset the existing speaker's data item
+			mGoogleApiConnector.deleteItems(mDataPath);
 
-        }
+			Bitmap bitmap = (Bitmap) resource;
 
-        @Override
-        public void onResourceReady(Object resource, GlideAnimation glideAnimation) {
+			ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+			bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
+			byte[] byteArray = byteArrayOutputStream.toByteArray();
 
-            // reset the existing speaker's data item
-            mGoogleApiConnector.deleteItems(mDataPath);
+			String encoded = Base64.encodeToString(byteArray, Base64.DEFAULT);
 
-            Bitmap bitmap = (Bitmap) resource;
+			// update the data map with the avatar
+			mSpeakerDataMap.putString(Constants.DATAMAP_TIMESTAMP, new Date().toString());
+			mSpeakerDataMap.putString(Constants.DATAMAP_AVATAR_IMAGE, encoded);
 
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
-            byte[] byteArray = byteArrayOutputStream.toByteArray();
+			// as the datamap has changed, a onDataChanged event will be fired on the remote node
 
-            String encoded = Base64.encodeToString(byteArray, Base64.DEFAULT);
+			// store the list in the datamap to send it to the wear
+			final PutDataMapRequest putDataMapRequest = PutDataMapRequest.create(mDataPath);
+			putDataMapRequest.getDataMap().putDataMap(Constants.DETAIL_PATH, mSpeakerDataMap);
 
-            // update the data map with the avatar
-            mSpeakerDataMap.putString(Constants.DATAMAP_TIMESTAMP, new Date().toString());
-            mSpeakerDataMap.putString(Constants.DATAMAP_AVATAR_IMAGE, encoded);
+			// send the speaker with its profile image
+			mGoogleApiConnector.sendMessage(putDataMapRequest);
 
-            // as the datamap has changed, a onDataChanged event will be fired on the remote node
+		}
 
-            // store the list in the datamap to send it to the wear
-            final PutDataMapRequest putDataMapRequest = PutDataMapRequest.create(mDataPath);
-            putDataMapRequest.getDataMap().putDataMap(Constants.DETAIL_PATH, mSpeakerDataMap);
+		@Override
+		public void onLoadCleared(Drawable placeholder) {
 
-            // send the speaker with its profile image
-            mGoogleApiConnector.sendMessage(putDataMapRequest);
+		}
 
-        }
+		@Override
+		public void getSize(SizeReadyCallback cb) {
 
-        @Override
-        public void onLoadCleared(Drawable placeholder) {
+		}
 
-        }
+		@Override
+		public void setRequest(Request request) {
 
-        @Override
-        public void getSize(SizeReadyCallback cb) {
+		}
 
-        }
+		@Override
+		public Request getRequest() {
+			return null;
+		}
 
-        @Override
-        public void setRequest(Request request) {
+		@Override
+		public void onStart() {
 
-        }
+		}
 
-        @Override
-        public Request getRequest() {
-            return null;
-        }
+		@Override
+		public void onStop() {
 
-        @Override
-        public void onStart() {
+		}
 
-        }
+		@Override
+		public void onDestroy() {
 
-        @Override
-        public void onStop() {
+		}
+	}
 
-        }
 
-        @Override
-        public void onDestroy() {
+	// send Favorite to the watch
+	private void sendFavorite(String talkId) {
 
-        }
-    }
+		SlotApiModel slotApiModel = getSlotByTalkId(talkId);
+		if (slotApiModel == null) {
+			return;
+		}
 
+		// send the event
+		PutDataMapRequest putDataMapRequest = PutDataMapRequest.create(Constants.CHANNEL_ID + Constants.FAVORITE_PATH + "/" + talkId);
 
-    // send Favorite to the watch
-    private void sendFavorite(String talkId) {
+		// set the header (timestamp is used to force a onDataChanged event on the wearable)
+		final DataMap headerMap = new DataMap();
+		headerMap.putString(Constants.DATAMAP_TIMESTAMP, new Date().toString());
+		putDataMapRequest.getDataMap().putDataMap(Constants.HEADER_PATH, headerMap);
 
-        SlotApiModel slotApiModel = getSlotByTalkId(talkId);
-        if (slotApiModel == null) {
-            return;
-        }
+		// store the data
+		DataMap dataMap = new DataMap();
+		dataMap.putBoolean(Constants.DATAMAP_FAVORITE, notificationsManager.isNotificationAvailable(slotApiModel.slotId));
 
-        // send the event
-        PutDataMapRequest putDataMapRequest = PutDataMapRequest.create(Constants.CHANNEL_ID + Constants.FAVORITE_PATH + "/" + talkId);
+		// store the event in the datamap to send it to the wear
+		putDataMapRequest.getDataMap().putDataMap(Constants.DETAIL_PATH, dataMap);
 
-        // set the header (timestamp is used to force a onDataChanged event on the wearable)
-        final DataMap headerMap = new DataMap();
-        headerMap.putString(Constants.DATAMAP_TIMESTAMP, new Date().toString());
-        putDataMapRequest.getDataMap().putDataMap(Constants.HEADER_PATH, headerMap);
+		// send the favorite's status to the watch
+		mGoogleApiConnector.sendMessage(putDataMapRequest);
+	}
 
-        // store the data
-        DataMap dataMap = new DataMap();
-        dataMap.putBoolean(Constants.DATAMAP_FAVORITE, notificationsManager.isNotificationAvailable(slotApiModel.slotId));
+	// remove the favorite from the talk
+	private void removeFavorite(String talkId) {
 
-        // store the event in the datamap to send it to the wear
-        putDataMapRequest.getDataMap().putDataMap(Constants.DETAIL_PATH, dataMap);
+		SlotApiModel slotApiModel = getSlotByTalkId(talkId);
+		if (slotApiModel == null) {
+			return;
+		}
 
-        // send the favorite's status to the watch
-        mGoogleApiConnector.sendMessage(putDataMapRequest);
-    }
+		notificationsManager.removeNotification(slotApiModel.slotId);
 
-    // remove the favorite from the talk
-    private void removeFavorite(String talkId) {
+		EventBus.getDefault().postLocal(new ScheduleEvent());
 
-        SlotApiModel slotApiModel = getSlotByTalkId(talkId);
-        if (slotApiModel == null) {
-            return;
-        }
+		sendFavorite(talkId);
+	}
 
-        notificationsManager.removeNotification(slotApiModel.slotId);
+	// add the favorite to the talk
+	private void addFavorite(String talkId) {
 
-        EventBus.getDefault().postLocal(new ScheduleEvent());
+		SlotApiModel slotApiModel = getSlotByTalkId(talkId);
+		if (slotApiModel == null) {
+			return;
+		}
 
-        sendFavorite(talkId);
-    }
+		notificationsManager.scheduleNotification(slotApiModel, false);
 
-    // add the favorite to the talk
-    private void addFavorite(String talkId) {
+		EventBus.getDefault().postLocal(new ScheduleEvent());
 
-        SlotApiModel slotApiModel = getSlotByTalkId(talkId);
-        if (slotApiModel == null) {
-            return;
-        }
+		sendFavorite(talkId);
+	}
 
-        notificationsManager.scheduleNotification(slotApiModel, false);
 
-        EventBus.getDefault().postLocal(new ScheduleEvent());
+	private SlotApiModel getSlotByTalkId(String talkId) {
 
-        sendFavorite(talkId);
-    }
+		final String confId = conferenceManager.getActiveConferenceId().get();
+		try {
+			speakersDataManager.fetchSpeakersSync(confId);
+		} catch (IOException e) {
+			return null;
+		}
 
+		if (slotsDataManager == null) {
+			return null;
+		}
 
+		final Optional<SlotApiModel> opt = slotsDataManager.getSlotByTalkId(talkId);
+		if (!opt.isPresent()) {
+			return null;
+		}
+		SlotApiModel slotApiModel = opt.get();
 
+		if (!slotApiModel.isTalk()) {
+			// not a talk
+			return null;
+		}
 
-    private SlotApiModel getSlotByTalkId(String talkId) {
-
-        final String confId = conferenceManager.getActiveConferenceId().get();
-        try {
-            speakersDataManager.fetchSpeakersSync(confId);
-        } catch (IOException e) {
-            return null;
-        }
-
-        if (slotsDataManager == null) {
-            return null;
-        }
-
-        final Optional<SlotApiModel> opt = slotsDataManager.getSlotByTalkId(talkId);
-        if (!opt.isPresent()) {
-            return null;
-        }
-        SlotApiModel slotApiModel = opt.get();
-
-        if (!slotApiModel.isTalk()) {
-            // not a talk
-            return null;
-        }
-
-        return slotApiModel;
-    }
+		return slotApiModel;
+	}
 
 }
