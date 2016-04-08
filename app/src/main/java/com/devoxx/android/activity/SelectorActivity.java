@@ -167,7 +167,9 @@ public class SelectorActivity extends BaseActivity implements ConferenceManager.
 		super.onRestoreInstanceState(savedInstanceState);
 		lastSelectedConference = (ConferenceApiModel) savedInstanceState
 				.getSerializable(LAST_CONFERENCE_KEY);
-		setupConfInfo(lastSelectedConference);
+		if (lastSelectedConference != null) {
+			setupConfInfo(lastSelectedConference);
+		}
 	}
 
 	@Override

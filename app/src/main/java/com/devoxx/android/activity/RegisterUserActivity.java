@@ -115,23 +115,27 @@ public class RegisterUserActivity extends BaseActivity {
 		}
 
 		public Pair<String, String> getUserName() {
-			return new Pair<>("userName", dataParts[1]);
+			return new Pair<>("userName", extractIfExists(dataParts, 1));
 		}
 
 		public Pair<String, String> getUserSurname() {
-			return new Pair<>("userSurname", dataParts[2]);
+			return new Pair<>("userSurname", extractIfExists(dataParts, 2));
 		}
 
 		public Pair<String, String> getUserCompany() {
-			return new Pair<>("userCompany", dataParts[3]);
+			return new Pair<>("userCompany", extractIfExists(dataParts, 3));
 		}
 
 		public Pair<String, String> getUserJob() {
-			return new Pair<>("userJob", dataParts[4]);
+			return new Pair<>("userJob", extractIfExists(dataParts, 4));
 		}
 
 		public Pair<String, String> getUserId() {
-			return new Pair<>("userId", dataParts[0]);
+			return new Pair<>("userId", extractIfExists(dataParts, 0));
+		}
+
+		String extractIfExists(String[] array, int index) {
+			return index >= array.length ? "" : array[index];
 		}
 	}
 
