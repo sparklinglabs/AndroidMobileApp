@@ -80,7 +80,7 @@ public class GoogleApiConnector  {
                         .path(dataPath)
                         .build();
 
-                Wearable.DataApi.deleteDataItems(mApiClient, uri, DataApi.FILTER_PREFIX);
+                Wearable.DataApi.deleteDataItems(mApiClient, uri, DataApi.FILTER_LITERAL);
             }
         });
     }

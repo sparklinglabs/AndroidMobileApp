@@ -1,10 +1,22 @@
 package com.devoxx.android.activity;
 
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
+import android.os.Build;
+import android.os.Bundle;
+import android.view.View;
+import android.view.animation.AnticipateInterpolator;
+import android.view.animation.OvershootInterpolator;
+import android.widget.ImageView;
+import android.widget.TextView;
+
 import com.annimon.stream.Optional;
 import com.bumptech.glide.Glide;
 import com.devoxx.R;
 import com.devoxx.android.view.selector.SelectorValues;
 import com.devoxx.android.view.selector.SelectorView;
+import com.devoxx.common.utils.Constants;
+import com.devoxx.common.wear.GoogleApiConnector;
 import com.devoxx.connection.Connection;
 import com.devoxx.connection.cfp.model.ConferenceApiModel;
 import com.devoxx.connection.vote.VoteConnection;
@@ -27,16 +39,6 @@ import org.joda.time.DateTime;
 import org.joda.time.Days;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-
-import android.graphics.ColorMatrix;
-import android.graphics.ColorMatrixColorFilter;
-import android.os.Build;
-import android.os.Bundle;
-import android.view.View;
-import android.view.animation.AnticipateInterpolator;
-import android.view.animation.OvershootInterpolator;
-import android.widget.ImageView;
-import android.widget.TextView;
 
 import java.util.List;
 import java.util.Locale;
@@ -94,6 +96,8 @@ public class SelectorActivity extends BaseActivity implements ConferenceManager.
 
 	private ConferenceApiModel lastSelectedConference;
 
+	private GoogleApiConnector mGoogleApiConnector;
+
 	@AfterViews void afterViews() {
 		if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
 			final int statusBarHeight = viewUtils.getStatusBarHeight();
@@ -106,6 +110,8 @@ public class SelectorActivity extends BaseActivity implements ConferenceManager.
 		fontUtils.applyTypeface(confInfo, FontUtils.Font.REGULAR);
 
 		setupImageColorFilter();
+
+		mGoogleApiConnector = new GoogleApiConnector(this);
 	}
 
 	@Override
@@ -151,6 +157,8 @@ public class SelectorActivity extends BaseActivity implements ConferenceManager.
 		conferenceManager.unregisterConferenceDataListener();
 		conferenceManager.unregisterAllConferencesDataListener();
 
+		mGoogleApiConnector.disconnect();
+
 		super.onStop();
 	}
 
@@ -172,6 +180,9 @@ public class SelectorActivity extends BaseActivity implements ConferenceManager.
 		if (connection.isOnline()) {
 			if (!conferenceManager.isLastSelectedConference(lastSelectedConference)) {
 				conferenceManager.clearCurrentConferenceData();
+
+				// clear the cache used by the wearable device to display the
+				mGoogleApiConnector.deleteItems(Constants.CHANNEL_ID + Constants.SCHEDULES_PATH);
 			}
 
 			setupRequiredApis(lastSelectedConference.cfpURL, lastSelectedConference.votingURL);
