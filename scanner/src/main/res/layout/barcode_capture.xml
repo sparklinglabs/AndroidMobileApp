@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <FrameLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/topLayout"
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/black"
@@ -31,7 +31,7 @@
         android:shadowDx="0"
         android:shadowDy="1"
         android:shadowRadius="1"
-        android:text="When app see your code\ntap on coloured rectangle"
+        android:text="Please scan a QR from your badge."
         android:textColor="@android:color/white"
         android:textSize="22dp"
         android:textStyle="bold"/>

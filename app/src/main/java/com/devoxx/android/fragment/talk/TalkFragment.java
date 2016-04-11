@@ -1,6 +1,7 @@
 package com.devoxx.android.fragment.talk;
 
 import com.annimon.stream.Optional;
+import com.devoxx.BuildConfig;
 import com.devoxx.R;
 import com.devoxx.android.fragment.common.BaseFragment;
 import com.devoxx.android.fragment.schedule.ScheduleLineupFragment;
@@ -9,9 +10,10 @@ import com.devoxx.android.view.talk.TalkDetailsSectionClickableItem;
 import com.devoxx.android.view.talk.TalkDetailsSectionClickableItem_;
 import com.devoxx.android.view.talk.TalkDetailsSectionItem;
 import com.devoxx.android.view.talk.TalkDetailsSectionItem_;
-import com.devoxx.BuildConfig;
 import com.devoxx.common.utils.Constants;
+import com.devoxx.connection.ApiException;
 import com.devoxx.connection.Connection;
+import com.devoxx.connection.model.ErrorMessageModel;
 import com.devoxx.connection.model.SlotApiModel;
 import com.devoxx.connection.model.TalkFullApiModel;
 import com.devoxx.connection.model.TalkSpeakerApiModel;
@@ -64,7 +66,6 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 
@@ -259,10 +260,13 @@ public class TalkFragment extends BaseFragment implements AppBarLayout.OnOffsetC
 	@Click(R.id.talkDetailsTweetBtn) void onTweetClick() {
 		final Optional<RealmConference> conference = conferenceManager.getActiveConference();
 		if (conference.isPresent()) {
-			final String twitterMessage = String.format("%s\n%s %s %s", slotModel.talk.title,
+
+			final String twitterMessage = String.format("%s\n%s %s %s",
+					slotModel.talk.title,
 					slotModel.talk.getReadableSpeakers(),
 					createWebLink(conference.get(), slotModel),
 					conference.get().getHashtag());
+
 			navigator.tweetMessage(getActivity(), twitterMessage);
 		}
 	}
@@ -286,8 +290,9 @@ public class TalkFragment extends BaseFragment implements AppBarLayout.OnOffsetC
 
 				@Override
 				public void onVoteForTalkFailed(Exception e) {
-					if (e instanceof IOException) {
-						infoUtil.showToast(R.string.connection_error);
+					if (e instanceof ApiException) {
+						final ErrorMessageModel model = ((ApiException) e).getErrorMessageModel();
+						infoUtil.showToast(model.getMessage());
 					} else {
 						infoUtil.showToast(R.string.something_went_wrong);
 					}

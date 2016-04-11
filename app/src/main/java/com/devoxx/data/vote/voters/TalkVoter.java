@@ -2,7 +2,10 @@ package com.devoxx.data.vote.voters;
 
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.annimon.stream.Optional;
+import com.devoxx.BuildConfig;
 import com.devoxx.R;
+import com.devoxx.connection.ApiException;
+import com.devoxx.connection.model.ErrorMessageModel;
 import com.devoxx.connection.model.SlotApiModel;
 import com.devoxx.connection.vote.VoteApi;
 import com.devoxx.connection.vote.VoteConnection;
@@ -17,6 +20,7 @@ import com.devoxx.data.vote.VotedTalkModel;
 import com.devoxx.data.vote.interfaces.IOnVoteForTalkListener;
 import com.devoxx.data.vote.interfaces.ITalkVoter;
 import com.devoxx.utils.Logger;
+import com.google.gson.Gson;
 
 import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.Bean;
@@ -147,6 +151,26 @@ public class TalkVoter implements ITalkVoter {
 
 	@Background
 	protected void voteForTalk(int rating, String talkId, IOnVoteForTalkListener listener, String content, String delivery, String other) {
+		if (BuildConfig.DEBUG) {
+			doFakeCall(rating, talkId, listener, content, delivery, other);
+		} else {
+			doRealCall(rating, talkId, listener, content, delivery, other);
+		}
+	}
+
+	private void doFakeCall(int rating, String talkId, IOnVoteForTalkListener listener, String content, String delivery, String other) {
+		final boolean success = System.currentTimeMillis() % 2 == 0;
+		if (success) {
+			final Realm realm = realmProvider.getRealm();
+			rememberVote(realm, talkId);
+			realm.close();
+			notifyAboutSuccess(listener);
+		} else {
+			notifyAboutError(listener, new ApiException(new ErrorMessageModel("Vote call error!")));
+		}
+	}
+
+	private void doRealCall(int rating, String talkId, IOnVoteForTalkListener listener, String content, String delivery, String other) {
 		final Realm realm = realmProvider.getRealm();
 		try {
 			final VoteApi voteApi = voteConnection.getVoteApi();
@@ -162,7 +186,10 @@ public class TalkVoter implements ITalkVoter {
 				rememberVote(realm, talkId);
 				notifyAboutCantVoteMore(listener);
 			} else {
-				notifyAboutError(listener, new IOException("Error: " + response.code()));
+				final String errorMessage = response.errorBody().string();
+				final Gson gson = new Gson();
+				final ErrorMessageModel errorMessageModel = gson.fromJson(errorMessage, ErrorMessageModel.class);
+				notifyAboutError(listener, new ApiException(errorMessageModel));
 			}
 		} catch (IOException e) {
 			Logger.exc(e);
