@@ -17,6 +17,7 @@ import com.devoxx.data.user.UserManager;
 import com.devoxx.integrations.IntegrationController;
 import com.devoxx.integrations.IntegrationProvider;
 import com.devoxx.integrations.huntly.HuntlyController;
+import com.google.gson.Gson;
 
 import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.Bean;
@@ -31,6 +32,7 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 import android.content.Context;
+import android.text.TextUtils;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
@@ -191,6 +193,11 @@ public class ConferenceManager {
 		confDataListener.clear();
 	}
 
+	public ConferenceApiModel lastSelectedConference() {
+		final String rawData = settings.lastSelectedConference().getOr("");
+		return !TextUtils.isEmpty(rawData) ? new Gson().fromJson(rawData, ConferenceApiModel.class) : null;
+	}
+
 	public void initWitStaticData() {
 		conferenceDownloader.initWitStaticData();
 	}
@@ -207,6 +214,8 @@ public class ConferenceManager {
 	@Background
 	public void fetchConferenceData(
 			ConferenceApiModel conferenceApiModel) {
+		saveLastSelectedConference(conferenceApiModel);
+
 		final String confCode = conferenceApiModel.id;
 		try {
 			notifyConferenceListenerStart(confDataListener);
@@ -228,6 +237,10 @@ public class ConferenceManager {
 			clearCurrentConferenceData();
 			notifyConferenceListenerError(confDataListener);
 		}
+	}
+
+	private void saveLastSelectedConference(ConferenceApiModel conferenceApiModel) {
+		settings.edit().lastSelectedConference().put(new Gson().toJson(conferenceApiModel)).apply();
 	}
 
 	@UiThread void notifyConferenceListenerStart(WeakReference<IConferenceDataListener> listener) {
@@ -256,10 +269,6 @@ public class ConferenceManager {
 	}
 
 	public List<ConferenceDay> getConferenceDays() {
-		// TODO Take dates from model!
-//		final String fromDate = "2015-11-09T01:00:00.000Z";
-//		final String toDate = "2015-11-13T23:00:00.000Z";
-
 		final RealmConference realmConference = getActiveConference().get();
 		final String fromDate = realmConference.getFromDate();
 		final String toDate = realmConference.getToDate();
@@ -301,7 +310,7 @@ public class ConferenceManager {
 		clearSpeakersData();
 		clearFiltersDefinitions();
 		clearCache();
-		
+
 		integrationProvider.provideIntegrationController().clear();
 		userManager.clearCode();
 	}

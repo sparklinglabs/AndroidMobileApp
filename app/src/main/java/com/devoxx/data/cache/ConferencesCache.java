@@ -9,7 +9,6 @@ import com.google.gson.reflect.TypeToken;
 
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
-import org.androidannotations.annotations.RootContext;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -52,8 +51,7 @@ public class ConferencesCache implements DataCache<List<ConferenceApiModel>, Str
 
 	public void initWithFallbackData() {
 		clearCache(null);
-		final List<ConferenceApiModel> confs = deserializeData(fallbackData());
-		upsert(confs);
+		upsert(deserializeData(fallbackData()));
 	}
 
 	@Override

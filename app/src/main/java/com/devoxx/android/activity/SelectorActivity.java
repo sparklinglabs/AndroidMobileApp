@@ -1,15 +1,5 @@
 package com.devoxx.android.activity;
 
-import android.graphics.ColorMatrix;
-import android.graphics.ColorMatrixColorFilter;
-import android.os.Build;
-import android.os.Bundle;
-import android.view.View;
-import android.view.animation.AnticipateInterpolator;
-import android.view.animation.OvershootInterpolator;
-import android.widget.ImageView;
-import android.widget.TextView;
-
 import com.annimon.stream.Optional;
 import com.bumptech.glide.Glide;
 import com.devoxx.R;
@@ -23,6 +13,7 @@ import com.devoxx.connection.vote.VoteConnection;
 import com.devoxx.data.Settings_;
 import com.devoxx.data.conference.ConferenceManager;
 import com.devoxx.data.model.RealmConference;
+import com.devoxx.navigation.Navigator;
 import com.devoxx.utils.BlurTransformation;
 import com.devoxx.utils.FontUtils;
 import com.devoxx.utils.GooglePlayServicesUtils;
@@ -40,14 +31,22 @@ import org.joda.time.Days;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
+import android.os.Build;
+import android.os.Bundle;
+import android.view.View;
+import android.view.animation.AnticipateInterpolator;
+import android.view.animation.OvershootInterpolator;
+import android.widget.ImageView;
+import android.widget.TextView;
+
 import java.util.List;
 import java.util.Locale;
 
 @EActivity(R.layout.activity_selector)
 public class SelectorActivity extends BaseActivity implements ConferenceManager.IConferencesListener,
 		ConferenceManager.IConferenceDataListener, SelectorView.IWheelItemActionListener {
-
-	private static final String LAST_CONFERENCE_KEY = "last_clicked_conference";
 
 	@Bean
 	ConferenceManager conferenceManager;
@@ -63,6 +62,8 @@ public class SelectorActivity extends BaseActivity implements ConferenceManager.
 
 	@Bean
 	ViewUtils viewUtils;
+
+	@Bean Navigator navigator;
 
 	@Pref
 	Settings_ settings;
@@ -136,13 +137,10 @@ public class SelectorActivity extends BaseActivity implements ConferenceManager.
 			selectorView.hideIcons();
 			selectorView.showProgress();
 			hideGoButtonForce();
-			// TODO Load image properly from model!
-			// loadBackgroundImage(lastSelectedConference.splashImgURL);
+			lastSelectedConference = conferenceManager.lastSelectedConference();
+			loadBackgroundImage(lastSelectedConference.splashImgURL);
+			setupConfInfo(lastSelectedConference);
 		} else {
-			if (!connection.isOnline()) {
-				conferenceManager.initWitStaticData();
-			}
-
 			conferenceManager.fetchAvailableConferences();
 			selectorView.setListener(this);
 
@@ -165,20 +163,17 @@ public class SelectorActivity extends BaseActivity implements ConferenceManager.
 	@Override
 	protected void onRestoreInstanceState(Bundle savedInstanceState) {
 		super.onRestoreInstanceState(savedInstanceState);
-		lastSelectedConference = (ConferenceApiModel) savedInstanceState
-				.getSerializable(LAST_CONFERENCE_KEY);
+		lastSelectedConference = conferenceManager.lastSelectedConference();
 		if (lastSelectedConference != null) {
 			setupConfInfo(lastSelectedConference);
 		}
 	}
 
-	@Override
-	public void onSaveInstanceState(Bundle outState) {
-		outState.putSerializable(LAST_CONFERENCE_KEY, lastSelectedConference);
-		super.onSaveInstanceState(outState);
-	}
+	@Click(R.id.selectorGo) void onGoClick(View view) {
+		if (isGoButtonHidden()) {
+			return;
+		}
 
-	@Click(R.id.selectorGo) void onGoClick() {
 		if (connection.isOnline()) {
 			if (!conferenceManager.isLastSelectedConference(lastSelectedConference)) {
 				conferenceManager.clearCurrentConferenceData();
@@ -194,6 +189,10 @@ public class SelectorActivity extends BaseActivity implements ConferenceManager.
 		} else {
 			infoUtil.showToast(R.string.no_internet_connection);
 		}
+	}
+
+	private boolean isGoButtonHidden() {
+		return goButton.getScaleX() == 0f;
 	}
 
 	private void hideGoButtonForce() {
@@ -220,7 +219,11 @@ public class SelectorActivity extends BaseActivity implements ConferenceManager.
 	InfoUtil infoUtil;
 
 	@Click(R.id.selectorRegistrations) void onCapacityClick() {
-		infoUtil.showToast("Go to registration...");
+		final Optional<RealmConference> conference = conferenceManager.getActiveConference();
+		if (conference.isPresent()) {
+			navigator.openRegister(this, conference.get().getRegURL());
+		}
+
 	}
 
 	private void navigateToHome() {
@@ -252,8 +255,13 @@ public class SelectorActivity extends BaseActivity implements ConferenceManager.
 
 	@Override
 	public void onConferencesError() {
-		conferenceManager.initWitStaticData();
-		conferenceManager.fetchAvailableConferences();
+		if (lastSelectedConference != null) {
+			selectorView.restorePreviousStateIfAny(lastSelectedConference);
+		} else {
+			selectorView.defaultSelection();
+		}
+
+		showGoButton();
 	}
 
 	@Override

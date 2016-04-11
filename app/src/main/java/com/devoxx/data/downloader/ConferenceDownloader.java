@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.List;
 
 import retrofit2.Call;
+import retrofit2.Callback;
 import retrofit2.Response;
 
 @EBean
@@ -27,14 +28,19 @@ public class ConferenceDownloader {
 	}
 
 	public List<ConferenceApiModel> fetchAllConferences() throws IOException {
-		final List<ConferenceApiModel> result;
+		final List<ConferenceApiModel> result = conferencesCache.getData();
 		if (!conferencesCache.isValid()) {
 			final Call<List<ConferenceApiModel>> call = connection.getCfpApi().conferences();
-			final Response<List<ConferenceApiModel>> response = call.execute();
-			result = response.body();
-			conferencesCache.upsert(result);
-		} else {
-			result = conferencesCache.getData();
+			call.enqueue(new Callback<List<ConferenceApiModel>>() {
+				@Override
+				public void onResponse(Call<List<ConferenceApiModel>> call, Response<List<ConferenceApiModel>> response) {
+					conferencesCache.upsert(response.body());
+				}
+
+				@Override public void onFailure(Call<List<ConferenceApiModel>> call, Throwable t) {
+					conferencesCache.initWithFallbackData();
+				}
+			});
 		}
 		return result;
 	}

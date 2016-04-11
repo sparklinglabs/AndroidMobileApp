@@ -58,7 +58,6 @@ public class SlotsDownloader {
 		try {
 			downloadAllData(confCode);
 		} catch (IOException e) {
-			Logger.l("Can't update slots!");
 			Logger.exc(e);
 		}
 	}
@@ -78,9 +77,9 @@ public class SlotsDownloader {
 		final Call<SpecificScheduleApiModel> call =
 				devoxxApi.specificSchedule(confCode, day);
 
-		final List<SlotApiModel> slotApiModels = call.execute().body().slots;
-		Logger.l("downloadTalkSlotsForDay, " + day + ", result: " + slotApiModels.size());
-
-		result.addAll(slotApiModels);
+		final SpecificScheduleApiModel body = call.execute().body();
+		if (body != null && body.slots != null) {
+			result.addAll(body.slots);
+		}
 	}
 }

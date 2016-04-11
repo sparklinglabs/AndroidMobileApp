@@ -12,4 +12,8 @@ public interface Settings {
 	@DefaultBoolean(false) boolean filterTalksBySchedule();
 
 	@DefaultBoolean(false) boolean requestedConferenceChange();
+
+	@DefaultBoolean(true) boolean isFirstStart();
+
+	@DefaultString("") String lastSelectedConference();
 }
