@@ -29,7 +29,7 @@ public class ConferenceDownloader {
 
 	public List<ConferenceApiModel> fetchAllConferences() throws IOException {
 		final List<ConferenceApiModel> result = conferencesCache.getData();
-		if (!conferencesCache.isValid()) {
+		if (result == null || !conferencesCache.isValid()) {
 			final Call<List<ConferenceApiModel>> call = connection.getCfpApi().conferences();
 			call.enqueue(new Callback<List<ConferenceApiModel>>() {
 				@Override

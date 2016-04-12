@@ -35,7 +35,7 @@
         "target": "tablet"
       }
     ],
-    "capacity": "2501",
+    "capacity": "2700",
     "sessions": "200",
     "hashtag": "#DevoxxFR",
     "splashImgURL": "https://s3-eu-west-1.amazonaws.com/cfpdevoxx/france/DevoxxFranceHomePage.jpg",
@@ -44,7 +44,7 @@
     "wwwURL": "https://www.devoxx.fr",
     "regURL": "https://reg.devoxx.fr",
     "cfpURL": "https://cfp.devoxx.fr",
-    "talkURL": "",
+    "talkURL": "http://cfp.devoxx.fr/2016/talk/",
     "votingURL": "https://api-voting.devoxx.com/",
     "votingEnabled": "true",
     "votingImageName": "wine",
@@ -98,7 +98,7 @@
     "wwwURL": "http://www.devoxx.co.uk",
     "regURL": "https://www.eventbrite.co.uk/e/devoxx-uk-2016-tickets-19399397119",
     "cfpURL": "https://cfp.devoxx.co.uk/",
-    "talkURL": "",
+    "talkURL": "http://cfp.devoxx.co.uk/2016/talk/",
     "votingURL": "https://api-voting.devoxx.com/",
     "votingEnabled": "true",
     "votingImageName": "beer",
@@ -110,7 +110,7 @@
   {
     "id": "DevoxxPL2015",
     "confType": "Devoxx",
-    "confDescription": "Devoxx Poland 2015",
+    "confDescription": "Devoxx Poland 2016",
     "confIcon": "https://s3-eu-west-1.amazonaws.com/cfpdevoxx/poland/splash_btn_krakow.png",
     "venue": "ICE Krakow Congress Centre",
     "address": "ul. Marii Konopnickiej 17,Krakow 30-302",
