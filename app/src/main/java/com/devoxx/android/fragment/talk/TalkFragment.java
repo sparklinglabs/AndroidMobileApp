@@ -242,7 +242,7 @@ public class TalkFragment extends BaseFragment implements AppBarLayout.OnOffsetC
 			intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 			startActivity(intent);
 		} catch (ActivityNotFoundException e) {
-			infoUtil.showToast("Plase install the Google Keep app to store your notes.");
+			infoUtil.showToast("Please install the Google Keep app to store your notes.");
 
 			try {
 				startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + keepPackageName)));
@@ -362,10 +362,12 @@ public class TalkFragment extends BaseFragment implements AppBarLayout.OnOffsetC
 	}
 
 	private void setupScheduleButton() {
-		if (notificationsManager.isNotificationScheduled(slotModel.slotId)) {
-			scheduleButton.setImageResource(R.drawable.ic_star);
-		} else {
-			scheduleButton.setImageResource(R.drawable.ic_star_border);
+		if (scheduleButton != null) {
+			if (notificationsManager.isNotificationScheduled(slotModel.slotId)) {
+				scheduleButton.setImageResource(R.drawable.ic_star);
+			} else {
+				scheduleButton.setImageResource(R.drawable.ic_star_border);
+			}
 		}
 	}
 
