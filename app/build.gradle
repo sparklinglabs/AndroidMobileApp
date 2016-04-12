@@ -15,13 +15,13 @@ apply plugin: 'io.fabric'
 apply plugin: 'android-apt'
 apply plugin: 'me.tatarka.retrolambda'
 
-def PACKAGE_NAME = "com.devoxx"
-def VERSION_CODE = 114
-def VERSION_NAME = "1.0.${VERSION_CODE}"
-
 def keystorePropertiesFile = rootProject.file("devoxx.properties");
 def keystoreProperties = new Properties()
 keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+
+def PACKAGE_NAME = "com.devoxx"
+def VERSION_CODE = keystoreProperties['code']
+def VERSION_NAME = keystoreProperties['name']
 
 def mapKey = keystoreProperties['mapKey']
 

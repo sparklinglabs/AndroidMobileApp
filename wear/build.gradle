@@ -1,14 +1,13 @@
 apply plugin: 'com.android.application'
 apply plugin: 'android-apt'
 
-
-def PACKAGE_NAME = "com.devoxx"
-def VERSION_CODE = 114
-def VERSION_NAME = "1.0.${VERSION_CODE}"
-
 def keystorePropertiesFile = rootProject.file("devoxx.properties");
 def keystoreProperties = new Properties()
 keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+
+def PACKAGE_NAME = "com.devoxx"
+def VERSION_CODE = keystoreProperties['code']
+def VERSION_NAME = keystoreProperties['name']
 
 android {
     compileSdkVersion 22
