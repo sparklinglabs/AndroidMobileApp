@@ -16,13 +16,24 @@ public class RealmProvider {
 	@RootContext
 	Context context;
 
-	public Realm getRealm() {
+	private boolean inited = false;
+
+	public void init() {
 		final RealmConfiguration configuration =
 				new RealmConfiguration.Builder(context)
 						.name(DATABASE_NAME)
 						.schemaVersion(1)
-						.deleteRealmIfMigrationNeeded()
 						.build();
-		return Realm.getInstance(configuration);
+		Realm.setDefaultConfiguration(configuration);
+
+		inited = true;
+	}
+
+	public Realm getRealm() {
+		if (!inited) {
+			init();
+		}
+
+		return Realm.getDefaultInstance();
 	}
 }

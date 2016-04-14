@@ -1,6 +1,7 @@
 package com.devoxx.android.fragment.talk;
 
 import com.annimon.stream.Optional;
+import com.bumptech.glide.Glide;
 import com.devoxx.BuildConfig;
 import com.devoxx.R;
 import com.devoxx.android.fragment.common.BaseFragment;
@@ -63,6 +64,7 @@ import android.text.style.UnderlineSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -143,6 +145,9 @@ public class TalkFragment extends BaseFragment implements AppBarLayout.OnOffsetC
 
 	@ViewById(R.id.talkDetailsDescription)
 	TextView description;
+
+	@ViewById(R.id.main_backdrop)
+	ImageView backgroundImage;
 
 	private boolean shouldHideToolbarHeader = false;
 	private SlotApiModel slotModel;
@@ -449,5 +454,7 @@ public class TalkFragment extends BaseFragment implements AppBarLayout.OnOffsetC
 		}
 
 		appBarLayout.addOnOffsetChangedListener(this);
+
+		Glide.with(getActivity()).load(R.drawable.talk_background_image).into(backgroundImage);
 	}
 }

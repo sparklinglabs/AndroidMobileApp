@@ -28,9 +28,9 @@ public class SlotDao {
 	@Bean
 	RealmProvider realmProvider;
 
-	private Gson gson = new Gson();
 
 	public void saveSlots(List<SlotApiModel> slots) {
+		final Gson gson = new Gson();
 		final Realm realm = realmProvider.getRealm();
 		final RealmSlotsAggregate aggModel = new RealmSlotsAggregate();
 		final Type listType = new TypeToken<List<SlotApiModel>>() {
@@ -45,6 +45,7 @@ public class SlotDao {
 	}
 
 	public List<SlotApiModel> getAllSlots() {
+		final Gson gson = new Gson();
 		final Realm realm = realmProvider.getRealm();
 		final RealmSlotsAggregate aggModel = realm
 				.where(RealmSlotsAggregate.class).findFirst();

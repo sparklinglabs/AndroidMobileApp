@@ -1,10 +1,5 @@
 package com.devoxx.android.fragment.schedule;
 
-import android.content.Intent;
-import android.support.design.widget.TabLayout;
-import android.support.v4.app.Fragment;
-import android.support.v4.view.ViewPager;
-
 import com.annimon.stream.Optional;
 import com.devoxx.R;
 import com.devoxx.android.adapter.schedule.SchedulePagerAdapter;
@@ -23,6 +18,11 @@ import org.androidannotations.annotations.EFragment;
 import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.ViewById;
 import org.androidannotations.annotations.res.ColorRes;
+
+import android.content.Intent;
+import android.support.design.widget.TabLayout;
+import android.support.v4.app.Fragment;
+import android.support.v4.view.ViewPager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -104,7 +104,7 @@ public class ScheduleMainFragment extends BaseMenuFragment
 	@Override
 	public void onFiltersCleared() {
 		super.onFiltersCleared();
-		if (isActivityLive()) {
+		if (isActivityLive() && isConferenceAvailable()) {
 			invalidateViewPager();
 		}
 	}
@@ -113,7 +113,7 @@ public class ScheduleMainFragment extends BaseMenuFragment
 	public void onFiltersDismissed() {
 		super.onFiltersDismissed();
 
-		if (isActivityLive()) {
+		if (isActivityLive() && isConferenceAvailable()) {
 			invalidateViewPager();
 		}
 	}
@@ -121,9 +121,13 @@ public class ScheduleMainFragment extends BaseMenuFragment
 	@Override
 	public void onFiltersDefault() {
 		super.onFiltersDefault();
-		if (isActivityLive()) {
+		if (isActivityLive() && isConferenceAvailable()) {
 			invalidateViewPager();
 		}
+	}
+
+	private boolean isConferenceAvailable() {
+		return conferenceManager.isConferenceChoosen();
 	}
 
 	private void invalidateViewPager() {
@@ -185,7 +189,7 @@ public class ScheduleMainFragment extends BaseMenuFragment
 	// This event is used to refresh the view because the favorite status has been changed from the wearable device
 	@UiThread
 	public void onEvent(ScheduleEvent scheduleEvent) {
-		if (isActivityLive()) {
+		if (isActivityLive() && isConferenceAvailable()) {
 			invalidateViewPager();
 		}
 	}

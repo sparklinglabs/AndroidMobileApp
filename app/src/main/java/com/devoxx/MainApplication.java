@@ -1,6 +1,7 @@
 package com.devoxx;
 
 import com.crashlytics.android.Crashlytics;
+import com.devoxx.data.RealmProvider;
 import com.devoxx.data.Settings_;
 import com.devoxx.data.conference.ConferenceManager;
 import com.devoxx.integrations.IntegrationProvider;
@@ -19,12 +20,14 @@ public class MainApplication extends Application {
 
 	@Bean IntegrationProvider integrationProvider;
 	@Bean ConferenceManager conferenceManager;
+	@Bean RealmProvider realmProvider;
 
 	@Pref Settings_ settings;
 
 	@Override
 	public void onCreate() {
 		super.onCreate();
+		realmProvider.init();
 
 		if (settings.isFirstStart().getOr(true)) {
 			settings.edit().isFirstStart().put(false).apply();
