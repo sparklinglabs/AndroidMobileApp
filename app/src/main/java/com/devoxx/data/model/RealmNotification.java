@@ -10,6 +10,7 @@ public class RealmNotification extends RealmObject {
 	private String roomName;
 	private String talkTitle;
 	private long talkTime;
+	private long talkEndTime;
 	private long talkNotificationTime;
 	private long postNotificationTime;
 	private boolean firedForTalk;
@@ -77,6 +78,14 @@ public class RealmNotification extends RealmObject {
 
 	public void setTalkTime(long talkTime) {
 		this.talkTime = talkTime;
+	}
+
+	public long getTalkEndTime() {
+		return talkEndTime;
+	}
+
+	public void setTalkEndTime(long talkEndTime) {
+		this.talkEndTime = talkEndTime;
 	}
 
 	public static class Contract {

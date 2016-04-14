@@ -22,6 +22,7 @@ import com.devoxx.data.conference.ConferenceManager;
 import com.devoxx.data.manager.NotificationsManager;
 import com.devoxx.data.manager.SpeakersDataManager;
 import com.devoxx.data.model.RealmConference;
+import com.devoxx.data.user.UserFavouritedTalksManager;
 import com.devoxx.data.user.UserManager;
 import com.devoxx.data.vote.interfaces.IOnVoteForTalkListener;
 import com.devoxx.data.vote.interfaces.ITalkVoter;
@@ -85,6 +86,9 @@ public class TalkFragment extends BaseFragment implements AppBarLayout.OnOffsetC
 
 	@Bean
 	NotificationsManager notificationsManager;
+
+	@Bean
+	UserFavouritedTalksManager userFavouritedTalksManager;
 
 	@Bean
 	Navigator navigator;
@@ -166,15 +170,16 @@ public class TalkFragment extends BaseFragment implements AppBarLayout.OnOffsetC
 	}
 
 	@Click(R.id.talkDetailsScheduleBtn) void onScheduleButtonClick() {
-
-		if (notificationsManager.isNotificationScheduled(slotModel.slotId)) {
+		if (userFavouritedTalksManager.isFavouriteTalk(slotModel.slotId)) {
+			userFavouritedTalksManager.unFavouriteTalk(slotModel.slotId);
 			notificationsManager.removeNotification(slotModel.slotId);
 		} else {
+			userFavouritedTalksManager.favouriteTalk(slotModel.slotId);
 			notificationsManager.scheduleNotification(slotModel, true);
+			infoUtil.showToast("Talk marked as favorited.");
 		}
 
 		showScheduleChange();
-
 		sendToWearable();
 	}
 
@@ -208,7 +213,7 @@ public class TalkFragment extends BaseFragment implements AppBarLayout.OnOffsetC
 
 		// store the data
 		DataMap dataMap = new DataMap();
-		dataMap.putBoolean("favorite", notificationsManager.isNotificationAvailable(slotModel.slotId));
+		dataMap.putBoolean("favorite", userFavouritedTalksManager.isFavouriteTalk(slotModel.slotId));
 
 		// store the event in the datamap to send it to the wear
 		putDataMapRequest.getDataMap().putDataMap(Constants.DETAIL_PATH, dataMap);
@@ -368,7 +373,7 @@ public class TalkFragment extends BaseFragment implements AppBarLayout.OnOffsetC
 
 	private void setupScheduleButton() {
 		if (scheduleButton != null) {
-			if (notificationsManager.isNotificationScheduled(slotModel.slotId)) {
+			if (userFavouritedTalksManager.isFavouriteTalk(slotModel.slotId)) {
 				scheduleButton.setImageResource(R.drawable.ic_star);
 			} else {
 				scheduleButton.setImageResource(R.drawable.ic_star_border);

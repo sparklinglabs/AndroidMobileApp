@@ -9,8 +9,8 @@ import com.devoxx.android.adapter.schedule.model.ScheduleItem;
 import com.devoxx.android.adapter.schedule.model.TalksScheduleItem;
 import com.devoxx.connection.model.SlotApiModel;
 import com.devoxx.data.conference.ConferenceManager;
-import com.devoxx.data.manager.NotificationsManager;
 import com.devoxx.data.manager.SlotsDataManager;
+import com.devoxx.data.user.UserFavouritedTalksManager;
 import com.devoxx.utils.tuple.TripleTuple;
 
 import org.androidannotations.annotations.Bean;
@@ -29,7 +29,7 @@ public class ScheduleLineupDataCreator {
 	SlotsDataManager slotsDataManager;
 
 	@Bean
-	NotificationsManager notificationsManager;
+	UserFavouritedTalksManager userFavouritedTalksManager;
 
 	@Bean
 	ConferenceManager conferenceManager;
@@ -85,7 +85,7 @@ public class ScheduleLineupDataCreator {
 				index += 2; // +2 for timespan and more view.
 
 				for (SlotApiModel model : models) {
-					if (notificationsManager.isNotificationScheduled(model.slotId)) {
+					if (userFavouritedTalksManager.isFavouriteTalk(model.slotId)) {
 						talksScheduleItem.addFavouredSlot(model);
 					} else {
 						talksScheduleItem.addOtherSlot(model);

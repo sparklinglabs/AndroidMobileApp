@@ -331,8 +331,14 @@ public class SelectorActivity extends BaseActivity implements ConferenceManager.
 				startDate.getDayOfMonth(), endDateRaw, data.venue));
 
 		final DateTime now = new DateTime();
-		final int days = Days.daysBetween(now, startDate).getDays();
-		daysLeft.setupView(getString(R.string.selector_days), days);
+		final int days = Math.max(Days.daysBetween(now, startDate).getDays(), 0);
+		if (days == 0) {
+			daysLeft.setVisibility(View.GONE);
+		} else {
+			daysLeft.setupView(getString(R.string.selector_days), days);
+			daysLeft.setVisibility(View.VISIBLE);
+		}
+
 		talks.setupView(getString(R.string.selector_talks), Integer.decode(data.sessions));
 		capacity.setupView(getString(R.string.selector_capacity), Integer.decode(data.capacity));
 	}

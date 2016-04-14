@@ -1,18 +1,5 @@
 package com.devoxx.data.manager;
 
-import android.annotation.SuppressLint;
-import android.app.AlarmManager;
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.content.Context;
-import android.content.Intent;
-import android.os.Build;
-import android.os.PowerManager;
-import android.support.annotation.NonNull;
-import android.support.v4.app.NotificationCompat;
-import android.widget.Toast;
-
 import com.devoxx.BuildConfig;
 import com.devoxx.R;
 import com.devoxx.android.activity.MainActivity_;
@@ -27,6 +14,19 @@ import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
 import org.androidannotations.annotations.RootContext;
 import org.androidannotations.annotations.SystemService;
+
+import android.annotation.SuppressLint;
+import android.app.AlarmManager;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
+import android.os.Build;
+import android.os.PowerManager;
+import android.support.annotation.NonNull;
+import android.support.v4.app.NotificationCompat;
+import android.widget.Toast;
 
 import java.text.DateFormat;
 import java.util.HashMap;
@@ -47,7 +47,7 @@ public class NotificationsManager {
 	private static final long PROD_POST_TALK_NOTIFICATION_DELAY_MS = TimeUnit.MINUTES.toMillis(15);
 
 	// TODO Change 10 minutes to proper one!
-	private static final long DEBUG_BEFORE_TALK_NOTIFICATION_SPAN_MS = TimeUnit.SECONDS.toMillis(10);
+	private static final long DEBUG_BEFORE_TALK_NOTIFICATION_SPAN_MS = TimeUnit.MINUTES.toMillis(1);
 	private static final long PROD_BEFORE_TALK_NOTIFICATION_SPAN_MS = TimeUnit.HOURS.toMillis(1);
 
 	@RootContext
@@ -69,10 +69,9 @@ public class NotificationsManager {
 		warmUpScheduledNotificationsCache();
 	}
 
-	public boolean scheduleNotification(SlotApiModel slotApiModel, boolean withToast) {
+	public void scheduleNotification(SlotApiModel slotApiModel, boolean withToast) {
 		final NotificationConfiguration cfg = NotificationConfiguration.create(slotApiModel, withToast);
 		scheduleNotificationFromConfiguration(cfg);
-		return true;
 	}
 
 	private void scheduleNotificationFromConfiguration(NotificationConfiguration cfg) {
@@ -99,7 +98,7 @@ public class NotificationsManager {
 			final String date = dateFormat.format(cfg.getTalkNotificationTime());
 			String time = timeFormat.format(cfg.getTalkNotificationTime());
 
-			if (!dateFormat.format(System.currentTimeMillis()).equals(date)) {
+			if (!dateFormat.format(getNowMillis()).equals(date)) {
 				time = "\n" + date + " " + time;
 			}
 
@@ -154,11 +153,9 @@ public class NotificationsManager {
 			cancelPostTalkNotificationOnAlarmManager(slotId);
 			cancelTalkNotificationOnAlarmManager(slotId);
 			flagNotificationAsComplete(realm, slotId);
-			removeInfoFromCache(slotId);
 		} else {
 			cancelTalkNotificationOnAlarmManager(slotId);
 			flagNotificationAsFiredForTalk(realm, slotId);
-			markAsFiredForTalkInCache(slotId);
 		}
 		realm.commitTransaction();
 	}
@@ -189,11 +186,13 @@ public class NotificationsManager {
 		final RealmNotification notification = realm.where(RealmNotification.class)
 				.equalTo(RealmNotification.Contract.SLOT_ID, slotId).findFirst();
 		notification.setFiredForTalk(true);
+		markAsFiredForTalkInCache(slotId);
 	}
 
 	private void flagNotificationAsComplete(Realm realm, String slotId) {
 		realm.where(RealmNotification.class).equalTo(RealmNotification.Contract.SLOT_ID,
 				slotId).findAll().clear();
+		removeInfoFromCache(slotId);
 	}
 
 	public void showNotificationForVote(String slotId, String title, String desc) {
@@ -202,11 +201,9 @@ public class NotificationsManager {
 				.where(RealmNotification.class)
 				.equalTo(RealmNotification.Contract.SLOT_ID, slotId).findFirst();
 
-		if (isNotificationBeforeEvent(realmNotification)) {
-			final Notification notification = createPostNotification(
-					title, desc, realmNotification, createTalkPendingIntentToOpenMainActivity(slotId));
-			notificationManager.notify(slotId.hashCode(), notification);
-		}
+		final Notification notification = createPostNotification(
+				title, desc, realmNotification, createTalkPendingIntentToOpenMainActivity(slotId));
+		notificationManager.notify(slotId.hashCode(), notification);
 
 		unscheduleNotification(slotId, true);
 	}
@@ -307,7 +304,7 @@ public class NotificationsManager {
 
 	private boolean isNotificationBeforeEvent(RealmNotification realmNotification) {
 		return BuildConfig.DEBUG || realmNotification.getTalkTime()
-				> System.currentTimeMillis() - 600000;
+				> getNowMillis() - 600000;
 	}
 
 	public List<RealmNotification> getAlarms() {
@@ -354,6 +351,7 @@ public class NotificationsManager {
 		model.setSlotId(notifyModel.getSlotId());
 		model.setRoomName(notifyModel.getRoomName());
 		model.setTalkTitle(notifyModel.getTalkTitle());
+		model.setTalkEndTime(notifyModel.getEndTime());
 		realm.copyToRealmOrUpdate(model);
 		realm.commitTransaction();
 		realm.close();
@@ -369,12 +367,17 @@ public class NotificationsManager {
 		}
 	}
 
+	private static long getNowMillis() {
+		return System.currentTimeMillis();
+	}
+
 	static class NotificationConfiguration {
 		private final String talkSlotId;
 		private final String talkTitle;
 		private final String talkRoom;
 
 		private final long talkStartTime;
+		private final long talkEndTime;
 		private final boolean withToast;
 
 		// Notification for talk.
@@ -389,12 +392,13 @@ public class NotificationsManager {
 
 		NotificationConfiguration(
 				String talkSlotId, String talkTitle, String talkRoom,
-				long talkStartTime, boolean withToast, long talkNotificationTime,
+				long talkStartTime, long talkEndTime, boolean withToast, long talkNotificationTime,
 				long postTalkNotificationTime) {
 			this.talkSlotId = talkSlotId;
 			this.talkTitle = talkTitle;
 			this.talkRoom = talkRoom;
 			this.talkStartTime = talkStartTime;
+			this.talkEndTime = talkEndTime;
 			this.withToast = withToast;
 			this.talkNotificationTime = talkNotificationTime;
 			this.postTalkNotificationTime = postTalkNotificationTime;
@@ -405,6 +409,7 @@ public class NotificationsManager {
 			talkTitle = slotApiModel.talk.title;
 			talkRoom = slotApiModel.roomName;
 			talkStartTime = slotApiModel.fromTimeMillis;
+			talkEndTime = slotApiModel.toTimeMillis;
 			withToast = toastInfo;
 
 			final long beforeTalkNotificationTime = BuildConfig.DEBUG
@@ -413,11 +418,11 @@ public class NotificationsManager {
 
 			// In debug we set talk notification in future for tests...
 			talkNotificationTime = BuildConfig.DEBUG
-					? System.currentTimeMillis() + beforeTalkNotificationTime
+					? getNowMillis() + beforeTalkNotificationTime
 					: talkStartTime - beforeTalkNotificationTime;
 
 			// In debug we set post-talk notification in small amout on time for tests...
-			postTalkNotificationTime = talkNotificationTime +
+			postTalkNotificationTime = talkEndTime +
 					(BuildConfig.DEBUG
 							? DEBUG_POST_TALK_NOTIFICATION_DELAY_MS
 							: PROD_POST_TALK_NOTIFICATION_DELAY_MS);
@@ -429,6 +434,7 @@ public class NotificationsManager {
 					rn.getTalkTitle(),
 					rn.getRoomName(),
 					rn.getTalkTime(),
+					rn.getTalkEndTime(),
 					rn.isWithToast(),
 					rn.getTalkNotificationTime(),
 					rn.getPostNotificationTime()
@@ -436,7 +442,11 @@ public class NotificationsManager {
 		}
 
 		public long getTalkNotificationTime() {
-			return talkNotificationTime;
+			return talkNotificationTime < getNowMillis() ? talkStartTime : talkNotificationTime;
+		}
+
+		public long getPostTalkNotificationTime() {
+			return postTalkNotificationTime;
 		}
 
 		public long getTalkStartTime() {
@@ -444,7 +454,10 @@ public class NotificationsManager {
 		}
 
 		public boolean canScheduleNotification() {
-			return BuildConfig.DEBUG || talkNotificationTime > System.currentTimeMillis();
+			return BuildConfig.DEBUG || /*Debug allow all*/
+					talkNotificationTime > getNowMillis() || /*Set normal reminder, we have a time to set reminder ex 1h before talk start.*/
+					talkStartTime > getNowMillis() /*Set notification for talk start time, because we are less then ex 1h before talk start.*/
+					;
 		}
 
 		public boolean isWithToast() {
@@ -463,8 +476,8 @@ public class NotificationsManager {
 			return talkRoom;
 		}
 
-		public long getPostTalkNotificationTime() {
-			return postTalkNotificationTime;
+		public long getEndTime() {
+			return talkEndTime;
 		}
 	}
 }

@@ -17,6 +17,7 @@ import com.devoxx.data.manager.NotificationsManager;
 import com.devoxx.data.manager.SlotsDataManager;
 import com.devoxx.data.manager.SpeakersDataManager;
 import com.devoxx.data.model.RealmSpeaker;
+import com.devoxx.data.user.UserFavouritedTalksManager;
 import com.devoxx.event.ScheduleEvent;
 import com.devoxx.utils.Logger;
 import com.google.android.gms.wearable.DataMap;
@@ -59,6 +60,9 @@ public class WearService extends WearableListenerService {
 
 	@Bean
 	SpeakersDataManager speakersDataManager;
+
+	@Bean
+	UserFavouritedTalksManager userFavouritedTalksManager;
 
 	@Bean
 	NotificationsManager notificationsManager;
@@ -245,7 +249,7 @@ public class WearService extends WearableListenerService {
 				DataMap talkDataMap = new DataMap();
 
 				talkDataMap.putString(Constants.DATAMAP_ID, slot.talk.id);
-				talkDataMap.putBoolean(Constants.DATAMAP_FAVORITE, notificationsManager.isNotificationAvailable(slot.slotId));
+				talkDataMap.putBoolean(Constants.DATAMAP_FAVORITE, userFavouritedTalksManager.isFavouriteTalk(slot.slotId));
 				talkDataMap.putString(Constants.DATAMAP_TRACK_ID, slot.talk.trackId);
 				talkDataMap.putString(Constants.DATAMAP_TITLE, slot.talk.title);
 				talkDataMap.putString(Constants.DATAMAP_LANG, slot.talk.lang);
@@ -283,7 +287,7 @@ public class WearService extends WearableListenerService {
 
 		// process the data
 		talkDataMap.putString(Constants.DATAMAP_ID, talkId);
-		talkDataMap.putBoolean(Constants.DATAMAP_FAVORITE, notificationsManager.isNotificationAvailable(slotApiModel.slotId));
+		talkDataMap.putBoolean(Constants.DATAMAP_FAVORITE, userFavouritedTalksManager.isFavouriteTalk(slotApiModel.slotId));
 		talkDataMap.putString(Constants.DATAMAP_TALK_TYPE, slotApiModel.talk.talkType);
 		talkDataMap.putString(Constants.DATAMAP_TRACK, slotApiModel.talk.track);
 		talkDataMap.putString(Constants.DATAMAP_TRACK_ID, slotApiModel.talk.track);
@@ -509,7 +513,7 @@ public class WearService extends WearableListenerService {
 
 		// store the data
 		DataMap dataMap = new DataMap();
-		dataMap.putBoolean(Constants.DATAMAP_FAVORITE, notificationsManager.isNotificationAvailable(slotApiModel.slotId));
+		dataMap.putBoolean(Constants.DATAMAP_FAVORITE, userFavouritedTalksManager.isFavouriteTalk(slotApiModel.slotId));
 
 		// store the event in the datamap to send it to the wear
 		putDataMapRequest.getDataMap().putDataMap(Constants.DETAIL_PATH, dataMap);
@@ -527,6 +531,7 @@ public class WearService extends WearableListenerService {
 		}
 
 		notificationsManager.removeNotification(slotApiModel.slotId);
+		userFavouritedTalksManager.unFavouriteTalk(slotApiModel.slotId);
 
 		EventBus.getDefault().postLocal(new ScheduleEvent());
 
@@ -542,6 +547,7 @@ public class WearService extends WearableListenerService {
 		}
 
 		notificationsManager.scheduleNotification(slotApiModel, false);
+		userFavouritedTalksManager.favouriteTalk(slotApiModel.slotId);
 
 		EventBus.getDefault().postLocal(new ScheduleEvent());
 

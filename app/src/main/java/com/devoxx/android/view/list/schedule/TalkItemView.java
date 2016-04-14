@@ -6,7 +6,7 @@ import com.devoxx.connection.model.SlotApiModel;
 import com.devoxx.connection.model.TalkBaseApiModel;
 import com.devoxx.connection.model.TalkFullApiModel;
 import com.devoxx.data.downloader.TracksDownloader;
-import com.devoxx.data.manager.NotificationsManager;
+import com.devoxx.data.user.UserFavouritedTalksManager;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Bean;
@@ -72,7 +72,7 @@ public class TalkItemView extends LinearLayout {
 	TracksDownloader tracksDownloader;
 
 	@Bean
-	NotificationsManager notificationsManager;
+	UserFavouritedTalksManager userFavouritedTalksManager;
 
 	@AfterViews void afterViews() {
 		setOrientation(VERTICAL);
@@ -106,7 +106,7 @@ public class TalkItemView extends LinearLayout {
 					.into(trackIcon);
 		}
 
-		if (notificationsManager.isNotificationScheduled(slotModel.slotId)) {
+		if (userFavouritedTalksManager.isFavouriteTalk(slotModel.slotId)) {
 			scheduleIcon.setVisibility(View.VISIBLE);
 			scheduleIcon.setColorFilter(scheduledIndicatorColor, PorterDuff.Mode.MULTIPLY);
 		} else {
