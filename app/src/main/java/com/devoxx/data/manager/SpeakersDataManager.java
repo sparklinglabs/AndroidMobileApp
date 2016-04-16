@@ -13,6 +13,7 @@ import org.androidannotations.annotations.EBean;
 import java.io.IOException;
 import java.util.List;
 
+import io.realm.Case;
 import io.realm.Realm;
 
 @EBean
@@ -71,9 +72,9 @@ public class SpeakersDataManager extends AbstractDataManager<RealmSpeaker> {
 		final Realm realm = realmProvider.getRealm();
 		final List<RealmSpeakerShort> result = realm
 				.where(RealmSpeakerShort.class)
-				.contains("firstName", query, false)
+				.contains("firstName", query, Case.INSENSITIVE)
 				.or()
-				.contains("lastName", query, false)
+				.contains("lastName", query, Case.INSENSITIVE)
 				.findAll();
 		realm.close();
 

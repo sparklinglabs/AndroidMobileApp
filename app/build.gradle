@@ -14,6 +14,7 @@ apply plugin: 'com.android.application'
 apply plugin: 'io.fabric'
 apply plugin: 'android-apt'
 apply plugin: 'me.tatarka.retrolambda'
+apply plugin: 'realm-android'
 
 def keystorePropertiesFile = rootProject.file("devoxx.properties");
 def keystoreProperties = new Properties()
@@ -131,7 +132,6 @@ dependencies {
     compile 'com.google.code.gson:gson:2.4'
 
     compile 'com.annimon:stream:1.0.8'
-    compile 'io.realm:realm-android:0.84.0'
 
     compile 'net.danlew:android.joda:2.9.0'
 

@@ -16,6 +16,7 @@ import android.text.TextUtils;
 import java.io.IOException;
 import java.util.List;
 
+import io.realm.Case;
 import io.realm.Realm;
 import retrofit2.Call;
 import retrofit2.Response;
@@ -71,7 +72,7 @@ public class TracksDownloader {
 	public String getTrackIconUrl(String trackId) {
 		final Realm realm = realmProvider.getRealm();
 		final RealmTrack realmTrack = realm.where(RealmTrack.class).
-				equalTo(RealmTrack.Contract.ID, trackId.toLowerCase(), false).findFirst();
+				equalTo(RealmTrack.Contract.ID, trackId.toLowerCase(), Case.INSENSITIVE).findFirst();
 
 		String result = UNKNOWN_TRACK_ICON_URL;
 		if (realmTrack != null) {

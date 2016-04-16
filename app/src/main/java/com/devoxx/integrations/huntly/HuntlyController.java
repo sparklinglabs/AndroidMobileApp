@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.realm.Case;
 import io.realm.Realm;
 import retrofit2.Response;
 
@@ -303,14 +304,14 @@ public class HuntlyController {
 	private HuntlyQuestActivity getQuest(@HuntlyQuestActivity.QuestActivity String activity) {
 		final Realm realm = realmProvider.getRealm();
 		final RealmHuntlyQuestActivity quest = realm.where(RealmHuntlyQuestActivity.class)
-				.equalTo("activity", activity, false).findFirst();
+				.equalTo("activity", activity, Case.INSENSITIVE).findFirst();
 		realm.close();
 		return HuntlyQuestActivity.fromDb(quest);
 	}
 
 	private boolean isQuestAvailable(@HuntlyQuestActivity.QuestActivity String activity) {
 		final Realm realm = realmProvider.getRealm();
-		final long count = realm.where(RealmHuntlyQuestActivity.class).equalTo("activity", activity, false).count();
+		final long count = realm.where(RealmHuntlyQuestActivity.class).equalTo("activity", activity, Case.INSENSITIVE).count();
 		realm.close();
 
 		boolean result = false;

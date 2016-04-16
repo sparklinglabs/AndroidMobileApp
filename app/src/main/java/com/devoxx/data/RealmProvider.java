@@ -5,8 +5,12 @@ import org.androidannotations.annotations.RootContext;
 
 import android.content.Context;
 
+import io.realm.DynamicRealm;
+import io.realm.FieldAttribute;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
+import io.realm.RealmMigration;
+import io.realm.RealmSchema;
 
 @EBean(scope = EBean.Scope.Singleton)
 public class RealmProvider {
@@ -22,7 +26,8 @@ public class RealmProvider {
 		final RealmConfiguration configuration =
 				new RealmConfiguration.Builder(context)
 						.name(DATABASE_NAME)
-						.schemaVersion(1)
+						.schemaVersion(2)
+						.migration(new SchemaMigration())
 						.build();
 		Realm.setDefaultConfiguration(configuration);
 
@@ -35,5 +40,20 @@ public class RealmProvider {
 		}
 
 		return Realm.getDefaultInstance();
+	}
+
+	private static class SchemaMigration implements RealmMigration {
+
+		@Override public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+			final RealmSchema schema = realm.getSchema();
+			if (oldVersion == 1) {
+				schema.get("RealmNotification")
+						.addField("talkEndTime", long.class);
+
+				schema.create("RealmFavouriteTalk")
+						.addField("talkId", String.class, FieldAttribute.PRIMARY_KEY);
+				oldVersion++;
+			}
+		}
 	}
 }
