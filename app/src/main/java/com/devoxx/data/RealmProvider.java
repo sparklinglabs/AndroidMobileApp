@@ -1,15 +1,19 @@
 package com.devoxx.data;
 
+import com.devoxx.utils.Logger;
+
 import org.androidannotations.annotations.EBean;
 import org.androidannotations.annotations.RootContext;
 
 import android.content.Context;
 
 import io.realm.DynamicRealm;
+import io.realm.DynamicRealmObject;
 import io.realm.FieldAttribute;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmMigration;
+import io.realm.RealmResults;
 import io.realm.RealmSchema;
 
 @EBean(scope = EBean.Scope.Singleton)
@@ -45,13 +49,25 @@ public class RealmProvider {
 	private static class SchemaMigration implements RealmMigration {
 
 		@Override public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+			Logger.l("Migration needed, old: " + oldVersion + ", new: " + newVersion);
+
 			final RealmSchema schema = realm.getSchema();
 			if (oldVersion == 1) {
-				schema.get("RealmNotification")
-						.addField("talkEndTime", long.class);
+				if (!schema.get("RealmNotification").hasField("talkEndTime")) {
+					schema.get("RealmNotification")
+							.addField("talkEndTime", long.class);
+				}
 
-				schema.create("RealmFavouriteTalk")
-						.addField("talkId", String.class, FieldAttribute.PRIMARY_KEY);
+				if (!schema.contains("RealmFavouriteTalk")) {
+					schema.create("RealmFavouriteTalk")
+							.addField("talkId", String.class, FieldAttribute.PRIMARY_KEY);
+					final RealmResults<DynamicRealmObject> results = realm.allObjects("RealmNotification");
+					for (DynamicRealmObject result : results) {
+						final DynamicRealmObject favTalk = realm.createObject("RealmFavouriteTalk");
+						favTalk.setString("talkId", result.getString("slotId"));
+					}
+				}
+
 				oldVersion++;
 			}
 		}

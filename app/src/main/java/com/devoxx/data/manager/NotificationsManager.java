@@ -26,6 +26,7 @@ import android.os.Build;
 import android.os.PowerManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
+import android.util.Log;
 import android.widget.Toast;
 
 import java.text.DateFormat;
@@ -43,12 +44,11 @@ public class NotificationsManager {
 	public static final String NOTIFICATION_TALK_TYPE = "com.devoxx.android.intent.NOTIFICATION_TALK_TYPE";
 	public static final String NOTIFICATION_POST_TYPE = "com.devoxx.android.intent.NOTIFICATION_POST_TYPE";
 
-	private static final long DEBUG_POST_TALK_NOTIFICATION_DELAY_MS = TimeUnit.SECONDS.toMillis(10);
-	private static final long PROD_POST_TALK_NOTIFICATION_DELAY_MS = TimeUnit.MINUTES.toMillis(15);
-
-	// TODO Change 10 minutes to proper one!
 	private static final long DEBUG_BEFORE_TALK_NOTIFICATION_SPAN_MS = TimeUnit.MINUTES.toMillis(1);
+	private static final long DEBUG_POST_TALK_NOTIFICATION_DELAY_MS = TimeUnit.SECONDS.toMillis(10);
+
 	private static final long PROD_BEFORE_TALK_NOTIFICATION_SPAN_MS = TimeUnit.HOURS.toMillis(1);
+	private static final long PROD_POST_TALK_NOTIFICATION_DELAY_MS = TimeUnit.MINUTES.toMillis(15);
 
 	@RootContext
 	Context context;
@@ -75,6 +75,9 @@ public class NotificationsManager {
 	}
 
 	private void scheduleNotificationFromConfiguration(NotificationConfiguration cfg) {
+		if (cfg.isInvalid()) {
+			return;
+		}
 
 		// We can't do notification for past events...
 		if (!cfg.canScheduleNotification()) {
@@ -109,10 +112,21 @@ public class NotificationsManager {
 
 	private void schedulePostNotificationAlarm(NotificationConfiguration cfg) {
 		final PendingIntent pendingIntent = createPostNotificationPendingIntent(cfg);
+		final long notificationTime = cfg.getPostTalkNotificationTime();
 		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-			alarmManager.set(AlarmManager.RTC_WAKEUP, cfg.getPostTalkNotificationTime(), pendingIntent);
+			alarmManager.set(AlarmManager.RTC_WAKEUP, notificationTime, pendingIntent);
 		} else {
-			alarmManager.setExact(AlarmManager.RTC_WAKEUP, cfg.getPostTalkNotificationTime(), pendingIntent);
+			alarmManager.setExact(AlarmManager.RTC_WAKEUP, notificationTime, pendingIntent);
+		}
+	}
+
+	private void scheduleTalkNotificationAlarm(NotificationConfiguration cfg) {
+		final PendingIntent pendingIntent = createTalkNotificationPendingIntent(cfg);
+		final long notificationTime = cfg.getTalkNotificationTime();
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+			alarmManager.set(AlarmManager.RTC_WAKEUP, notificationTime, pendingIntent);
+		} else {
+			alarmManager.setExact(AlarmManager.RTC_WAKEUP, notificationTime, pendingIntent);
 		}
 	}
 
@@ -125,7 +139,7 @@ public class NotificationsManager {
 				PendingIntent.FLAG_CANCEL_CURRENT);
 	}
 
-	private PendingIntent createPendingIntentForAlarmReceiver(NotificationConfiguration cfg) {
+	private PendingIntent createTalkNotificationPendingIntent(NotificationConfiguration cfg) {
 		final Intent intent = new Intent(context, AlarmReceiver_.class);
 		intent.setAction(NOTIFICATION_TALK_TYPE);
 		final String slotID = cfg.getSlotId();
@@ -177,7 +191,7 @@ public class NotificationsManager {
 			// talk schedule already cancelled
 			return;
 		}
-		final PendingIntent toBeCancelled = createPendingIntentForAlarmReceiver(cfg);
+		final PendingIntent toBeCancelled = createTalkNotificationPendingIntent(cfg);
 		toBeCancelled.cancel();
 		alarmManager.cancel(toBeCancelled);
 	}
@@ -314,6 +328,8 @@ public class NotificationsManager {
 
 	@SuppressLint("Wakelock")
 	public void resetAlarms() {
+		Log.i(NotificationsManager.class.getSimpleName(), "resetAlarms");
+
 		final PowerManager.WakeLock wakeLock = powerManager.
 				newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "AlarmService");
 		wakeLock.acquire();
@@ -348,6 +364,7 @@ public class NotificationsManager {
 		final RealmNotification model = new RealmNotification();
 		model.setTalkNotificationTime(notifyModel.getTalkNotificationTime());
 		model.setTalkTime(notifyModel.getTalkStartTime());
+		model.setPostNotificationTime(notifyModel.getPostTalkNotificationTime());
 		model.setSlotId(notifyModel.getSlotId());
 		model.setRoomName(notifyModel.getRoomName());
 		model.setTalkTitle(notifyModel.getTalkTitle());
@@ -355,16 +372,6 @@ public class NotificationsManager {
 		realm.copyToRealmOrUpdate(model);
 		realm.commitTransaction();
 		realm.close();
-	}
-
-	private void scheduleTalkNotificationAlarm(NotificationConfiguration cfg) {
-		final PendingIntent alarmIntent = createPendingIntentForAlarmReceiver(cfg);
-
-		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-			alarmManager.set(AlarmManager.RTC_WAKEUP, cfg.getTalkNotificationTime(), alarmIntent);
-		} else {
-			alarmManager.setExact(AlarmManager.RTC_WAKEUP, cfg.getTalkNotificationTime(), alarmIntent);
-		}
 	}
 
 	private static long getNowMillis() {
@@ -404,6 +411,19 @@ public class NotificationsManager {
 			this.postTalkNotificationTime = postTalkNotificationTime;
 		}
 
+		public static NotificationConfiguration create(RealmNotification rn) {
+			return new NotificationConfiguration(
+					rn.getSlotId(),
+					rn.getTalkTitle(),
+					rn.getRoomName(),
+					rn.getTalkTime(),
+					rn.getTalkEndTime(),
+					rn.isWithToast(),
+					rn.getTalkNotificationTime(),
+					rn.getPostNotificationTime()
+			);
+		}
+
 		NotificationConfiguration(SlotApiModel slotApiModel, boolean toastInfo) {
 			talkSlotId = slotApiModel.slotId;
 			talkTitle = slotApiModel.talk.title;
@@ -426,19 +446,6 @@ public class NotificationsManager {
 					(BuildConfig.DEBUG
 							? DEBUG_POST_TALK_NOTIFICATION_DELAY_MS
 							: PROD_POST_TALK_NOTIFICATION_DELAY_MS);
-		}
-
-		public static NotificationConfiguration create(RealmNotification rn) {
-			return new NotificationConfiguration(
-					rn.getSlotId(),
-					rn.getTalkTitle(),
-					rn.getRoomName(),
-					rn.getTalkTime(),
-					rn.getTalkEndTime(),
-					rn.isWithToast(),
-					rn.getTalkNotificationTime(),
-					rn.getPostNotificationTime()
-			);
 		}
 
 		public long getTalkNotificationTime() {
@@ -478,6 +485,11 @@ public class NotificationsManager {
 
 		public long getEndTime() {
 			return talkEndTime;
+		}
+
+		public boolean isInvalid() {
+			return talkNotificationTime == 0 || postTalkNotificationTime == 0 ||
+					talkEndTime == 0 || talkStartTime == 0;
 		}
 	}
 }
