@@ -28,7 +28,6 @@ import com.devoxx.data.vote.interfaces.IOnVoteForTalkListener;
 import com.devoxx.data.vote.interfaces.ITalkVoter;
 import com.devoxx.data.vote.voters.TalkVoter;
 import com.devoxx.event.ScheduleEvent;
-import com.devoxx.integrations.IntegrationProvider;
 import com.devoxx.navigation.Navigator;
 import com.devoxx.utils.DeviceUtil;
 import com.devoxx.utils.InfoUtil;
@@ -110,9 +109,6 @@ public class TalkFragment extends BaseFragment implements AppBarLayout.OnOffsetC
 
 	@Bean(TalkVoter.class)
 	ITalkVoter talkVoter;
-
-	@Bean
-	IntegrationProvider integrationProvider;
 
 	@SystemService
 	LayoutInflater li;
@@ -292,34 +288,41 @@ public class TalkFragment extends BaseFragment implements AppBarLayout.OnOffsetC
 			talkVoter.showVoteDialog(getActivity(), slotModel, new IOnVoteForTalkListener() {
 				@Override
 				public void onVoteForTalkSucceed() {
-					setupVoteIcon();
-					integrationProvider.provideIntegrationController()
-							.talkVoted(conferenceManager.getActiveConference()
-									.get().getIntegrationId(), getActivity());
+					if (isLive()) {
+						setupVoteIcon();
+					}
 				}
 
 				@Override
 				public void onVoteForTalkFailed(Exception e) {
-					if (e instanceof ApiException) {
-						final ErrorMessageModel model = ((ApiException) e).getErrorMessageModel();
-						infoUtil.showToast(model.getMessage());
-					} else {
-						infoUtil.showToast(R.string.something_went_wrong);
+					if (isLive()) {
+						if (e instanceof ApiException) {
+							final ErrorMessageModel model = ((ApiException) e).getErrorMessageModel();
+							infoUtil.showToast(model.getMessage());
+						} else {
+							infoUtil.showToast(R.string.something_went_wrong);
+						}
 					}
 				}
 
 				@Override
 				public void onCantVoteOnTalkYet() {
-					infoUtil.showToast("Cannot vote on talk yet");
+					if (isLive()) {
+						infoUtil.showToast("Cannot vote on talk yet");
+					}
 				}
 
 				@Override
 				public void onCantVoteMoreThanOnce() {
-					infoUtil.showToast("Cannot vote more than once");
+					if (isLive()) {
+						infoUtil.showToast("Cannot vote more than once");
+					}
 				}
 			});
 		} else {
-			infoUtil.showToast("You've already voted on this talk!");
+			if (isLive()) {
+				infoUtil.showToast("You've already voted on this talk!");
+			}
 		}
 	}
 

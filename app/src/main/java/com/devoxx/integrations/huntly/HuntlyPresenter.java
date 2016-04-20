@@ -64,23 +64,26 @@ public class HuntlyPresenter {
 
 	private void completeQuest(HuntlyQuestActivity quest, String confId, Activity activity, int messageResId) {
 		huntlyController.completeQuestAsync(quest, confId);
-		final MaterialDialog md = new MaterialDialog.Builder(activity)
-				.customView(R.layout.huntly_first_run_layout, true)
-				.negativeText(android.R.string.ok)
-				.dismissListener(dialog -> notifyListeners())
-				.positiveText(R.string.play_more)
-				.onPositive((dialog, which) ->
-						decideToOpenAppOrPlayStore(confId, activity)).build();
-		TextView view = (TextView) md.getCustomView().findViewById(R.id.huntlyDialogMessage);
-		view.setText(messageResId);
 
-		view = (TextView) md.getCustomView().findViewById(R.id.huntlyDialogPointsCount);
-		view.setText(String.format(Locale.getDefault(), "+%d", quest.getSingleReward()));
+		if (activity != null && !activity.isFinishing()) {
+			final MaterialDialog md = new MaterialDialog.Builder(activity)
+					.customView(R.layout.huntly_first_run_layout, true)
+					.negativeText(android.R.string.ok)
+					.dismissListener(dialog -> notifyListeners())
+					.positiveText(R.string.play_more)
+					.onPositive((dialog, which) ->
+							decideToOpenAppOrPlayStore(confId, activity)).build();
+			TextView view = (TextView) md.getCustomView().findViewById(R.id.huntlyDialogMessage);
+			view.setText(messageResId);
 
-		view = (TextView) md.getCustomView().findViewById(R.id.huntlyDialogPromo);
-		view.setText(huntlySettings.promo().get());
+			view = (TextView) md.getCustomView().findViewById(R.id.huntlyDialogPointsCount);
+			view.setText(String.format(Locale.getDefault(), "+%d", quest.getSingleReward()));
 
-		md.show();
+			view = (TextView) md.getCustomView().findViewById(R.id.huntlyDialogPromo);
+			view.setText(huntlySettings.promo().get());
+
+			md.show();
+		}
 
 		updateUserStatsAsync(null);
 	}

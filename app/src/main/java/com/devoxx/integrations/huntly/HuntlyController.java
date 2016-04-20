@@ -26,6 +26,7 @@ import org.androidannotations.annotations.RootContext;
 import org.androidannotations.annotations.sharedpreferences.Pref;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.annotation.Nullable;
 import android.support.v4.util.Pair;
 import android.text.TextUtils;
@@ -40,6 +41,8 @@ import retrofit2.Response;
 
 @EBean
 public class HuntlyController {
+
+	public static final String USER_DATA_UPDATED = "HuntlyController.USER_DATA_UPDATED";
 
 	static final long UNKNOWN_EVENT_ID = -1;
 
@@ -232,6 +235,9 @@ public class HuntlyController {
 				final RealmHuntlyUserStats stats = realm
 						.copyToRealmOrUpdate(RealmHuntlyUserStats.fromApi(r.body()));
 				realm.commitTransaction();
+
+				context.sendBroadcast(new Intent(USER_DATA_UPDATED));
+
 				if (listener != null) {
 					listener.onUserStatsAvailable(HuntlyUserStats.fromDb(stats));
 				}
