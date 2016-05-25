@@ -26,12 +26,19 @@ public class SlotApiModel implements Serializable {
 	public long toTimeMillis;
 	public int roomCapacity;
 
+	/* Additional field for speaker url */
+	public String speakerImageUrl;
+
 	public boolean isBreak() {
 		return slotBreak != null && talk == null;
 	}
 
 	public boolean isTalk() {
 		return slotBreak == null && talk != null;
+	}
+
+	public void setSpeakerImageUrl(String speakerImageUrl) {
+		this.speakerImageUrl = speakerImageUrl;
 	}
 
 	public static class SameModelPredicate implements Predicate<SlotApiModel> {

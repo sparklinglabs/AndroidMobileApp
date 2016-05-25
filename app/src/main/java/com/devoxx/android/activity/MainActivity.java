@@ -16,6 +16,7 @@ import com.devoxx.data.manager.SpeakersDataManager;
 import com.devoxx.data.model.RealmConference;
 import com.devoxx.data.schedule.search.SearchManager;
 import com.devoxx.integrations.IntegrationProvider;
+import com.devoxx.integrations.huntly.HuntlyController;
 import com.devoxx.integrations.huntly.HuntlyPresenter;
 import com.devoxx.navigation.Navigator;
 import com.devoxx.utils.FontUtils;
@@ -170,7 +171,7 @@ public class MainActivity extends BaseActivity {
 						.get().getIntegrationId(), this);
 	}
 
-	@Receiver(actions = HuntlyPresenter.INTEGRATION_DIALOG_DISMISSED,
+	@Receiver(actions = {HuntlyPresenter.INTEGRATION_DIALOG_DISMISSED, HuntlyController.USER_DATA_UPDATED},
 			registerAt = Receiver.RegisterAt.OnCreateOnDestroy) void onIntegrationDialogDismissed() {
 		supportInvalidateOptionsMenu();
 	}
@@ -228,6 +229,8 @@ public class MainActivity extends BaseActivity {
 	}
 
 	private void loadCoreData() {
+		conferenceManager.updateSlotsBySpeakers();
+
 		onMainMenuClick(menuScheduleView);
 
 		if (TextUtils.isEmpty(fromNotificationSlotId)) {

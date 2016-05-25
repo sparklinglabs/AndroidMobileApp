@@ -1,6 +1,8 @@
 package com.devoxx.android.view.list.schedule;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.animation.GlideAnimation;
+import com.bumptech.glide.request.target.BitmapImageViewTarget;
 import com.devoxx.R;
 import com.devoxx.connection.model.SlotApiModel;
 import com.devoxx.connection.model.TalkBaseApiModel;
@@ -19,9 +21,12 @@ import org.joda.time.format.DateTimeFormat;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Bitmap;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
+import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.View;
@@ -101,9 +106,23 @@ public class TalkItemView extends LinearLayout {
 			time.setText(String.format("%s, %s-%s", dateRaw, slotModel.fromTime, slotModel.toTime));
 
 			Glide.with(getContext())
-					.load(obtainTrackIconUrl(talkModel))
+					.load(slotModel.speakerImageUrl)
+					.asBitmap()
+					.centerCrop()
 					.placeholder(R.drawable.th_background)
-					.into(trackIcon);
+					.error(R.drawable.no_photo)
+					.fallback(R.drawable.no_photo)
+					.into(new BitmapImageViewTarget(trackIcon) {
+						@Override
+						public void onResourceReady(
+								Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
+							final RoundedBitmapDrawable circularBitmapDrawable =
+									RoundedBitmapDrawableFactory.create(
+											trackIcon.getResources(), resource);
+							circularBitmapDrawable.setCircular(true);
+							trackIcon.setImageDrawable(circularBitmapDrawable);
+						}
+					});
 		}
 
 		if (userFavouritedTalksManager.isFavouriteTalk(slotModel.slotId)) {

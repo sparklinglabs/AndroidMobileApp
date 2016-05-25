@@ -86,11 +86,11 @@ public class ScheduleFilterManager {
 
 		realm.beginTransaction();
 		for (RealmTrack track : tracks) {
-			final RealmScheduleTrackItemFilter item = realm
-					.createObject(RealmScheduleTrackItemFilter.class);
-			item.setActive(true);
-			item.setTrackName(track.getTitle());
-			item.setTrackId(track.getId());
+			final RealmScheduleTrackItemFilter newItem = new RealmScheduleTrackItemFilter();
+			newItem.setActive(true);
+			newItem.setTrackName(track.getTitle());
+			newItem.setTrackId(track.getId());
+			realm.copyToRealmOrUpdate(newItem);
 		}
 		realm.commitTransaction();
 

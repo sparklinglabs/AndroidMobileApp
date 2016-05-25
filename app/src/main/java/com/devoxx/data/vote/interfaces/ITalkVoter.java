@@ -2,7 +2,7 @@ package com.devoxx.data.vote.interfaces;
 
 import com.devoxx.connection.model.SlotApiModel;
 
-import android.content.Context;
+import android.app.Activity;
 
 public interface ITalkVoter {
 
@@ -10,7 +10,7 @@ public interface ITalkVoter {
 
 	boolean isAlreadyVoted(String talkId);
 
-	void showVoteDialog(Context context, SlotApiModel slot, IOnVoteForTalkListener listener);
+	void showVoteDialog(Activity context, SlotApiModel slot, IOnVoteForTalkListener listener);
 
 	boolean canVoteForTalk(SlotApiModel slotModel);
 }

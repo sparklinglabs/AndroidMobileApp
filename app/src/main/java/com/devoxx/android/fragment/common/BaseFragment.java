@@ -12,4 +12,8 @@ public class BaseFragment extends Fragment {
 	public MainActivity getMainActivity() {
 		return (MainActivity) getActivity();
 	}
+
+	protected boolean isLive() {
+		return getActivity() != null && !getActivity().isFinishing() && isAdded();
+	}
 }

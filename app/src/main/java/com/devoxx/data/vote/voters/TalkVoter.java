@@ -19,6 +19,7 @@ import com.devoxx.data.user.UserManager;
 import com.devoxx.data.vote.VotedTalkModel;
 import com.devoxx.data.vote.interfaces.IOnVoteForTalkListener;
 import com.devoxx.data.vote.interfaces.ITalkVoter;
+import com.devoxx.integrations.IntegrationProvider;
 import com.devoxx.utils.Logger;
 import com.google.gson.Gson;
 
@@ -28,7 +29,7 @@ import org.androidannotations.annotations.EBean;
 import org.androidannotations.annotations.UiThread;
 import org.joda.time.DateTime;
 
-import android.content.Context;
+import android.app.Activity;
 import android.graphics.Color;
 import android.os.Build;
 import android.support.annotation.NonNull;
@@ -64,11 +65,14 @@ public class TalkVoter implements ITalkVoter {
 	ConferenceManager conferenceManager;
 
 	@Bean
+	IntegrationProvider integrationProvider;
+
+	@Bean
 	UserManager userManager;
 
 	@Override
-	public void showVoteDialog(Context context, SlotApiModel slot, IOnVoteForTalkListener listener) {
-		final MaterialDialog.Builder builder = new MaterialDialog.Builder(context);
+	public void showVoteDialog(Activity activity, SlotApiModel slot, IOnVoteForTalkListener listener) {
+		final MaterialDialog.Builder builder = new MaterialDialog.Builder(activity);
 		final MaterialDialog dialog = builder
 				.customView(R.layout.talk_rating_layout, true)
 				.positiveText(R.string.vote)
@@ -84,7 +88,7 @@ public class TalkVoter implements ITalkVoter {
 						final String delivery = extractText(customView, R.id.talkRatingDeliveryRemarks);
 						final String other = extractText(customView, R.id.talkRatingOther);
 
-						voteForTalk(rating, slot.talk.id, listener, content, delivery, other);
+						voteForTalk(rating, slot.talk.id, listener, content, delivery, other, activity);
 					}
 
 					@NonNull private String extractText(View customView, int inputId) {
@@ -150,11 +154,11 @@ public class TalkVoter implements ITalkVoter {
 	}
 
 	@Background
-	protected void voteForTalk(int rating, String talkId, IOnVoteForTalkListener listener, String content, String delivery, String other) {
+	protected void voteForTalk(int rating, String talkId, IOnVoteForTalkListener listener, String content, String delivery, String other, Activity activity) {
 		if (BuildConfig.DEBUG) {
 			doFakeCall(rating, talkId, listener, content, delivery, other);
 		} else {
-			doRealCall(rating, talkId, listener, content, delivery, other);
+			doRealCall(rating, talkId, listener, content, delivery, other, activity);
 		}
 	}
 
@@ -170,7 +174,7 @@ public class TalkVoter implements ITalkVoter {
 		}
 	}
 
-	private void doRealCall(int rating, String talkId, IOnVoteForTalkListener listener, String content, String delivery, String other) {
+	private void doRealCall(int rating, String talkId, IOnVoteForTalkListener listener, String content, String delivery, String other, Activity activity) {
 		final Realm realm = realmProvider.getRealm();
 		try {
 			final VoteApi voteApi = voteConnection.getVoteApi();
@@ -180,6 +184,7 @@ public class TalkVoter implements ITalkVoter {
 			if (response.isSuccessful()) {
 				rememberVote(realm, talkId);
 				notifyAboutSuccess(listener);
+				notifyIntegration(activity);
 			} else if (response.code() == NOT_READY_VOTE_HTTP_CODE) {
 				notifyAboutCantVote(listener);
 			} else if (response.code() == ALREADY_VOTED_HTTP_CODE) {
@@ -197,6 +202,12 @@ public class TalkVoter implements ITalkVoter {
 		} finally {
 			realm.close();
 		}
+	}
+
+	@UiThread void notifyIntegration(Activity activity) {
+		integrationProvider.provideIntegrationController()
+				.talkVoted(conferenceManager.getActiveConference()
+						.get().getIntegrationId(), activity);
 	}
 
 	private void rememberVote(Realm realm, String talkId) {

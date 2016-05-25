@@ -12,6 +12,7 @@ import com.devoxx.data.downloader.TracksDownloader;
 import com.devoxx.data.manager.SlotsDataManager;
 import com.devoxx.data.manager.SpeakersDataManager;
 import com.devoxx.data.model.RealmConference;
+import com.devoxx.data.model.RealmSpeakerShort;
 import com.devoxx.data.schedule.filter.ScheduleFilterManager;
 import com.devoxx.data.user.UserManager;
 import com.devoxx.integrations.IntegrationController;
@@ -105,6 +106,11 @@ public class ConferenceManager {
 	Settings_ settings;
 
 	private List<ConferenceDay> conferenceDays;
+
+	public void updateSlotsBySpeakers() {
+		final List<RealmSpeakerShort> speakers = speakersDataManager.getAllShortSpeakers();
+		slotsDataManager.updateSlotsBySpeakerImages(speakers);
+	}
 
 	@Background
 	public void fetchAvailableConferences() {
@@ -223,6 +229,7 @@ public class ConferenceManager {
 			tracksDownloader.downloadTracksDescriptions(confCode);
 			final boolean isAnyTalks = slotsDataManager.fetchTalksSync(confCode);
 			speakersDataManager.fetchSpeakersSync(confCode);
+			updateSlotsBySpeakers();
 
 			saveActiveConference(conferenceApiModel);
 			final List<ConferenceDay> conferenceDays = getConferenceDays();
