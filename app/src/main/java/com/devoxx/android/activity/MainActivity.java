@@ -229,6 +229,8 @@ public class MainActivity extends BaseActivity {
 	}
 
 	private void loadCoreData() {
+		conferenceManager.updateSlotsBySpeakers();
+
 		onMainMenuClick(menuScheduleView);
 
 		if (TextUtils.isEmpty(fromNotificationSlotId)) {
