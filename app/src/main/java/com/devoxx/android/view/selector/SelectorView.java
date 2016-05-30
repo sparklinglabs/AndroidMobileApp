@@ -90,8 +90,12 @@ public class SelectorView extends FrameLayout implements View.OnClickListener {
 		}
 	}
 
-	public void defaultSelection() {
-		onClick(getChildAt(0));
+	public void defaultConference() {
+		selectConference(0);
+	}
+
+	public void selectConference(int index) {
+		onClick(getChildAt(index));
 	}
 
 	public void restorePreviousStateIfAny(@Nullable ConferenceApiModel model) {

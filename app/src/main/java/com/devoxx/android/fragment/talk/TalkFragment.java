@@ -357,7 +357,7 @@ public class TalkFragment extends BaseFragment implements AppBarLayout.OnOffsetC
 	}
 
 	private void setupVoteIcon() {
-		if (BuildConfig.DEBUG || (talkVoter.isVotingEnabled() && talkVoter.canVoteForTalk(slotModel))) {
+		if (BuildConfig.TEST_VOTE || (talkVoter.isVotingEnabled() && talkVoter.canVoteForTalk(slotModel))) {
 			voteButton.setVisibility(View.VISIBLE);
 
 			if (talkVoter.isAlreadyVoted(slotModel.talk.id)) {

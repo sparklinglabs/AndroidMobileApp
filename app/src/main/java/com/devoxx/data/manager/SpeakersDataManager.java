@@ -11,12 +11,14 @@ import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import io.realm.Case;
 import io.realm.Realm;
 
-@EBean
+@EBean(scope = EBean.Scope.Singleton)
 public class SpeakersDataManager extends AbstractDataManager<RealmSpeaker> {
 
 	@Bean
@@ -24,6 +26,8 @@ public class SpeakersDataManager extends AbstractDataManager<RealmSpeaker> {
 
 	@Bean
 	RealmProvider realmProvider;
+
+	private Map<String, String> uuidToImageUrl;
 
 	public List<SpeakerShortApiModel> fetchSpeakersSync(final String confCode) throws IOException {
 		return speakersDownloader.downloadSpeakersShortInfoList(confCode);
@@ -88,6 +92,22 @@ public class SpeakersDataManager extends AbstractDataManager<RealmSpeaker> {
 		realm.allObjects(RealmSpeaker.class).clear();
 		realm.allObjects(RealmSpeakerShort.class).clear();
 		realm.commitTransaction();
+		realm.close();
+	}
+
+	public String imageUrlByUuid(String uuid) {
+		return uuidToImageUrl.get(uuid);
+	}
+
+	public void createSpeakersRepository() {
+		final Realm realm = realmProvider.getRealm();
+		final List<RealmSpeakerShort> speakers = realm.allObjects(RealmSpeakerShort.class);
+		uuidToImageUrl = new HashMap<>(speakers.size());
+
+		for (RealmSpeakerShort speaker : speakers) {
+			uuidToImageUrl.put(speaker.getUuid(), speaker.getAvatarURL());
+		}
+
 		realm.close();
 	}
 }

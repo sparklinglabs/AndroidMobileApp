@@ -155,20 +155,21 @@ public class TalkVoter implements ITalkVoter {
 
 	@Background
 	protected void voteForTalk(int rating, String talkId, IOnVoteForTalkListener listener, String content, String delivery, String other, Activity activity) {
-		if (BuildConfig.DEBUG) {
-			doFakeCall(rating, talkId, listener, content, delivery, other);
+		if (BuildConfig.TEST_VOTE) {
+			doFakeCall(talkId, listener, activity);
 		} else {
 			doRealCall(rating, talkId, listener, content, delivery, other, activity);
 		}
 	}
 
-	private void doFakeCall(int rating, String talkId, IOnVoteForTalkListener listener, String content, String delivery, String other) {
+	private void doFakeCall(String talkId, IOnVoteForTalkListener listener, Activity activity) {
 		final boolean success = System.currentTimeMillis() % 2 == 0;
 		if (success) {
 			final Realm realm = realmProvider.getRealm();
 			rememberVote(realm, talkId);
 			realm.close();
 			notifyAboutSuccess(listener);
+			notifyIntegration(activity);
 		} else {
 			notifyAboutError(listener, new ApiException(new ErrorMessageModel("Vote call error!")));
 		}

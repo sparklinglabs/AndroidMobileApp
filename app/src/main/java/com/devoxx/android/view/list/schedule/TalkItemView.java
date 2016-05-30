@@ -1,32 +1,33 @@
 package com.devoxx.android.view.list.schedule;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.animation.GlideAnimation;
-import com.bumptech.glide.request.target.BitmapImageViewTarget;
 import com.devoxx.R;
+import com.devoxx.android.view.talk.ScheduleSpeakerView;
+import com.devoxx.android.view.talk.ScheduleSpeakerView_;
 import com.devoxx.connection.model.SlotApiModel;
 import com.devoxx.connection.model.TalkBaseApiModel;
 import com.devoxx.connection.model.TalkFullApiModel;
+import com.devoxx.connection.model.TalkSpeakerApiModel;
 import com.devoxx.data.downloader.TracksDownloader;
+import com.devoxx.data.manager.SpeakersDataManager;
 import com.devoxx.data.user.UserFavouritedTalksManager;
+import com.google.android.flexbox.FlexboxLayout;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EViewGroup;
 import org.androidannotations.annotations.ViewById;
 import org.androidannotations.annotations.res.ColorRes;
+import org.androidannotations.annotations.res.DimensionPixelOffsetRes;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.graphics.Bitmap;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
-import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
-import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.View;
@@ -49,9 +50,6 @@ public class TalkItemView extends LinearLayout {
 	@ViewById(R.id.list_item_talk_place)
 	TextView place;
 
-	@ViewById(R.id.list_item_talk_speakers)
-	TextView speakers;
-
 	@ViewById(R.id.list_item_talk_track_icon)
 	ImageView trackIcon;
 
@@ -70,11 +68,18 @@ public class TalkItemView extends LinearLayout {
 	@ViewById(R.id.list_item_talk_time)
 	TextView time;
 
+	@ViewById(R.id.list_item_talk_speakers_container) FlexboxLayout speakersContainer;
+
 	@ColorRes(R.color.primary)
 	int scheduledIndicatorColor;
 
+	@DimensionPixelOffsetRes(R.dimen.value_4dp) int margin;
+
 	@Bean
 	TracksDownloader tracksDownloader;
+
+	@Bean
+	SpeakersDataManager speakersDataManager;
 
 	@Bean
 	UserFavouritedTalksManager userFavouritedTalksManager;
@@ -99,30 +104,28 @@ public class TalkItemView extends LinearLayout {
 			title.setText(talkModel.title);
 			track.setText(talkModel.track);
 			place.setText(slotModel.roomName);
-			speakers.setText(slotModel.talk.getReadableSpeakers());
 
 			final DateTime date = new DateTime(slotModel.fromTimeMillis);
 			final String dateRaw = date.toString(DateTimeFormat.forPattern(DAY_TEXT_FORMAT));
 			time.setText(String.format("%s, %s-%s", dateRaw, slotModel.fromTime, slotModel.toTime));
 
 			Glide.with(getContext())
-					.load(slotModel.speakerImageUrl)
-					.asBitmap()
-					.centerCrop()
+					.load(obtainTrackIconUrl(talkModel))
 					.placeholder(R.drawable.th_background)
-					.error(R.drawable.no_photo)
-					.fallback(R.drawable.no_photo)
-					.into(new BitmapImageViewTarget(trackIcon) {
-						@Override
-						public void onResourceReady(
-								Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
-							final RoundedBitmapDrawable circularBitmapDrawable =
-									RoundedBitmapDrawableFactory.create(
-											trackIcon.getResources(), resource);
-							circularBitmapDrawable.setCircular(true);
-							trackIcon.setImageDrawable(circularBitmapDrawable);
-						}
-					});
+					.into(trackIcon);
+
+			speakersContainer.removeAllViews();
+
+			for (TalkSpeakerApiModel speaker : slotModel.talk.speakers) {
+				final ScheduleSpeakerView speakerView = ScheduleSpeakerView_.build(getContext());
+				final String uuid = TalkSpeakerApiModel.getUuidFromLink(speaker.link);
+				final String url = speakersDataManager.imageUrlByUuid(uuid);
+				speakerView.setupView(speaker.name, url);
+
+				final FlexboxLayout.LayoutParams lp = new FlexboxLayout.LayoutParams(
+						ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+				speakersContainer.addView(speakerView, lp);
+			}
 		}
 
 		if (userFavouritedTalksManager.isFavouriteTalk(slotModel.slotId)) {

@@ -2,6 +2,7 @@ package com.devoxx.data.conference;
 
 import com.annimon.stream.Optional;
 import com.annimon.stream.Stream;
+import com.crashlytics.android.Crashlytics;
 import com.devoxx.connection.cfp.model.ConferenceApiModel;
 import com.devoxx.data.RealmProvider;
 import com.devoxx.data.Settings_;
@@ -12,7 +13,6 @@ import com.devoxx.data.downloader.TracksDownloader;
 import com.devoxx.data.manager.SlotsDataManager;
 import com.devoxx.data.manager.SpeakersDataManager;
 import com.devoxx.data.model.RealmConference;
-import com.devoxx.data.model.RealmSpeakerShort;
 import com.devoxx.data.schedule.filter.ScheduleFilterManager;
 import com.devoxx.data.user.UserManager;
 import com.devoxx.integrations.IntegrationController;
@@ -47,7 +47,6 @@ import io.realm.Realm;
 public class ConferenceManager {
 
 	private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
-
 
 	public interface IConferencesListener {
 
@@ -107,9 +106,8 @@ public class ConferenceManager {
 
 	private List<ConferenceDay> conferenceDays;
 
-	public void updateSlotsBySpeakers() {
-		final List<RealmSpeakerShort> speakers = speakersDataManager.getAllShortSpeakers();
-		slotsDataManager.updateSlotsBySpeakerImages(speakers);
+	public void createSpeakersRepository() {
+		speakersDataManager.createSpeakersRepository();
 	}
 
 	@Background
@@ -229,7 +227,7 @@ public class ConferenceManager {
 			tracksDownloader.downloadTracksDescriptions(confCode);
 			final boolean isAnyTalks = slotsDataManager.fetchTalksSync(confCode);
 			speakersDataManager.fetchSpeakersSync(confCode);
-			updateSlotsBySpeakers();
+			createSpeakersRepository();
 
 			saveActiveConference(conferenceApiModel);
 			final List<ConferenceDay> conferenceDays = getConferenceDays();
@@ -298,6 +296,30 @@ public class ConferenceManager {
 		conferenceDays = new ArrayList<>(result);
 
 		return result;
+	}
+
+	@Background
+	public void updateActiveConferenceFromCfp() {
+		try {
+			final List<ConferenceApiModel> confs = conferenceDownloader.fetchAllConferences();
+			final Optional<RealmConference> optional = getActiveConference();
+			if (confs != null && optional.isPresent()) {
+				final RealmConference activeConf = optional.get();
+
+				for (ConferenceApiModel conf : confs) {
+					if (conf.id.equals(activeConf.getId())) {
+
+						final Realm realm = realmProvider.getRealm();
+						realm.beginTransaction();
+						realm.copyToRealmOrUpdate(new RealmConference(conf));
+						realm.commitTransaction();
+						realm.close();
+					}
+				}
+			}
+		} catch (IOException e) {
+			Crashlytics.logException(e);
+		}
 	}
 
 	public Optional<RealmConference> getActiveConference() {

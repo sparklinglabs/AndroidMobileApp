@@ -82,20 +82,15 @@ public final class BarcodeCaptureActivity extends AppCompatActivity {
 
 		preview = (CameraSourcePreview) findViewById(R.id.preview);
 		graphicOverlay = (GraphicOverlay<BarcodeGraphic>) findViewById(R.id.graphicOverlay);
-		graphicOverlay.setBarcodeVisibleListener(new GraphicOverlay.IOnBarcodeVisibleListener<BarcodeGraphic>() {
-			@Override public void onBarcodeVisible(BarcodeGraphic graphic) {
-				if (graphic != null) {
-					final Barcode barcode = graphic.getBarcode();
-					if (barcode != null) {
-						Intent data = new Intent();
-						data.putExtra(BarcodeObject, barcode);
-						setResult(CommonStatusCodes.SUCCESS, data);
-						finish();
-					} else {
-						Log.d(TAG, "barcode data is null");
-					}
+		graphicOverlay.setBarcodeVisibleListener(new GraphicOverlay.IOnBarcodeVisibleListener() {
+			@Override public void onBarcodeVisible(Barcode barcode) {
+				if (barcode != null) {
+					Intent data = new Intent();
+					data.putExtra(BarcodeObject, barcode);
+					setResult(CommonStatusCodes.SUCCESS, data);
+					finish();
 				} else {
-					Log.d(TAG, "no barcode detected");
+					Log.d(TAG, "barcode data is null");
 				}
 			}
 		});

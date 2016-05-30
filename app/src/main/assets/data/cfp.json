@@ -35,7 +35,7 @@
         "target": "tablet"
       }
     ],
-    "capacity": "2700",
+    "capacity": "2800",
     "sessions": "200",
     "hashtag": "#DevoxxFR",
     "splashImgURL": "https://s3-eu-west-1.amazonaws.com/cfpdevoxx/france/DevoxxFranceHomePage.jpg",
@@ -61,8 +61,8 @@
     "venue": "Business Design Centre",
     "address": "52 Upper Street, Islington, London N1 0QH",
     "country": "UK",
-    "latitude": "51.507351",
-    "longitude": "-0.127758",
+    "latitude": "51.535625",
+    "longitude": "-0.105840",
     "floors": [
       {
         "img": "https://s3-eu-west-1.amazonaws.com/cfpdevoxx/uk/DevoxxUKExhibitionFloorplan.jpg",

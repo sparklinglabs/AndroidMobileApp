@@ -229,7 +229,7 @@ public class MainActivity extends BaseActivity {
 	}
 
 	private void loadCoreData() {
-		conferenceManager.updateSlotsBySpeakers();
+		conferenceManager.createSpeakersRepository();
 
 		onMainMenuClick(menuScheduleView);
 

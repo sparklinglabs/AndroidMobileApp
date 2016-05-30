@@ -15,6 +15,8 @@
  */
 package io.scalac.scanner.camera;
 
+import com.google.android.gms.vision.barcode.Barcode;
+
 import android.content.Context;
 import android.graphics.Canvas;
 import android.util.AttributeSet;
@@ -43,9 +45,9 @@ import java.util.Set;
  */
 public class GraphicOverlay<T extends GraphicOverlay.Graphic> extends View {
 
-	public interface IOnBarcodeVisibleListener<T> {
+	public interface IOnBarcodeVisibleListener {
 
-		void onBarcodeVisible(T barcodeGraphic);
+		void onBarcodeVisible(Barcode barcode);
 	}
 
 	private final Object mLock = new Object();
@@ -58,7 +60,7 @@ public class GraphicOverlay<T extends GraphicOverlay.Graphic> extends View {
 	private Set<T> mGraphics = new HashSet<>();
 	private T mFirstGraphic;
 
-	public void setBarcodeVisibleListener(IOnBarcodeVisibleListener<T> iOnBarcodeVisibleListener) {
+	public void setBarcodeVisibleListener(IOnBarcodeVisibleListener iOnBarcodeVisibleListener) {
 		this.iOnBarcodeVisibleListener = iOnBarcodeVisibleListener;
 	}
 
@@ -153,12 +155,15 @@ public class GraphicOverlay<T extends GraphicOverlay.Graphic> extends View {
 			mGraphics.add(graphic);
 			if (mFirstGraphic == null) {
 				mFirstGraphic = graphic;
-				if (iOnBarcodeVisibleListener != null) {
-					iOnBarcodeVisibleListener.onBarcodeVisible(mFirstGraphic);
-				}
 			}
 		}
 		postInvalidate();
+	}
+
+	public void onBarcodeFound(Barcode item) {
+		if (iOnBarcodeVisibleListener != null) {
+			iOnBarcodeVisibleListener.onBarcodeVisible(item);
+		}
 	}
 
 	/**

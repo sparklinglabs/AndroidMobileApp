@@ -18,6 +18,8 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
+import java.util.concurrent.TimeUnit;
+
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
@@ -91,6 +93,9 @@ public class Connection {
 			httpLoggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
 			builder.addInterceptor(httpLoggingInterceptor);
 		}
+
+		builder.connectTimeout(3, TimeUnit.SECONDS);
+		builder.readTimeout(3, TimeUnit.SECONDS);
 
 		final Retrofit retrofit = new Retrofit.Builder()
 				.baseUrl(Configuration.CFP_API_URL)

@@ -131,6 +131,7 @@ public class SelectorActivity extends BaseActivity implements ConferenceManager.
 			}
 
 			conferenceManager.updateSlotsIfNeededInBackground();
+			conferenceManager.updateActiveConferenceFromCfp();
 
 			navigateToHome();
 		} else if (isLoadingData) {
@@ -247,10 +248,26 @@ public class SelectorActivity extends BaseActivity implements ConferenceManager.
 		if (lastSelectedConference != null) {
 			selectorView.restorePreviousStateIfAny(lastSelectedConference);
 		} else {
-			selectorView.defaultSelection();
+			selectNearConference(conferences);
 		}
 
 		showGoButton();
+	}
+
+	private void selectNearConference(List<ConferenceApiModel> conferences) {
+		final int size = conferences.size();
+		int index = 0;
+		for (int i = 0; i < size; i++) {
+			final ConferenceApiModel conference = conferences.get(i);
+			final DateTime startConf = ConferenceManager.parseConfDate(conference.fromDate);
+
+			if (startConf.isAfterNow()) {
+				index = i;
+				break;
+			}
+		}
+
+		selectorView.selectConference(index);
 	}
 
 	@Override
@@ -258,7 +275,7 @@ public class SelectorActivity extends BaseActivity implements ConferenceManager.
 		if (lastSelectedConference != null) {
 			selectorView.restorePreviousStateIfAny(lastSelectedConference);
 		} else {
-			selectorView.defaultSelection();
+			selectorView.defaultConference();
 		}
 
 		showGoButton();

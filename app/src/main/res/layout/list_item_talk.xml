@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<merge xmlns:android="http://schemas.android.com/apk/res/android">
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+       xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <include
         android:id="@+id/list_item_timespan_running_first_indicator"
@@ -10,7 +11,6 @@
         android:layout_height="wrap_content"
         android:gravity="top"
         android:orientation="horizontal"
-        android:paddingBottom="8dp"
         android:paddingLeft="@dimen/activity_horizontal_margin"
         android:paddingRight="@dimen/activity_horizontal_margin"
         android:paddingTop="8dp">
@@ -90,25 +90,14 @@
                     android:textSize="12dp"/>
             </LinearLayout>
 
-            <LinearLayout
+            <com.google.android.flexbox.FlexboxLayout
+                android:id="@+id/list_item_talk_speakers_container"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <ImageView
-                    style="@style/TalkItemSubIconStyle"
-                    android:src="@drawable/ic_microphone"/>
-
-                <TextView
-                    android:id="@+id/list_item_talk_speakers"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:textColor="@color/primary_text_45"
-                    android:textSize="12dp"/>
-            </LinearLayout>
+                android:layout_height="match_parent"
+                app:alignContent="space_between"
+                app:alignItems="center"
+                app:flexWrap="wrap"
+                app:justifyContent="space_between"/>
 
         </LinearLayout>
 

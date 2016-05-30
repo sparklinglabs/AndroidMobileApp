@@ -4,10 +4,8 @@ import com.annimon.stream.Collectors;
 import com.annimon.stream.Optional;
 import com.annimon.stream.Stream;
 import com.devoxx.connection.model.SlotApiModel;
-import com.devoxx.connection.model.TalkSpeakerApiModel;
 import com.devoxx.data.dao.SlotDao;
 import com.devoxx.data.downloader.SlotsDownloader;
-import com.devoxx.data.model.RealmSpeakerShort;
 import com.devoxx.utils.Logger;
 
 import org.androidannotations.annotations.AfterInject;
@@ -19,7 +17,6 @@ import org.joda.time.DateTimeComparator;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 @EBean(scope = EBean.Scope.Singleton)
@@ -103,27 +100,5 @@ public class SlotsDataManager extends AbstractDataManager<SlotApiModel> {
 		if (isDataUpdateNeeded(confCode)) {
 			resyncDataInBackground(confCode);
 		}
-	}
-
-	public void updateSlotsBySpeakerImages(List<RealmSpeakerShort> speakers) {
-		final HashMap<String, String> uuidToSpeakerImage = new HashMap<>(speakers.size());
-		for (RealmSpeakerShort speaker : speakers) {
-			uuidToSpeakerImage.put(speaker.getUuid(), speaker.getAvatarURL());
-		}
-
-		for (SlotApiModel slot : allSlots) {
-			if (slot.talk != null && !slot.isBreak()) {
-				final List<TalkSpeakerApiModel> talkSpeakers = slot.talk.speakers;
-				if (talkSpeakers != null && !talkSpeakers.isEmpty()) {
-					final TalkSpeakerApiModel firstSpeaker = talkSpeakers.get(0);
-					final String talkSpeakerUuid = TalkSpeakerApiModel.getUuidFromLink(firstSpeaker.link);
-
-					final String avatarURL = uuidToSpeakerImage.get(talkSpeakerUuid);
-					slot.setSpeakerImageUrl(avatarURL);
-				}
-			}
-		}
-
-		slotDao.saveSlots(allSlots);
 	}
 }

@@ -1,5 +1,6 @@
 package com.devoxx.data.downloader;
 
+import com.crashlytics.android.Crashlytics;
 import com.devoxx.connection.Connection;
 import com.devoxx.connection.cfp.model.ConferenceApiModel;
 import com.devoxx.data.cache.ConferencesCache;
@@ -11,7 +12,6 @@ import java.io.IOException;
 import java.util.List;
 
 import retrofit2.Call;
-import retrofit2.Callback;
 import retrofit2.Response;
 
 @EBean
@@ -28,20 +28,19 @@ public class ConferenceDownloader {
 	}
 
 	public List<ConferenceApiModel> fetchAllConferences() throws IOException {
-		final List<ConferenceApiModel> result = conferencesCache.getData();
-		if (result == null || !conferencesCache.isValid()) {
+		try {
 			final Call<List<ConferenceApiModel>> call = connection.getCfpApi().conferences();
-			call.enqueue(new Callback<List<ConferenceApiModel>>() {
-				@Override
-				public void onResponse(Call<List<ConferenceApiModel>> call, Response<List<ConferenceApiModel>> response) {
-					conferencesCache.upsert(response.body());
-				}
-
-				@Override public void onFailure(Call<List<ConferenceApiModel>> call, Throwable t) {
-					conferencesCache.initWithFallbackData();
-				}
-			});
+			final Response<List<ConferenceApiModel>> response = call.execute();
+			if (response.isSuccessful()) {
+				conferencesCache.upsert(response.body());
+			} else {
+				conferencesCache.initWithFallbackData();
+			}
+		} catch (Exception e) {
+			conferencesCache.initWithFallbackData();
+			Crashlytics.logException(e);
 		}
-		return result;
+
+		return conferencesCache.getData();
 	}
 }
