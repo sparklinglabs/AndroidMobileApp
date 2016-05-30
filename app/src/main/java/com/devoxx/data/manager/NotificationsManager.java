@@ -1,6 +1,5 @@
 package com.devoxx.data.manager;
 
-import com.devoxx.BuildConfig;
 import com.devoxx.R;
 import com.devoxx.android.activity.MainActivity_;
 import com.devoxx.android.fragment.schedule.ScheduleLineupFragment;
@@ -43,6 +42,8 @@ public class NotificationsManager {
 	public static final String EXTRA_TALK_ID = "com.devoxx.android.intent.extra.TALK_ID";
 	public static final String NOTIFICATION_TALK_TYPE = "com.devoxx.android.intent.NOTIFICATION_TALK_TYPE";
 	public static final String NOTIFICATION_POST_TYPE = "com.devoxx.android.intent.NOTIFICATION_POST_TYPE";
+
+	private static final boolean FAKE_TIME = false;
 
 	private static final long DEBUG_BEFORE_TALK_NOTIFICATION_SPAN_MS = TimeUnit.MINUTES.toMillis(1);
 	private static final long DEBUG_POST_TALK_NOTIFICATION_DELAY_MS = TimeUnit.SECONDS.toMillis(10);
@@ -101,7 +102,9 @@ public class NotificationsManager {
 			final String date = dateFormat.format(cfg.getTalkNotificationTime());
 			String time = timeFormat.format(cfg.getTalkNotificationTime());
 
-			if (!dateFormat.format(getNowMillis()).equals(date)) {
+			final boolean isNotToday = !dateFormat.format(getNowMillis()).equals(date);
+
+			if (isNotToday) {
 				time = "\n" + date + " " + time;
 			}
 
@@ -317,7 +320,7 @@ public class NotificationsManager {
 	}
 
 	private boolean isNotificationBeforeEvent(RealmNotification realmNotification) {
-		return BuildConfig.DEBUG || realmNotification.getTalkTime()
+		return FAKE_TIME || realmNotification.getTalkTime()
 				> getNowMillis() - 600000;
 	}
 
@@ -432,18 +435,18 @@ public class NotificationsManager {
 			talkEndTime = slotApiModel.toTimeMillis;
 			withToast = toastInfo;
 
-			final long beforeTalkNotificationTime = BuildConfig.DEBUG
+			final long beforeTalkNotificationTime = FAKE_TIME
 					? DEBUG_BEFORE_TALK_NOTIFICATION_SPAN_MS
 					: PROD_BEFORE_TALK_NOTIFICATION_SPAN_MS;
 
 			// In debug we set talk notification in future for tests...
-			talkNotificationTime = BuildConfig.DEBUG
+			talkNotificationTime = FAKE_TIME
 					? getNowMillis() + beforeTalkNotificationTime
 					: talkStartTime - beforeTalkNotificationTime;
 
 			// In debug we set post-talk notification in small amout on time for tests...
 			postTalkNotificationTime = talkEndTime +
-					(BuildConfig.DEBUG
+					(FAKE_TIME
 							? DEBUG_POST_TALK_NOTIFICATION_DELAY_MS
 							: PROD_POST_TALK_NOTIFICATION_DELAY_MS);
 		}
@@ -461,7 +464,7 @@ public class NotificationsManager {
 		}
 
 		public boolean canScheduleNotification() {
-			return BuildConfig.DEBUG || /*Debug allow all*/
+			return FAKE_TIME || /*Debug allow all*/
 					talkNotificationTime > getNowMillis() || /*Set normal reminder, we have a time to set reminder ex 1h before talk start.*/
 					talkStartTime > getNowMillis() /*Set notification for talk start time, because we are less then ex 1h before talk start.*/
 					;

@@ -1,9 +1,9 @@
 package com.devoxx.connection.vote;
 
 import com.annimon.stream.Optional;
-import com.devoxx.BuildConfig;
 import com.devoxx.data.conference.ConferenceManager;
 import com.devoxx.data.model.RealmConference;
+import com.devoxx.utils.Logger;
 
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;

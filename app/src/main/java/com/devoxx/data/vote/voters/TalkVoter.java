@@ -4,8 +4,6 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import com.annimon.stream.Optional;
 import com.devoxx.BuildConfig;
 import com.devoxx.R;
-import com.devoxx.connection.ApiException;
-import com.devoxx.connection.model.ErrorMessageModel;
 import com.devoxx.connection.model.SlotApiModel;
 import com.devoxx.connection.vote.VoteApi;
 import com.devoxx.connection.vote.VoteConnection;
@@ -21,9 +19,7 @@ import com.devoxx.data.vote.interfaces.IOnVoteForTalkListener;
 import com.devoxx.data.vote.interfaces.ITalkVoter;
 import com.devoxx.integrations.IntegrationProvider;
 import com.devoxx.utils.Logger;
-import com.google.gson.Gson;
 
-import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
 import org.androidannotations.annotations.UiThread;
@@ -32,6 +28,8 @@ import org.joda.time.DateTime;
 import android.app.Activity;
 import android.graphics.Color;
 import android.os.Build;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.support.annotation.NonNull;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.text.TextUtils;
@@ -149,34 +147,39 @@ public class TalkVoter implements ITalkVoter {
 		return model != null;
 	}
 
-	private String getConfCode() {
-		return conferenceManager.getActiveConferenceId().get();
+	protected void voteForTalk(
+			int rating, String talkId, IOnVoteForTalkListener listener,
+			String content, String delivery, String other, Activity activity) {
+
+		final HandlerThread handlerThread = new HandlerThread("voteForTalk");
+		handlerThread.start();
+
+		final Handler handler = new Handler(handlerThread.getLooper());
+		handler.post(() -> {
+			final Realm realm = realmProvider.getRealm();
+
+			if (BuildConfig.TEST_VOTE) {
+				doFakeCall(talkId, listener, activity, realm);
+			} else {
+				doRealCall(rating, talkId, listener, content, delivery, other, activity, realm);
+			}
+
+			realm.close();
+		});
 	}
 
-	@Background
-	protected void voteForTalk(int rating, String talkId, IOnVoteForTalkListener listener, String content, String delivery, String other, Activity activity) {
-		if (BuildConfig.TEST_VOTE) {
-			doFakeCall(talkId, listener, activity);
-		} else {
-			doRealCall(rating, talkId, listener, content, delivery, other, activity);
-		}
-	}
-
-	private void doFakeCall(String talkId, IOnVoteForTalkListener listener, Activity activity) {
+	private void doFakeCall(String talkId, IOnVoteForTalkListener listener, Activity activity, Realm realm) {
 		final boolean success = System.currentTimeMillis() % 2 == 0;
 		if (success) {
-			final Realm realm = realmProvider.getRealm();
 			rememberVote(realm, talkId);
-			realm.close();
 			notifyAboutSuccess(listener);
 			notifyIntegration(activity);
 		} else {
-			notifyAboutError(listener, new ApiException(new ErrorMessageModel("Vote call error!")));
+			notifyAboutError(listener);
 		}
 	}
 
-	private void doRealCall(int rating, String talkId, IOnVoteForTalkListener listener, String content, String delivery, String other, Activity activity) {
-		final Realm realm = realmProvider.getRealm();
+	private void doRealCall(int rating, String talkId, IOnVoteForTalkListener listener, String content, String delivery, String other, Activity activity, Realm realm) {
 		try {
 			final VoteApi voteApi = voteConnection.getVoteApi();
 			final Call<VoteApiSimpleModel> call = createRequest(rating, talkId, content, delivery, other, voteApi);
@@ -192,16 +195,11 @@ public class TalkVoter implements ITalkVoter {
 				rememberVote(realm, talkId);
 				notifyAboutCantVoteMore(listener);
 			} else {
-				final String errorMessage = response.errorBody().string();
-				final Gson gson = new Gson();
-				final ErrorMessageModel errorMessageModel = gson.fromJson(errorMessage, ErrorMessageModel.class);
-				notifyAboutError(listener, new ApiException(errorMessageModel));
+				notifyAboutError(listener);
 			}
-		} catch (IOException e) {
+		} catch (IOException | IllegalStateException e) {
 			Logger.exc(e);
-			notifyAboutError(listener, e);
-		} finally {
-			realm.close();
+			notifyAboutError(listener);
 		}
 	}
 
@@ -223,9 +221,9 @@ public class TalkVoter implements ITalkVoter {
 		}
 	}
 
-	@UiThread void notifyAboutError(IOnVoteForTalkListener listener, Exception e) {
+	@UiThread void notifyAboutError(IOnVoteForTalkListener listener) {
 		if (listener != null) {
-			listener.onVoteForTalkFailed(e);
+			listener.onVoteForTalkFailed();
 		}
 	}
 
@@ -243,15 +241,16 @@ public class TalkVoter implements ITalkVoter {
 
 	private Call<VoteApiSimpleModel> createRequest(int rating, String talkId, String content, String delivery, String other, VoteApi voteApi) {
 		final String userId = userManager.getUserCode();
+
 		if (TextUtils.isEmpty(content) && TextUtils.isEmpty(delivery) && TextUtils.isEmpty(other)) {
-			return voteApi.vote(getConfCode(), new VoteApiSimpleModel(talkId, rating, userId));
+			return voteApi.vote(new VoteApiSimpleModel(talkId, rating, userId));
 		} else {
 			final List<VoteDetailsApiModel> details = new ArrayList<>();
 			appendDetails(details, "Content", content, rating);
 			appendDetails(details, "Delivery", delivery, rating);
 			appendDetails(details, "Other", other, rating);
 			final VoteApiModel model = new VoteApiModel(talkId, userId, details);
-			return voteApi.vote(getConfCode(), model);
+			return voteApi.vote(model);
 		}
 	}
 

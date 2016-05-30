@@ -6,7 +6,6 @@ import com.devoxx.connection.vote.model.VoteApiSimpleModel;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.POST;
-import retrofit2.http.Path;
 
 /**
  * Vote API based on that service:
@@ -14,13 +13,7 @@ import retrofit2.http.Path;
  */
 public interface VoteApi {
 
-	@POST("/{confCode}/vote") Call<VoteApiSimpleModel> vote(
-			@Path("confCode") String confCode,
-			@Body VoteApiModel model
-	);
+	@POST("/api/voting/v1/vote") Call<VoteApiSimpleModel> vote(@Body VoteApiModel model);
 
-	@POST("/{confCode}/vote") Call<VoteApiSimpleModel> vote(
-			@Path("confCode") String confCode,
-			@Body VoteApiSimpleModel model
-	);
+	@POST("/api/voting/v1/vote") Call<VoteApiSimpleModel> vote(@Body VoteApiSimpleModel model);
 }

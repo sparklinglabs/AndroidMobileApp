@@ -12,9 +12,7 @@ import com.devoxx.android.view.talk.TalkDetailsSectionClickableItem_;
 import com.devoxx.android.view.talk.TalkDetailsSectionItem;
 import com.devoxx.android.view.talk.TalkDetailsSectionItem_;
 import com.devoxx.common.utils.Constants;
-import com.devoxx.connection.ApiException;
 import com.devoxx.connection.Connection;
-import com.devoxx.connection.model.ErrorMessageModel;
 import com.devoxx.connection.model.SlotApiModel;
 import com.devoxx.connection.model.TalkFullApiModel;
 import com.devoxx.connection.model.TalkSpeakerApiModel;
@@ -200,7 +198,7 @@ public class TalkFragment extends BaseFragment implements AppBarLayout.OnOffsetC
 
 	private void sendToWearable() {
 
-		if (slotModel.isTalk() == false) {
+		if (!slotModel.isTalk()) {
 			return;
 		}
 
@@ -294,14 +292,9 @@ public class TalkFragment extends BaseFragment implements AppBarLayout.OnOffsetC
 				}
 
 				@Override
-				public void onVoteForTalkFailed(Exception e) {
+				public void onVoteForTalkFailed() {
 					if (isLive()) {
-						if (e instanceof ApiException) {
-							final ErrorMessageModel model = ((ApiException) e).getErrorMessageModel();
-							infoUtil.showToast(model.getMessage());
-						} else {
-							infoUtil.showToast(R.string.something_went_wrong);
-						}
+						infoUtil.showToast(R.string.something_went_wrong);
 					}
 				}
 
