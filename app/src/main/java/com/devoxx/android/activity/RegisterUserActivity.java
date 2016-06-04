@@ -127,7 +127,7 @@ public class RegisterUserActivity extends BaseActivity {
 		}
 
 		public Pair<String, String> getUserJob() {
-			return new Pair<>("userJob", extractIfExists(dataParts, 4));
+			return new Pair<>("userJob", extractIfExists(dataParts, 5));
 		}
 
 		public Pair<String, String> getUserId() {
