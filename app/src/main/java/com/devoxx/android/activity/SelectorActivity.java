@@ -130,7 +130,6 @@ public class SelectorActivity extends BaseActivity implements ConferenceManager.
 						conference.get().getVotingURL());
 			}
 
-			conferenceManager.updateSlotsIfNeededInBackground();
 			conferenceManager.updateActiveConferenceFromCfp();
 
 			navigateToHome();

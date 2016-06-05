@@ -169,6 +169,8 @@ public class MainActivity extends BaseActivity {
 		integrationProvider.provideIntegrationController()
 				.handleAppResume(conferenceManager.getActiveConference()
 						.get().getIntegrationId(), this);
+
+		conferenceManager.updateSlotsIfNeededInBackground();
 	}
 
 	@Receiver(actions = {HuntlyPresenter.INTEGRATION_DIALOG_DISMISSED, HuntlyController.USER_DATA_UPDATED},
