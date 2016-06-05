@@ -5,10 +5,8 @@ import com.devoxx.connection.DevoxxApi;
 import com.devoxx.connection.model.SlotApiModel;
 import com.devoxx.connection.model.SpecificScheduleApiModel;
 import com.devoxx.data.cache.SlotsCache;
-import com.devoxx.utils.Logger;
 import com.google.gson.Gson;
 
-import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
 
@@ -33,16 +31,11 @@ public class SlotsDownloader {
 	@Bean
 	SlotsCache slotsCache;
 
-	public boolean isDataUpdateNeeded(String confCode) {
-		return !slotsCache.isValid(confCode);
-	}
-
 	public List<SlotApiModel> downloadTalks(String confCode) throws IOException {
 		final List<SlotApiModel> result;
 
 		if (slotsCache.isValid(confCode)) {
-			updateAllDataAsync(confCode);
-			return slotsCache.getData(confCode);
+			result = slotsCache.getData(confCode);
 		} else {
 			result = downloadAllData(confCode);
 		}
@@ -52,14 +45,6 @@ public class SlotsDownloader {
 
 	private String deserializeData(List<SlotApiModel> result) {
 		return new Gson().toJson(result);
-	}
-
-	@Background void updateAllDataAsync(String confCode) {
-		try {
-			downloadAllData(confCode);
-		} catch (IOException e) {
-			Logger.exc(e);
-		}
 	}
 
 	private List<SlotApiModel> downloadAllData(String confCode) throws IOException {

@@ -46,15 +46,16 @@ public class BaseCache implements QueryAwareRawCache {
 	}
 
 	@Override
-	public boolean isValid(String query, long timestamp) {
+	public boolean isValid(String query, long lifeTime) {
 		final Realm realm = realmProvider.getRealm();
 		final CacheObject object = fetchCacheObject(realm, query);
 		final boolean isCacheAvailable = object != null && object.isValid();
 		final long cacheTime = isCacheAvailable ? object.getTimestamp() : 0;
 		realm.close();
 
-		return isCacheAvailable && (System.currentTimeMillis() -
-				cacheTime < timestamp);
+		final long diffTime = System.currentTimeMillis() - cacheTime;
+
+		return isCacheAvailable && (diffTime < lifeTime);
 	}
 
 	@Override
@@ -72,8 +73,7 @@ public class BaseCache implements QueryAwareRawCache {
 
 	private CacheObject fetchCacheObject(Realm realm, String query) {
 		final CacheObject local = realm.where(CacheObject.class)
-				.equalTo(CacheObject.Contract.QUERY, query)
-				.findFirst();
+				.equalTo(CacheObject.Contract.QUERY, query).findFirst();
 		return local != null && local.isValid() ? local : null;
 	}
 

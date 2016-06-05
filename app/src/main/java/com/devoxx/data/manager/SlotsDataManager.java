@@ -9,11 +9,14 @@ import com.devoxx.data.downloader.SlotsDownloader;
 import com.devoxx.utils.Logger;
 
 import org.androidannotations.annotations.AfterInject;
-import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeComparator;
+
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Looper;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -84,21 +87,16 @@ public class SlotsDataManager extends AbstractDataManager<SlotApiModel> {
 		slotDao.clearData();
 	}
 
-	@Background void resyncDataInBackground(String confCode) {
-		try {
-			slotsDownloader.downloadTalks(confCode);
-		} catch (IOException e) {
-			Logger.exc(e);
-		}
-	}
-
-	private boolean isDataUpdateNeeded(String confCode) {
-		return slotsDownloader.isDataUpdateNeeded(confCode);
-	}
-
-	public void updateSlotsIfNeededInBackground(String confCode) {
-		if (isDataUpdateNeeded(confCode)) {
-			resyncDataInBackground(confCode);
-		}
+	public void updateSlotsInBackground(String confCode) {
+		final HandlerThread handlerThread = new HandlerThread("updateSlotsInBackground");
+		handlerThread.start();
+		final Looper looper = handlerThread.getLooper();
+		new Handler(looper).post(() -> {
+			try {
+				slotsDownloader.downloadTalks(confCode);
+			} catch (IOException e) {
+				Logger.exc(e);
+			}
+		});
 	}
 }

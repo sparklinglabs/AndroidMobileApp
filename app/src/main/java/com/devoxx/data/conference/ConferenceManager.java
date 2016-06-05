@@ -211,7 +211,7 @@ public class ConferenceManager {
 		final Optional<RealmConference> conference = getActiveConference();
 		if (conference.isPresent()) {
 			final String confCode = conference.get().getId();
-			slotsDataManager.updateSlotsIfNeededInBackground(confCode);
+			slotsDataManager.updateSlotsInBackground(confCode);
 		}
 	}
 
