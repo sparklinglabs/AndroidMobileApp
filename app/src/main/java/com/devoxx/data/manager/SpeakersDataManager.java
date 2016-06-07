@@ -96,6 +96,10 @@ public class SpeakersDataManager extends AbstractDataManager<RealmSpeaker> {
 	}
 
 	public String imageUrlByUuid(String uuid) {
+		if (uuidToImageUrl == null) {
+			createSpeakersRepository();
+		}
+
 		return uuidToImageUrl.get(uuid);
 	}
 

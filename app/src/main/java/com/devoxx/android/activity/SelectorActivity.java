@@ -170,7 +170,7 @@ public class SelectorActivity extends BaseActivity implements ConferenceManager.
 	}
 
 	@Click(R.id.selectorGo) void onGoClick(View view) {
-		if (isGoButtonHidden()) {
+		if (isGoButtonHidden() || lastSelectedConference == null) {
 			return;
 		}
 
