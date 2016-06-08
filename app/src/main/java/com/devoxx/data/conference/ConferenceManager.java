@@ -154,7 +154,7 @@ public class ConferenceManager {
 
 	public boolean isLastSelectedConference(ConferenceApiModel selectedConference) {
 		final Optional<String> id = getActiveConferenceId();
-		return id.isPresent() && id.get().equalsIgnoreCase(selectedConference.id);
+		return id.isPresent() && selectedConference != null && id.get().equalsIgnoreCase(selectedConference.id);
 	}
 
 	public void requestConferenceChange() {
