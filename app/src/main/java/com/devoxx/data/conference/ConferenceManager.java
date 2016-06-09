@@ -193,7 +193,7 @@ public class ConferenceManager {
 					break;
 				case "DevoxxMA2015":
 				case "DevoxxMA2016":
-					timeZoneId = "Europe/Morocco";
+					timeZoneId = "Africa/Casablanca";
 					break;
 			}
 
