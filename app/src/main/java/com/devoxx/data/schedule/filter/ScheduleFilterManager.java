@@ -26,9 +26,9 @@ public class ScheduleFilterManager {
 	public static final String FILTERS_CHANGED_ACTION = "filters_changed_action";
 
 	/**
-	 * Column isActive in {@link RealmScheduleDayItemFilter} and
-	 * {@link RealmScheduleTrackItemFilter}
-	 */
+		* Column isActive in {@link RealmScheduleDayItemFilter} and
+		* {@link RealmScheduleTrackItemFilter}
+		*/
 	private static final String IS_ACTIVE_COLUMN_NAME = "isActive";
 
 	@Bean
@@ -65,15 +65,15 @@ public class ScheduleFilterManager {
 		realm.allObjects(RealmScheduleDayItemFilter.class).clear();
 		realm.commitTransaction();
 
-		realm.beginTransaction();
 		for (ConferenceDay conferenceDay : conferenceDays) {
-			final RealmScheduleDayItemFilter item = realm
-					.createObject(RealmScheduleDayItemFilter.class);
+			realm.beginTransaction();
+			final RealmScheduleDayItemFilter item = new RealmScheduleDayItemFilter();
 			item.setActive(true);
 			item.setDayMs(conferenceDay.getDayMs());
 			item.setLabel(conferenceDay.getName());
+			realm.copyToRealmOrUpdate(item);
+			realm.commitTransaction();
 		}
-		realm.commitTransaction();
 
 		realm.close();
 	}
@@ -100,7 +100,7 @@ public class ScheduleFilterManager {
 	public List<RealmScheduleTrackItemFilter> getTrackFilters() {
 		final Realm realm = realmProvider.getRealm();
 		final List<RealmScheduleTrackItemFilter> result
-				= realm.allObjects(RealmScheduleTrackItemFilter.class);
+						= realm.allObjects(RealmScheduleTrackItemFilter.class);
 		realm.close();
 		return result;
 	}
@@ -108,7 +108,7 @@ public class ScheduleFilterManager {
 	public List<RealmScheduleDayItemFilter> getDayFilters() {
 		final Realm realm = realmProvider.getRealm();
 		final List<RealmScheduleDayItemFilter> result
-				= realm.allObjects(RealmScheduleDayItemFilter.class);
+						= realm.allObjects(RealmScheduleDayItemFilter.class);
 		realm.close();
 		return result;
 	}
@@ -146,22 +146,22 @@ public class ScheduleFilterManager {
 		List<ScheduleItem> result = items;
 		if (activeFilters.size() != allTrackFilters.size()) {
 			final List<SlotApiModel> filteredModels = Stream.of(items)
-					.filter(value -> value instanceof TalksScheduleItem)
-					.flatMap(value -> Stream.of(value.getAllItems()))
-					.filter(value -> {
-						if (value.isTalk()) {
-							for (RealmScheduleTrackItemFilter filter : activeFilters) {
-								final String track = filter.getTrackId().toLowerCase();
-								final boolean properTrack = value.talk != null
-										&& value.talk.trackId.equalsIgnoreCase(track);
-								if (properTrack) {
-									return true;
+							.filter(value -> value instanceof TalksScheduleItem)
+							.flatMap(value -> Stream.of(value.getAllItems()))
+							.filter(value -> {
+								if (value.isTalk()) {
+									for (RealmScheduleTrackItemFilter filter : activeFilters) {
+										final String track = filter.getTrackId().toLowerCase();
+										final boolean properTrack = value.talk != null
+														&& value.talk.trackId.equalsIgnoreCase(track);
+										if (properTrack) {
+											return true;
+										}
+									}
 								}
-							}
-						}
-						return false;
-					})
-					.collect(Collectors.toList());
+								return false;
+							})
+							.collect(Collectors.toList());
 			result = scheduleLineupDataCreator.prepareResult(filteredModels);
 		}
 		return result;
@@ -170,9 +170,9 @@ public class ScheduleFilterManager {
 	private void setAllFiltersEnabled(boolean enabled) {
 		final Realm realm = realmProvider.getRealm();
 		final List<RealmScheduleDayItemFilter> days =
-				realm.allObjects(RealmScheduleDayItemFilter.class);
+						realm.allObjects(RealmScheduleDayItemFilter.class);
 		final List<RealmScheduleTrackItemFilter> tracks =
-				realm.allObjects(RealmScheduleTrackItemFilter.class);
+						realm.allObjects(RealmScheduleTrackItemFilter.class);
 		realm.beginTransaction();
 		for (int i = 0; i < days.size(); i++) {
 			days.get(i).setActive(enabled);
@@ -186,11 +186,11 @@ public class ScheduleFilterManager {
 
 	public boolean isSomeFiltersActive() {
 		return !getFilters(RealmScheduleDayItemFilter.class, false).isEmpty()
-				|| !getFilters(RealmScheduleTrackItemFilter.class, false).isEmpty();
+						|| !getFilters(RealmScheduleTrackItemFilter.class, false).isEmpty();
 	}
 
 	public int unselectedFiltersCount() {
 		return getFilters(RealmScheduleDayItemFilter.class, false).size()
-				+ getFilters(RealmScheduleTrackItemFilter.class, false).size();
+						+ getFilters(RealmScheduleTrackItemFilter.class, false).size();
 	}
 }

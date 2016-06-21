@@ -112,7 +112,7 @@ public class MainActivity extends BaseActivity {
 	protected void onNewIntent(Intent intent) {
 		if (intent.hasExtra(NotificationsManager.EXTRA_TALK_ID)) {
 			fromNotificationSlotId = intent.getStringExtra(
-					NotificationsManager.EXTRA_TALK_ID);
+							NotificationsManager.EXTRA_TALK_ID);
 			loadTalkFromNotification();
 		}
 	}
@@ -167,14 +167,14 @@ public class MainActivity extends BaseActivity {
 		super.onResume();
 		supportInvalidateOptionsMenu();
 		integrationProvider.provideIntegrationController()
-				.handleAppResume(conferenceManager.getActiveConference()
-						.get().getIntegrationId(), this);
+						.handleAppResume(conferenceManager.getActiveConference()
+										.get().getIntegrationId(), this);
 
 		conferenceManager.updateSlotsIfNeededAsync();
 	}
 
 	@Receiver(actions = {HuntlyPresenter.INTEGRATION_DIALOG_DISMISSED, HuntlyController.USER_DATA_UPDATED},
-			registerAt = Receiver.RegisterAt.OnCreateOnDestroy) void onIntegrationDialogDismissed() {
+					registerAt = Receiver.RegisterAt.OnCreateOnDestroy) void onIntegrationDialogDismissed() {
 		supportInvalidateOptionsMenu();
 	}
 
@@ -255,19 +255,19 @@ public class MainActivity extends BaseActivity {
 		final Intent intent = getIntent();
 		if (intent != null && intent.hasExtra(NotificationsManager.EXTRA_TALK_ID)) {
 			fromNotificationSlotId = intent.getStringExtra(
-					NotificationsManager.EXTRA_TALK_ID);
+							NotificationsManager.EXTRA_TALK_ID);
 		}
 	}
 
 	private void loadTalkFromNotification() {
 		final List<SlotApiModel> items = slotsDataManager.getLastTalks();
 		final Optional<SlotApiModel> optModel = Stream.of(items)
-				.filter(new SlotApiModel.SameModelPredicate(fromNotificationSlotId))
-				.findFirst();
+						.filter(new SlotApiModel.SameModelPredicate(fromNotificationSlotId))
+						.findFirst();
 
 		if (optModel.isPresent()) {
 			final Fragment fr = getSupportFragmentManager()
-					.findFragmentByTag(TAG_CONTENT_FRAGMENT);
+							.findFragmentByTag(TAG_CONTENT_FRAGMENT);
 			if (fr == null) {
 				navigator.openTalkDetails(this, optModel.get(), true);
 			} else {
@@ -284,12 +284,12 @@ public class MainActivity extends BaseActivity {
 	}
 
 	public void replaceFragmentInGivenContainer(
-			Fragment fragment, boolean addToBackStack, int fragmentTransition, int container) {
+					Fragment fragment, boolean addToBackStack, int fragmentTransition, int container) {
 		final FragmentManager fm = getSupportFragmentManager();
 		final FragmentTransaction ft = fm.beginTransaction();
 		ft.setTransition(fragmentTransition);
 		ft.replace(container, fragment, container == R.id.content_frame
-				? TAG_CONTENT_FRAGMENT : TAG_CONTENT_FRAGMENT_SECOND);
+						? TAG_CONTENT_FRAGMENT : TAG_CONTENT_FRAGMENT_SECOND);
 		if (addToBackStack) {
 			ft.addToBackStack(null);
 		}

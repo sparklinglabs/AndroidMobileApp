@@ -1,5 +1,5 @@
 <wearableApp package="com.devoxx">
-    <versionCode>124</versionCode>
-    <versionName>1.0.124</versionName>
+    <versionCode>125</versionCode>
+    <versionName>1.0.125</versionName>
     <rawPathResId>wear_app</rawPathResId>
 </wearableApp>
