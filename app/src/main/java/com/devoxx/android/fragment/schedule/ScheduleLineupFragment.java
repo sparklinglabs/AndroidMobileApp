@@ -13,7 +13,6 @@ import com.devoxx.data.schedule.filter.ScheduleFilterManager;
 import com.devoxx.data.schedule.search.SearchManager;
 import com.devoxx.navigation.Navigator;
 import com.devoxx.navigation.NeededUpdateListener;
-import com.devoxx.utils.InfoUtil;
 
 import org.androidannotations.annotations.AfterInject;
 import org.androidannotations.annotations.Bean;
@@ -46,9 +45,6 @@ public class ScheduleLineupFragment extends BaseListFragment implements NeededUp
 
 	@Bean
 	ScheduleDayLineupAdapter scheduleDayLineupAdapter;
-
-	@Bean
-	InfoUtil infoUtil;
 
 	@Bean
 	ScheduleLineupDataCreator scheduleLineupDataCreator;
@@ -101,7 +97,7 @@ public class ScheduleLineupFragment extends BaseListFragment implements NeededUp
 			ScheduleFilterManager.FILTERS_CHANGED_ACTION}) void onRefreshData() {
 		final String lastQuery = searchManager.getLastQuery();
 		List<ScheduleItem> items = searchManager.handleSearchQuery(lineupDayMs, lastQuery);
-		items = filterManager.applyTracksFilter(items);
+		items = filterManager.applyListFilter(items);
 		scheduleDayLineupAdapter.setData(items);
 		scheduleDayLineupAdapter.notifyDataSetChanged();
 	}
@@ -135,7 +131,7 @@ public class ScheduleLineupFragment extends BaseListFragment implements NeededUp
 		} else {
 			items = scheduleLineupDataCreator.prepareInitialData(lineupDayMs);
 		}
-		items = filterManager.applyTracksFilter(items);
+		items = filterManager.applyListFilter(items);
 		scheduleDayLineupAdapter.setData(items);
 		scheduleDayLineupAdapter.notifyDataSetChanged();
 	}

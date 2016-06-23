@@ -95,4 +95,5 @@
     <string name="internet_connection_should_be_available_nduring_scanning_nfc_band">(internet connection should be available\nduring scanning NFC band)</string>
     <string name="enable_nfc">Enable NFC</string>
     <string name="disabled_nfc">NFC is disabled, please enable it in settings</string>
+    <string name="custom">Custom</string>
 </resources>

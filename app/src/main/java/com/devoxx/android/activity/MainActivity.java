@@ -14,6 +14,7 @@ import com.devoxx.data.manager.NotificationsManager;
 import com.devoxx.data.manager.SlotsDataManager;
 import com.devoxx.data.manager.SpeakersDataManager;
 import com.devoxx.data.model.RealmConference;
+import com.devoxx.data.schedule.filter.ScheduleFilterManager;
 import com.devoxx.data.schedule.search.SearchManager;
 import com.devoxx.integrations.IntegrationProvider;
 import com.devoxx.integrations.huntly.HuntlyController;
@@ -75,6 +76,9 @@ public class MainActivity extends BaseActivity {
 
 	@Bean
 	IntegrationProvider integrationProvider;
+
+	@Bean
+	ScheduleFilterManager scheduleFilterManager;
 
 	@Pref
 	Settings_ settings;
@@ -171,6 +175,7 @@ public class MainActivity extends BaseActivity {
 										.get().getIntegrationId(), this);
 
 		conferenceManager.updateSlotsIfNeededAsync();
+		scheduleFilterManager.createCustomFiltersDefinitionIfNeeded();
 	}
 
 	@Receiver(actions = {HuntlyPresenter.INTEGRATION_DIALOG_DISMISSED, HuntlyController.USER_DATA_UPDATED},
