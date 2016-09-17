@@ -33,6 +33,7 @@ import java.util.concurrent.TimeUnit;
 public class ScheduleLineupFragment extends BaseListFragment implements NeededUpdateListener {
 
 	public static final String REFRESH_ACTION = "com.devoxx.android.intent.REFRESH_ACTION";
+	public static final String REFETCH_DATA_ACTION = "com.devoxx.android.intent.REFETCH_DATA_ACTION";
 
 	private static final long UNKNOWN_LINEUP_TIME = -1;
 	private static final long CHECK_RUNNING_SESSIONS_INTERVAL_MS = TimeUnit.SECONDS.toMillis(10);
@@ -119,8 +120,16 @@ public class ScheduleLineupFragment extends BaseListFragment implements NeededUp
 		onRefreshData();
 	}
 
+	@Receiver(actions = {REFETCH_DATA_ACTION}) void onReFetchDataIntent() {
+		initAdapterWithLastQuery();
+	}
+
 	public static Intent getRefreshIntent() {
 		return new Intent(REFRESH_ACTION);
+	}
+
+	public static Intent getReFetchIntent() {
+		return new Intent(REFETCH_DATA_ACTION);
 	}
 
 	private void initAdapterWithLastQuery() {

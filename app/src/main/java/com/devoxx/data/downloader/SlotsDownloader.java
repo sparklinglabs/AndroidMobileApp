@@ -30,29 +30,29 @@ public class SlotsDownloader {
 			Arrays.asList("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
 	);
 
-	@Bean
-	Connection connection;
+	@Bean Connection connection;
+	@Bean SlotsCache slotsCache;
+	@RootContext Context context;
 
-	@Bean
-	SlotsCache slotsCache;
-
-	@RootContext
-	Context context;
-
-	public List<SlotApiModel> forceDownloadTalks(String confCode) throws IOException {
-		return downloadAllData(confCode);
-	}
-
-	public List<SlotApiModel> downloadTalks(String confCode) throws IOException {
+	private List<SlotApiModel> downloadTalksHelper(String confCode, boolean force) throws IOException {
 		final List<SlotApiModel> result;
 
-		if (slotsCache.isValid(confCode)) {
+		if (slotsCache.isValid(confCode) && !force) {
 			result = slotsCache.getData(confCode);
 		} else {
 			result = downloadAllData(confCode);
+			slotsCache.upsert(deserializeData(result), confCode);
 		}
 
 		return result;
+	}
+
+	public List<SlotApiModel> downloadTalks(String confCode) throws IOException {
+		return downloadTalksHelper(confCode, false);
+	}
+
+	public List<SlotApiModel> downloadTalksForPush(String confCode) throws IOException {
+		return downloadTalksHelper(confCode, true);
 	}
 
 	public boolean isDownloadNeeded(String confCode) {
@@ -74,7 +74,6 @@ public class SlotsDownloader {
 		for (String day : AVAILABLE_CONFERENCE_DAYS) {
 			downloadTalkSlotsForDay(confCode, result, day);
 		}
-		slotsCache.upsert(deserializeData(result), confCode);
 
 		googleApiConnector.disconnect();
 

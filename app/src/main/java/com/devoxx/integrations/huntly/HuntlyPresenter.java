@@ -76,7 +76,7 @@ public class HuntlyPresenter {
 
 			if (parts != null && !parts.isEmpty()) {
 				mainActivity.startActivity(new Intent(Intent.ACTION_VIEW,
-								Uri.parse(BROWSER_FALLBACK_URI_PREFIX + parts.get(0))));
+						Uri.parse(BROWSER_FALLBACK_URI_PREFIX + parts.get(0))));
 			}
 		}
 	}
@@ -86,12 +86,12 @@ public class HuntlyPresenter {
 
 		if (activity != null && !activity.isFinishing()) {
 			final MaterialDialog md = new MaterialDialog.Builder(activity)
-							.customView(R.layout.huntly_first_run_layout, true)
-							.negativeText(android.R.string.ok)
-							.dismissListener(dialog -> notifyListeners())
-							.positiveText(R.string.play_more)
-							.onPositive((dialog, which) ->
-											decideToOpenAppOrPlayStore(confId, activity)).build();
+					.customView(R.layout.huntly_first_run_layout, true)
+					.negativeText(android.R.string.ok)
+					.dismissListener(dialog -> notifyListeners())
+					.positiveText(R.string.play_more)
+					.onPositive((dialog, which) ->
+							decideToOpenAppOrPlayStore(confId, activity)).build();
 			TextView view = (TextView) md.getCustomView().findViewById(R.id.huntlyDialogMessage);
 			view.setText(messageResId);
 

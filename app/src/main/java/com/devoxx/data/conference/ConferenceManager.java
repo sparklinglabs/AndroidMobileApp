@@ -33,6 +33,7 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 import android.content.Context;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import java.io.IOException;
@@ -227,6 +228,7 @@ public class ConferenceManager {
 		confDataListener.clear();
 	}
 
+	@Nullable
 	public ConferenceApiModel lastSelectedConference() {
 		final String rawData = settings.lastSelectedConference().getOr("");
 		return !TextUtils.isEmpty(rawData) ? new Gson().fromJson(rawData, ConferenceApiModel.class) : null;
@@ -244,11 +246,11 @@ public class ConferenceManager {
 		}
 	}
 
-	public void forceUpdateScheduleData(Context context) {
+	public void forceUpdateFromSettings(Context context) {
 		final Optional<RealmConference> conference = getActiveConference();
 		if (conference.isPresent()) {
 			final String confCode = conference.get().getId();
-			slotsDataManager.forceUpdateSlotsAsync(context, confCode);
+			slotsDataManager.forceUpdateSlotsAsyncFromPush(context, confCode);
 		}
 	}
 

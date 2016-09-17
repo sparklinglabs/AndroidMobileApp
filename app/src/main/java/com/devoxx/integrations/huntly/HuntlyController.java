@@ -158,7 +158,7 @@ public class HuntlyController {
 		}
 	}
 
-	HuntlyQuestActivity getVoteQuest() {
+	@Nullable HuntlyQuestActivity getVoteQuest() {
 		return getQuest(HuntlyQuestActivity.QUEST_ACTIVITY_VOTE);
 	}
 
@@ -183,7 +183,7 @@ public class HuntlyController {
 		return isQuestAvailable(HuntlyQuestActivity.QUEST_ACTIVITY_FIRST_RUN);
 	}
 
-	HuntlyQuestActivity getFirstRunQuest() {
+	@Nullable HuntlyQuestActivity getFirstRunQuest() {
 		return getQuest(HuntlyQuestActivity.QUEST_ACTIVITY_FIRST_RUN);
 	}
 
@@ -321,6 +321,7 @@ public class HuntlyController {
 		}
 	}
 
+	@Nullable
 	private HuntlyQuestActivity getQuest(@HuntlyQuestActivity.QuestActivity String activity) {
 		final Realm realm = realmProvider.getRealm();
 		final RealmHuntlyQuestActivity quest = realm.where(RealmHuntlyQuestActivity.class)
@@ -338,7 +339,9 @@ public class HuntlyController {
 		boolean result = false;
 		if (count > 0) {
 			final HuntlyQuestActivity quest = getQuest(activity);
-			result = quest.getPerformedActivities() < quest.getMaxActivities();
+			if (quest != null) {
+				result = quest.getPerformedActivities() < quest.getMaxActivities();
+			}
 		}
 		return result;
 	}

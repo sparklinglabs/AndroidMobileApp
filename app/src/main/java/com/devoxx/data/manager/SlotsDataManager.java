@@ -18,6 +18,7 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeComparator;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
@@ -62,18 +63,23 @@ public class SlotsDataManager extends AbstractDataManager<SlotApiModel> {
 	}
 
 	public boolean fetchTalksSync(final String confCode) throws IOException {
-		updateTalks(confCode, true);
+		updateTalksSync(confCode, true, false);
 
 		return !Stream.of(allSlots).filter(SlotApiModel::isTalk)
 				.collect(Collectors.toList()).isEmpty();
 	}
 
-	private void updateTalks(String confCode, boolean withClear) throws IOException {
+	private void updateTalksSync(String confCode, boolean withClear, boolean forPush) throws IOException {
 		if (withClear) {
 			allSlots.clear();
 		}
 
-		allSlots = slotsDownloader.downloadTalks(confCode);
+		if (forPush) {
+			allSlots = slotsDownloader.downloadTalksForPush(confCode);
+		} else {
+			allSlots = slotsDownloader.downloadTalks(confCode);
+		}
+
 		slotDao.saveSlots(allSlots);
 
 		final List<SlotApiModel> talks = Stream.of(allSlots)
@@ -103,17 +109,13 @@ public class SlotsDataManager extends AbstractDataManager<SlotApiModel> {
 	}
 
 	public void updateSlotsAsync(Context context, String confCode) {
-		Logger.l("updateSlotsAsync");
-
 		final HandlerThread handlerThread = new HandlerThread("updateSlotsAsync");
 		handlerThread.start();
 		final Looper looper = handlerThread.getLooper();
 		new Handler(looper).post(() -> {
 			try {
 				if (slotsDownloader.isDownloadNeeded(confCode)) {
-					Logger.l("updateSlotsAsync.updateTalks");
-
-					updateTalks(confCode, false);
+					updateTalksSync(confCode, false, false);
 					context.sendBroadcast(ScheduleLineupFragment.getRefreshIntent());
 				}
 			} catch (IOException e) {
@@ -122,15 +124,25 @@ public class SlotsDataManager extends AbstractDataManager<SlotApiModel> {
 		});
 	}
 
+	public void forceUpdateSlotsAsyncFromPush(Context context, String confCode) {
+		final Intent notifyIntent = ScheduleLineupFragment.getReFetchIntent();
+		forceUpdateSlotsAsyncHelper(context, confCode, notifyIntent);
+	}
+
 	public void forceUpdateSlotsAsync(Context context, String confCode) {
+		final Intent notifyIntent = ScheduleLineupFragment.getRefreshIntent();
+		forceUpdateSlotsAsyncHelper(context, confCode, notifyIntent);
+	}
+
+	private void forceUpdateSlotsAsyncHelper(Context context, String confCode, Intent notifyIntent) {
 		final HandlerThread handlerThread = new HandlerThread("forceUpdateSlotsAsync");
 		handlerThread.start();
 		final Looper looper = handlerThread.getLooper();
 		new Handler(looper).post(() -> {
 			try {
 				infoUtil.showToast(R.string.updating_schedule_data);
-				slotsDownloader.forceDownloadTalks(confCode);
-				context.sendBroadcast(ScheduleLineupFragment.getRefreshIntent());
+				updateTalksSync(confCode, true, true);
+				context.sendBroadcast(notifyIntent);
 				infoUtil.showToast(R.string.updated_schedule_data);
 			} catch (IOException e) {
 				infoUtil.showToast(R.string.connection_error);

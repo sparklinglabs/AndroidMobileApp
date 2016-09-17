@@ -96,4 +96,5 @@
     <string name="enable_nfc">Enable NFC</string>
     <string name="disabled_nfc">NFC is disabled, please enable it in settings</string>
     <string name="custom">Custom</string>
+    <string name="gcm_defaultSenderId">48857657684</string>
 </resources>
