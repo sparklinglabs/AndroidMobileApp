@@ -4,6 +4,7 @@ import com.annimon.stream.Collectors;
 import com.annimon.stream.Optional;
 import com.annimon.stream.Stream;
 import com.devoxx.R;
+import com.devoxx.android.fragment.schedule.ScheduleLineupFragment;
 import com.devoxx.connection.model.SlotApiModel;
 import com.devoxx.data.dao.SlotDao;
 import com.devoxx.data.downloader.SlotsDownloader;
@@ -16,6 +17,7 @@ import org.androidannotations.annotations.EBean;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeComparator;
 
+import android.content.Context;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
@@ -60,7 +62,17 @@ public class SlotsDataManager extends AbstractDataManager<SlotApiModel> {
 	}
 
 	public boolean fetchTalksSync(final String confCode) throws IOException {
-		allSlots.clear();
+		updateTalks(confCode, true);
+
+		return !Stream.of(allSlots).filter(SlotApiModel::isTalk)
+				.collect(Collectors.toList()).isEmpty();
+	}
+
+	private void updateTalks(String confCode, boolean withClear) throws IOException {
+		if (withClear) {
+			allSlots.clear();
+		}
+
 		allSlots = slotsDownloader.downloadTalks(confCode);
 		slotDao.saveSlots(allSlots);
 
@@ -69,9 +81,6 @@ public class SlotsDataManager extends AbstractDataManager<SlotApiModel> {
 				.collect(Collectors.<SlotApiModel>toList());
 		this.talks.clear();
 		this.talks.addAll(talks);
-
-		return !Stream.of(allSlots).filter(SlotApiModel::isTalk)
-				.collect(Collectors.toList()).isEmpty();
 	}
 
 	public List<SlotApiModel> getSlotsForDay(final long timeMs) {
@@ -93,20 +102,27 @@ public class SlotsDataManager extends AbstractDataManager<SlotApiModel> {
 		slotDao.clearData();
 	}
 
-	public void updateSlotsAsync(String confCode) {
+	public void updateSlotsAsync(Context context, String confCode) {
+		Logger.l("updateSlotsAsync");
+
 		final HandlerThread handlerThread = new HandlerThread("updateSlotsAsync");
 		handlerThread.start();
 		final Looper looper = handlerThread.getLooper();
 		new Handler(looper).post(() -> {
 			try {
-				slotsDownloader.downloadTalks(confCode);
+				if (slotsDownloader.isDownloadNeeded(confCode)) {
+					Logger.l("updateSlotsAsync.updateTalks");
+
+					updateTalks(confCode, false);
+					context.sendBroadcast(ScheduleLineupFragment.getRefreshIntent());
+				}
 			} catch (IOException e) {
 				Logger.exc(e);
 			}
 		});
 	}
 
-	public void forceUpdateSlotsAsync(String confCode) {
+	public void forceUpdateSlotsAsync(Context context, String confCode) {
 		final HandlerThread handlerThread = new HandlerThread("forceUpdateSlotsAsync");
 		handlerThread.start();
 		final Looper looper = handlerThread.getLooper();
@@ -114,6 +130,7 @@ public class SlotsDataManager extends AbstractDataManager<SlotApiModel> {
 			try {
 				infoUtil.showToast(R.string.updating_schedule_data);
 				slotsDownloader.forceDownloadTalks(confCode);
+				context.sendBroadcast(ScheduleLineupFragment.getRefreshIntent());
 				infoUtil.showToast(R.string.updated_schedule_data);
 			} catch (IOException e) {
 				infoUtil.showToast(R.string.connection_error);

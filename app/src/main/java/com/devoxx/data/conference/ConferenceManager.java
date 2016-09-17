@@ -236,19 +236,19 @@ public class ConferenceManager {
 		conferenceDownloader.initWitStaticData();
 	}
 
-	public void updateSlotsIfNeededAsync() {
+	public void updateSlotsIfNeededAsync(Context context) {
 		final Optional<RealmConference> conference = getActiveConference();
 		if (conference.isPresent()) {
 			final String confCode = conference.get().getId();
-			slotsDataManager.updateSlotsAsync(confCode);
+			slotsDataManager.updateSlotsAsync(context, confCode);
 		}
 	}
 
-	public void forceUpdateScheduleData() {
+	public void forceUpdateScheduleData(Context context) {
 		final Optional<RealmConference> conference = getActiveConference();
 		if (conference.isPresent()) {
 			final String confCode = conference.get().getId();
-			slotsDataManager.forceUpdateSlotsAsync(confCode);
+			slotsDataManager.forceUpdateSlotsAsync(context, confCode);
 		}
 	}
 

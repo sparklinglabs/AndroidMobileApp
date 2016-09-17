@@ -51,4 +51,14 @@ public class HuntlyQuestActivity implements Serializable {
 	public int getMaxActivities() {
 		return maxActivities;
 	}
+
+	@Override public String toString() {
+		return "HuntlyQuestActivity{" +
+				"activity='" + activity + '\'' +
+				", questId=" + questId +
+				", singleReward=" + singleReward +
+				", performedActivities=" + performedActivities +
+				", maxActivities=" + maxActivities +
+				'}';
+	}
 }

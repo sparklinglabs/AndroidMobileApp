@@ -1,7 +1,5 @@
 package com.devoxx.data.downloader;
 
-import android.content.Context;
-
 import com.devoxx.common.utils.Constants;
 import com.devoxx.common.wear.GoogleApiConnector;
 import com.devoxx.connection.Connection;
@@ -14,6 +12,8 @@ import com.google.gson.Gson;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
 import org.androidannotations.annotations.RootContext;
+
+import android.content.Context;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -53,6 +53,10 @@ public class SlotsDownloader {
 		}
 
 		return result;
+	}
+
+	public boolean isDownloadNeeded(String confCode) {
+		return !slotsCache.isValid(confCode);
 	}
 
 	private String deserializeData(List<SlotApiModel> result) {
