@@ -9,6 +9,7 @@ import com.devoxx.data.Settings_;
 import com.devoxx.data.cache.BaseCache;
 import com.devoxx.data.conference.model.ConferenceDay;
 import com.devoxx.data.downloader.ConferenceDownloader;
+import com.devoxx.data.downloader.SlotsDownloader;
 import com.devoxx.data.downloader.TracksDownloader;
 import com.devoxx.data.manager.SlotsDataManager;
 import com.devoxx.data.manager.SpeakersDataManager;
@@ -241,16 +242,14 @@ public class ConferenceManager {
 	public void updateSlotsIfNeededAsync(Context context) {
 		final Optional<RealmConference> conference = getActiveConference();
 		if (conference.isPresent()) {
-			final String confCode = conference.get().getId();
-			slotsDataManager.updateSlotsAsync(context, confCode);
+			slotsDataManager.updateSlotsAsync(context, new SlotsDownloader.DownloadRequest(conference.get()));
 		}
 	}
 
 	public void forceUpdateFromSettings(Context context) {
 		final Optional<RealmConference> conference = getActiveConference();
 		if (conference.isPresent()) {
-			final String confCode = conference.get().getId();
-			slotsDataManager.forceUpdateSlotsAsyncFromPush(context, confCode);
+			slotsDataManager.forceUpdateSlotsAsync(context, new SlotsDownloader.DownloadRequest(conference.get()));
 		}
 	}
 
@@ -264,7 +263,8 @@ public class ConferenceManager {
 			notifyConferenceListenerStart(confDataListener);
 
 			tracksDownloader.downloadTracksDescriptions(confCode);
-			final boolean isAnyTalks = slotsDataManager.fetchTalksSync(confCode);
+			final boolean isAnyTalks = slotsDataManager.fetchTalksSync(
+					new SlotsDownloader.DownloadRequest(conferenceApiModel));
 			speakersDataManager.fetchSpeakersSync(confCode);
 			createSpeakersRepository();
 
