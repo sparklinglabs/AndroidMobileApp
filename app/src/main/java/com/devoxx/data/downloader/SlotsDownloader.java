@@ -29,7 +29,7 @@ import retrofit2.Call;
 
 @EBean
 public class SlotsDownloader {
-
+	
 	@Bean Connection connection;
 	@Bean SlotsCache slotsCache;
 	@RootContext Context context;
