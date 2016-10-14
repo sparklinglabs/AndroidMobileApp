@@ -288,7 +288,7 @@
     "votingURL": "https://cfp.devoxx.ma/",
     "votingEnabled": "false",
     "votingImageName": "thee",
-    "cfpEndpoint": "https://cfp.devoxx.ma/api1",
+    "cfpEndpoint": "https://cfp.devoxx.ma/api",
     "cfpVersion": "1.0",
     "youTubeURL": "https://www.youtube.com/user/JMaghreb",
     "integration_id": "devoxx_morocco"
