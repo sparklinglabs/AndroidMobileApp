@@ -3,6 +3,7 @@ package com.devoxx.push;
 import com.devoxx.BuildConfig;
 import com.devoxx.connection.cfp.model.ConferenceApiModel;
 import com.devoxx.data.conference.ConferenceManager_;
+import com.devoxx.data.downloader.SlotsDownloader;
 import com.devoxx.data.manager.SlotsDataManager;
 import com.devoxx.data.manager.SlotsDataManager_;
 import com.google.android.gms.gcm.GcmListenerService;
@@ -24,7 +25,8 @@ public class PushGcmListenerService extends GcmListenerService {
 
 		if (conferenceApiModel != null) {
 			final SlotsDataManager slotsDataManager = SlotsDataManager_.getInstance_(context);
-			slotsDataManager.forceUpdateSlotsAsyncFromPush(context, conferenceApiModel.id);
+			slotsDataManager.forceUpdateSlotsAsync(context,
+					new SlotsDownloader.DownloadRequest(conferenceApiModel));
 		}
 
 		if (BuildConfig.DEBUG) {

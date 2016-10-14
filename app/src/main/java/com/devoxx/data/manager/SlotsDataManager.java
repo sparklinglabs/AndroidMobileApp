@@ -59,34 +59,7 @@ public class SlotsDataManager extends AbstractDataManager<SlotApiModel> {
 	}
 
 	public List<SlotApiModel> getLastTalks() {
-		return talks;
-	}
-
-	public boolean fetchTalksSync(final String confCode) throws IOException {
-		updateTalksSync(confCode, true, false);
-
-		return !Stream.of(allSlots).filter(SlotApiModel::isTalk)
-				.collect(Collectors.toList()).isEmpty();
-	}
-
-	private void updateTalksSync(String confCode, boolean withClear, boolean forPush) throws IOException {
-		if (withClear) {
-			allSlots.clear();
-		}
-
-		if (forPush) {
-			allSlots = slotsDownloader.downloadTalksForPush(confCode);
-		} else {
-			allSlots = slotsDownloader.downloadTalks(confCode);
-		}
-
-		slotDao.saveSlots(allSlots);
-
-		final List<SlotApiModel> talks = Stream.of(allSlots)
-				.filter(value -> value.talk != null && !value.isBreak())
-				.collect(Collectors.<SlotApiModel>toList());
-		this.talks.clear();
-		this.talks.addAll(talks);
+		return Stream.of(talks).distinct().collect(Collectors.toList());
 	}
 
 	public List<SlotApiModel> getSlotsForDay(final long timeMs) {
@@ -98,7 +71,35 @@ public class SlotsDataManager extends AbstractDataManager<SlotApiModel> {
 				.filter(value -> dateComparator.compare(requestedDate, tmpDate.withMillis(
 						value.fromTimeMs())) == 0)
 				.filter(value1 -> !value1.notAllocated)
+				.distinct()
+				.collect(Collectors.toList());
+	}
+
+	public boolean fetchTalksSync(final SlotsDownloader.DownloadRequest downloadRequest) throws IOException {
+		updateTalksSync(downloadRequest, true, false);
+
+		return !Stream.of(allSlots).filter(SlotApiModel::isTalk)
+				.collect(Collectors.toList()).isEmpty();
+	}
+
+	private void updateTalksSync(SlotsDownloader.DownloadRequest downloadRequest, boolean withClear, boolean forPush) throws IOException {
+		if (withClear) {
+			allSlots.clear();
+		}
+
+		if (forPush) {
+			allSlots = slotsDownloader.downloadTalksForPush(downloadRequest);
+		} else {
+			allSlots = slotsDownloader.downloadTalks(downloadRequest);
+		}
+
+		slotDao.saveSlots(allSlots);
+
+		final List<SlotApiModel> talks = Stream.of(allSlots)
+				.filter(value -> value.talk != null && !value.isBreak())
 				.collect(Collectors.<SlotApiModel>toList());
+		this.talks.clear();
+		this.talks.addAll(talks);
 	}
 
 	@Override
@@ -108,14 +109,14 @@ public class SlotsDataManager extends AbstractDataManager<SlotApiModel> {
 		slotDao.clearData();
 	}
 
-	public void updateSlotsAsync(Context context, String confCode) {
+	public void updateSlotsAsync(Context context, SlotsDownloader.DownloadRequest downloadRequest) {
 		final HandlerThread handlerThread = new HandlerThread("updateSlotsAsync");
 		handlerThread.start();
 		final Looper looper = handlerThread.getLooper();
 		new Handler(looper).post(() -> {
 			try {
-				if (slotsDownloader.isDownloadNeeded(confCode)) {
-					updateTalksSync(confCode, false, false);
+				if (slotsDownloader.isDownloadNeeded(downloadRequest.getConfCode())) {
+					updateTalksSync(downloadRequest, false, false);
 					context.sendBroadcast(ScheduleLineupFragment.getRefreshIntent());
 				}
 			} catch (IOException e) {
@@ -124,24 +125,19 @@ public class SlotsDataManager extends AbstractDataManager<SlotApiModel> {
 		});
 	}
 
-	public void forceUpdateSlotsAsyncFromPush(Context context, String confCode) {
+	public void forceUpdateSlotsAsync(Context context, SlotsDownloader.DownloadRequest downloadRequest) {
 		final Intent notifyIntent = ScheduleLineupFragment.getReFetchIntent();
-		forceUpdateSlotsAsyncHelper(context, confCode, notifyIntent);
+		forceUpdateSlotsAsyncHelper(context, downloadRequest, notifyIntent);
 	}
 
-	public void forceUpdateSlotsAsync(Context context, String confCode) {
-		final Intent notifyIntent = ScheduleLineupFragment.getRefreshIntent();
-		forceUpdateSlotsAsyncHelper(context, confCode, notifyIntent);
-	}
-
-	private void forceUpdateSlotsAsyncHelper(Context context, String confCode, Intent notifyIntent) {
+	private void forceUpdateSlotsAsyncHelper(Context context, SlotsDownloader.DownloadRequest downloadRequest, Intent notifyIntent) {
 		final HandlerThread handlerThread = new HandlerThread("forceUpdateSlotsAsync");
 		handlerThread.start();
 		final Looper looper = handlerThread.getLooper();
 		new Handler(looper).post(() -> {
 			try {
 				infoUtil.showToast(R.string.updating_schedule_data);
-				updateTalksSync(confCode, true, true);
+				updateTalksSync(downloadRequest, true, true);
 				context.sendBroadcast(notifyIntent);
 				infoUtil.showToast(R.string.updated_schedule_data);
 			} catch (IOException e) {
