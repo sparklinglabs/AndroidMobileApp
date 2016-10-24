@@ -20,6 +20,7 @@ import com.devoxx.integrations.IntegrationProvider;
 import com.devoxx.integrations.huntly.HuntlyController;
 import com.devoxx.integrations.huntly.HuntlyPresenter;
 import com.devoxx.navigation.Navigator;
+import com.devoxx.push.PushController;
 import com.devoxx.utils.FontUtils;
 import com.devoxx.utils.InfoUtil;
 
@@ -79,6 +80,9 @@ public class MainActivity extends BaseActivity {
 
 	@Bean
 	ScheduleFilterManager scheduleFilterManager;
+
+	@Bean
+	PushController pushController;
 
 	@Pref
 	Settings_ settings;
@@ -176,6 +180,7 @@ public class MainActivity extends BaseActivity {
 
 		conferenceManager.updateSlotsIfNeededAsync(getApplicationContext());
 		scheduleFilterManager.createCustomFiltersDefinitionIfNeeded();
+		pushController.uploadToken();
 	}
 
 	@Receiver(actions = {HuntlyPresenter.INTEGRATION_DIALOG_DISMISSED, HuntlyController.USER_DATA_UPDATED},

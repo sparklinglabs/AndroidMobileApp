@@ -122,7 +122,6 @@
             </intent-filter>
         </service>
 
-
         <receiver
             android:name="com.google.android.gms.gcm.GcmReceiver"
             android:exported="true"
@@ -132,6 +131,15 @@
                 <category android:name="com.example.gcm"/>
             </intent-filter>
         </receiver>
+
+        <receiver
+            android:name=".utils.NetworkChangeBroadcastReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>
+            </intent-filter>
+        </receiver>
+
         <service
             android:name="com.devoxx.push.PushGcmListenerService"
             android:exported="false">
@@ -139,6 +147,7 @@
                 <action android:name="com.google.android.c2dm.intent.RECEIVE"/>
             </intent-filter>
         </service>
+
         <service
             android:name="com.devoxx.push.PushInstanceIDListenerService"
             android:exported="false">

@@ -5,7 +5,6 @@ import com.devoxx.data.RealmProvider;
 import com.devoxx.data.Settings_;
 import com.devoxx.data.conference.ConferenceManager;
 import com.devoxx.integrations.IntegrationProvider;
-import com.devoxx.push.PushController;
 
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EApplication;
@@ -22,7 +21,6 @@ public class MainApplication extends MultiDexApplication {
 	@Bean IntegrationProvider integrationProvider;
 	@Bean ConferenceManager conferenceManager;
 	@Bean RealmProvider realmProvider;
-	@Bean PushController pushController;
 
 	@Pref Settings_ settings;
 
@@ -41,7 +39,5 @@ public class MainApplication extends MultiDexApplication {
 		JodaTimeAndroid.init(this);
 
 		conferenceManager.setupDefaultTimeZone();
-
-		pushController.uploadToken();
 	}
 }

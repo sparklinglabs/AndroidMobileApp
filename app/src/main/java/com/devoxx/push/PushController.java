@@ -1,5 +1,6 @@
 package com.devoxx.push;
 
+import com.amazonaws.AmazonClientException;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.services.sns.AmazonSNSClient;
 import com.amazonaws.services.sns.model.CreatePlatformEndpointRequest;
@@ -41,7 +42,7 @@ public class PushController {
 	private static final String PUSH_SETTINGS_KEY = "PushController.PUSH_SETTINGS_KEY";
 
 	@RootContext protected Context context;
-	@StringRes(R.string.gcm_defaultSenderId) String senderId;
+	@StringRes(R.string.gcm_defaultSenderId) protected String senderId;
 
 	private AmazonSNSClient client = new AmazonSNSClient(new AWSCredentials() {
 		@Override public String getAWSAccessKeyId() {
@@ -57,7 +58,11 @@ public class PushController {
 	public void uploadToken() {
 		final String token = getToken();
 		if (token != null) {
-			registerWithSNS(token);
+			try {
+				registerWithSNS(token);
+			} catch (AmazonClientException exc) {
+				Crashlytics.logException(exc);
+			}
 		}
 	}
 
@@ -127,12 +132,12 @@ public class PushController {
 
 		final SubscribeResult subscribeResult = client.subscribe(
 				BuildConfig.AWS_TOPIC_ARN, "application", endpointArn);
-		
+
 		Logger.l(subscribeResult.toString());
 	}
 
 	@NonNull
-	private String createEndpoint(String applicationArn, String token) {
+	private String createEndpoint(String applicationArn, String token) throws InvalidParameterException {
 		String endpointArn;
 		try {
 			Logger.l("Creating platform endpoint with token " + token);

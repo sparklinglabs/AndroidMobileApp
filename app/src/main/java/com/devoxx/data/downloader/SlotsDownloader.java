@@ -29,7 +29,7 @@ import retrofit2.Call;
 
 @EBean
 public class SlotsDownloader {
-	
+
 	@Bean Connection connection;
 	@Bean SlotsCache slotsCache;
 	@RootContext Context context;
@@ -84,11 +84,14 @@ public class SlotsDownloader {
 			String confCode, Set<SlotApiModel> result, String day) throws IOException {
 
 		final DevoxxApi devoxxApi = connection.getDevoxxApi();
-		final Call<SpecificScheduleApiModel> call = devoxxApi.specificSchedule(confCode, day);
 
-		final SpecificScheduleApiModel body = call.execute().body();
-		if (body != null && body.slots != null) {
-			result.addAll(body.slots);
+		if (devoxxApi != null) {
+			final Call<SpecificScheduleApiModel> call = devoxxApi.specificSchedule(confCode, day);
+			final SpecificScheduleApiModel body = call.execute().body();
+
+			if (body != null && body.slots != null) {
+				result.addAll(body.slots);
+			}
 		}
 	}
 
