@@ -305,25 +305,25 @@
     "longitude": "-121.8912371",
     "floors": [
       {
-        "img": "todo provide image",
+        "img": "https://s3-eu-west-1.amazonaws.com/cfpdevoxx/morocco/firstfloor_phone.jpg",
         "title": "First floor",
         "tabpos": "1",
         "target": "phone"
       },
       {
-        "img": "todo provide image",
+        "img": "https://s3-eu-west-1.amazonaws.com/cfpdevoxx/morocco/secondfloor_phone.jpg",
         "title": "Second floor",
         "tabpos": "2",
         "target": "phone"
       },
       {
-        "img": "todo provide image",
+        "img": "https://s3-eu-west-1.amazonaws.com/cfpdevoxx/morocco/firstfloor.jpg",
         "title": "First floor",
         "tabpos": "1",
         "target": "tablet"
       },
       {
-        "img": "todo provide image",
+        "img": "https://s3-eu-west-1.amazonaws.com/cfpdevoxx/morocco/secondfloor.jpg",
         "title": "Second floor",
         "tabpos": "2",
         "target": "tablet"
