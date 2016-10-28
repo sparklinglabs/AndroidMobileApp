@@ -3,6 +3,7 @@ package com.devoxx.data.manager;
 import com.annimon.stream.Collectors;
 import com.annimon.stream.Optional;
 import com.annimon.stream.Stream;
+import com.crashlytics.android.Crashlytics;
 import com.devoxx.R;
 import com.devoxx.android.fragment.schedule.ScheduleLineupFragment;
 import com.devoxx.connection.model.SlotApiModel;
@@ -120,6 +121,7 @@ public class SlotsDataManager extends AbstractDataManager<SlotApiModel> {
 					context.sendBroadcast(ScheduleLineupFragment.getRefreshIntent());
 				}
 			} catch (IOException e) {
+				Crashlytics.logException(e);
 				Logger.exc(e);
 			}
 		});
@@ -141,6 +143,7 @@ public class SlotsDataManager extends AbstractDataManager<SlotApiModel> {
 				context.sendBroadcast(notifyIntent);
 				infoUtil.showToast(R.string.updated_schedule_data);
 			} catch (IOException e) {
+				Crashlytics.logException(e);
 				infoUtil.showToast(R.string.connection_error);
 			}
 		});

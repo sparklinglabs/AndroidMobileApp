@@ -280,6 +280,8 @@ public class ConferenceManager {
 
 			notifyConferenceListenerSuccess(confDataListener, isAnyTalks);
 		} catch (IOException e) {
+			Crashlytics.logException(e);
+
 			clearCurrentConferenceData();
 			notifyConferenceListenerError(confDataListener);
 		}
