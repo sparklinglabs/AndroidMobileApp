@@ -56,7 +56,7 @@ public class HuntlyConnection {
 		builder.hostnameVerifier((hostname, session) -> true);
 
 		final Retrofit retrofit = new Retrofit.Builder()
-				.baseUrl("https://srv.huntlyapp.com:9023/")
+				.baseUrl("https://srv.huntlyapp.com/")
 				.client(builder.build())
 				.addConverterFactory(GsonConverterFactory.create())
 				.build();
