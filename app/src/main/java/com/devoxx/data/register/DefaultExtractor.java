@@ -4,7 +4,7 @@ public class DefaultExtractor extends BaseExtractor {
 	private String[] dataParts;
 
 	public DefaultExtractor(String data) {
-		dataParts = data.split(",");
+		dataParts = data.split("::");
 	}
 
 	@Override protected String userName() {
