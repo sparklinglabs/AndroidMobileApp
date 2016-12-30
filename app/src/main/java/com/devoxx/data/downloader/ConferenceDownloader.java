@@ -28,7 +28,7 @@ public class ConferenceDownloader {
 	}
 
 	public List<ConferenceApiModel> fetchAllConferences() throws IOException {
-		try {
+		/*try {
 			final Call<List<ConferenceApiModel>> call = connection.getCfpApi().conferences();
 			final Response<List<ConferenceApiModel>> response = call.execute();
 			if (response.isSuccessful()) {
@@ -39,8 +39,9 @@ public class ConferenceDownloader {
 		} catch (Exception e) {
 			conferencesCache.initWithFallbackData();
 			Crashlytics.logException(e);
-		}
+		}*/
 
+		conferencesCache.initWithFallbackData();
 		return conferencesCache.getData();
 	}
 }

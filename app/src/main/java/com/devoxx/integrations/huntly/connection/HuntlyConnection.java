@@ -1,7 +1,7 @@
 package com.devoxx.integrations.huntly.connection;
 
 import com.devoxx.BuildConfig;
-import com.devoxx.huntlyintegration.Encryption;
+//import com.devoxx.huntlyintegration.Encryption;
 import com.devoxx.integrations.huntly.HuntlyController;
 import com.devoxx.integrations.huntly.connection.model.HuntlyActivityCompleteResponse;
 import com.devoxx.integrations.huntly.connection.model.HuntlyDeepLinkConf;
@@ -124,7 +124,8 @@ public class HuntlyConnection {
 
 	class AuthInterceptor implements Interceptor {
 		@Override public okhttp3.Response intercept(Chain chain) throws IOException {
-			final byte[] bytes = new Encryption().getCredentials().getBytes();
+			//final byte[] bytes = new Encryption().getCredentials().getBytes();
+			final byte[] bytes = new byte[64];
 			final String basic = "Basic " + Base64.encodeToString(bytes, Base64.NO_WRAP);
 			final Request original = chain.request();
 			final Request.Builder requestBuilder = original.newBuilder()

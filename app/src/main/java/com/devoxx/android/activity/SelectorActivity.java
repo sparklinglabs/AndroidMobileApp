@@ -288,6 +288,10 @@ public class SelectorActivity extends BaseActivity implements ConferenceManager.
 			}
 		}
 
+		if (index == -1) {
+			index = 0;
+		}
+
 		selectorView.selectConference(index);
 	}
 

@@ -1,1 +1,2 @@
-include ':app', ':scanner', ':wear', ':common', ':huntly_integration'
+//include ':app', ':scanner', ':wear', ':common', ':huntly_integration'
+include ':app', ':scanner', ':wear', ':common'
