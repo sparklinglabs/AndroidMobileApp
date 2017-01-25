@@ -27,7 +27,7 @@
             android:contentDescription="@null"
             android:layout_marginTop="@dimen/selector_devox_logo_margin_top"
             android:scaleType="fitCenter"
-            android:src="@drawable/devoxx_logo"/>
+            android:src="@drawable/voxxed_logo"/>
 
         <TextView
             android:id="@+id/selectorCurrentConference"
@@ -35,11 +35,11 @@
             android:layout_height="wrap_content"
             android:paddingLeft="16dp"
             android:paddingRight="16dp"
-            android:shadowColor="#A0212121"
+            android:shadowColor="@color/primary_dark"
             android:shadowDx="0"
             android:shadowDy="1"
             android:shadowRadius="2"
-            android:textColor="#F8B911"
+            android:textColor="@color/primary"
             android:textSize="@dimen/selector_conf_label_size"
             tools:text="Poland"/>
 
@@ -68,7 +68,7 @@
             android:layout_marginLeft="38dp"
             android:layout_marginRight="38dp"
             android:layout_marginTop="16dp"
-            android:background="#F8B911"
+            android:background="@color/primary_dark"
             android:gravity="center"
             android:paddingBottom="8dp"
             android:paddingTop="8dp"

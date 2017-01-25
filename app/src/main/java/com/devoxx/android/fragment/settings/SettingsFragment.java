@@ -40,9 +40,10 @@ public class SettingsFragment extends PreferenceFragment {
 	@Override
 	public void onResume() {
 		super.onResume();
-		setupUserCodePreference();
+		//setupUserCodePreference();
 	}
 
+	/*
 	@PreferenceClick(R.string.settings_user_code) void onClearUserCodeClick() {
 		if (userManager.isFirstTimeUser()) {
 			userManager.openUserScanBadge();
@@ -52,6 +53,7 @@ public class SettingsFragment extends PreferenceFragment {
 		}
 		setupUserCodePreference();
 	}
+	*/
 
 	@PreferenceClick(R.string.settings_change_conf_key) void onChangeConferenceClick() {
 		ActivityCompat.finishAffinity(getActivity());

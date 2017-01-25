@@ -6,7 +6,7 @@
     android:id="@+id/toolbar"
     android:layout_width="match_parent"
     android:layout_height="?attr/actionBarSize"
-    android:background="?attr/colorPrimary"
+    android:background="?attr/colorPrimaryDark"
     android:elevation="@dimen/elevation_toolbar"
     app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
     app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
@@ -18,7 +18,7 @@
         android:adjustViewBounds="true"
         android:contentDescription="@null"
         android:scaleType="centerInside"
-        android:src="@drawable/devoxx_logo"/>
+        android:src="@drawable/voxxed_logo"/>
 
     <TextView
         android:id="@+id/toolbarTitle"

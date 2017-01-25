@@ -52,7 +52,7 @@ public class AboutActivity extends BaseActivity {
 	TextView linkView;
 
 	@AfterViews void afterViews() {
-		linkView.setText("https://devoxx.be/credits/");
+		linkView.setText(conferenceManager.getActiveConference().get().getWwwURL());
 		Linkify.addLinks(linkView, Linkify.WEB_URLS);
 
 		collapsingToolbarLayout.setTitle(getString(R.string.about));

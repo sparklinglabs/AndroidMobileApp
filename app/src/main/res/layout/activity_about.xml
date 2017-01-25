@@ -106,7 +106,7 @@
                 android:layout_marginTop="16dp"
                 android:autoLink="web"
                 android:paddingLeft="82dp"
-                android:text="https://devoxx.be/credits/"
+                android:text="https://voxxeddays.com/zurich/"
                 android:textSize="20dp"/>
         </LinearLayout>
     </android.support.v4.widget.NestedScrollView>

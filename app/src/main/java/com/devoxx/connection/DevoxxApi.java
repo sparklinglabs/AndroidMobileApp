@@ -21,7 +21,7 @@ public interface DevoxxApi {
 			@Path("confCode") String confCode
 	);
 
-	@GET("/api/conferences/{confCode}/schedules/{dayOfWeek}")
+	@GET("/api/conferences/{confCode}/schedules/{dayOfWeek}/")
 	Call<SpecificScheduleApiModel> specificSchedule(
 			@Path("confCode") String confCode,
 			@Path("dayOfWeek") String dayOfWeek

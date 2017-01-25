@@ -5,8 +5,10 @@
         android:summary="Clear all data for current conference and open conference selector screen."
         android:title="Change conference"/>
 
+    <!--
     <Preference
         android:key="@string/settings_user_code"/>
+    -->
 
     <Preference
         android:key="@string/settings_refresh_schedule_data_key"

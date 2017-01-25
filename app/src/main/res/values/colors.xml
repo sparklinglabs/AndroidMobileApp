@@ -3,11 +3,11 @@
 
     <color name="window_background">#f8f8f8</color>
     <color name="selector_window_background">#212121</color>
-    <color name="primary">#F4B700</color>
-    <color name="primary_dark">#d7a125</color>
-    <color name="accent">#FF9800</color>
+    <color name="primary">#50ceed</color>
+    <color name="primary_dark">#3b96ac</color>
+    <color name="accent">#36d1f7</color>
 
-    <color name="scheduled_star_color">#ffc400</color>
+    <color name="scheduled_star_color">#89d8ec</color>
     <color name="scheduled_not_star_color">#dedede</color>
 
     <color name="degree_link">#A30E0B</color>

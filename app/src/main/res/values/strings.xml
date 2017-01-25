@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">My Devoxx</string>
+    <string name="app_name">My Voxxed</string>
     <string name="toast_notification_set_at">Notification set at</string>
     <string name="toast_notification_not_set">Can\'t set notification for a past or current event</string>
 
