@@ -117,7 +117,8 @@ public class Navigator {
 	}
 
 	public void reportIssue(Activity activity) {
-		final Uri uri = Uri.parse("https://github.com/devoxx/AndroidMobileApp/issues");
+		//final Uri uri = Uri.parse("https://github.com/devoxx/AndroidMobileApp/issues");
+		final Uri uri = Uri.parse("mailto:info@exteso.com");
 		activity.startActivity(new Intent(Intent.ACTION_VIEW, uri));
 	}
 

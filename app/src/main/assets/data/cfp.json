@@ -3,12 +3,12 @@
     "id": "VDZ",
     "confType": "Voxxed",
     "confDescription": "Voxxed Days Zürich 2017",
-    "confIcon": "https://s3-eu-west-1.amazonaws.com/cfpdevoxx/belgium/splash_btn_brussels.png",
+    "confIcon": "https://s3.amazonaws.com/elasticbeanstalk-us-east-1-387778880482/voxxed/zurich.png",
     "venue": "Arena Cinema Sihlcity",
     "address": "Kalanderplatz 8, 8045 Zürich",
     "country": "Zürich",
-    "latitude": "47.3585558",
-    "longitude": "8.5202583",
+    "latitude": "47.358692",
+    "longitude": "8.522693",
     "floors": [
       {"img": "https://s3.amazonaws.com/elasticbeanstalk-us-east-1-387778880482/voxxed/vdz-sponsor-plan.jpg", "title": "Sponsor", "tabpos": "1", "target": "phone"},
       {"img": "https://s3.amazonaws.com/elasticbeanstalk-us-east-1-387778880482/voxxed/vdz-sponsor-plan.jpg", "title": "Sponsor", "tabpos": "1", "target": "tablet"}
