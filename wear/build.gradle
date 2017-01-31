@@ -16,7 +16,7 @@ android {
     publishNonDefault true
 
     defaultConfig {
-        applicationId PACKAGE_NAME
+        applicationId "com.sparklinglabs.voxxed"
         minSdkVersion 21
         targetSdkVersion 22
         versionCode VERSION_CODE

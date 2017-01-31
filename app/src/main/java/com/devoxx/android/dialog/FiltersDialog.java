@@ -52,13 +52,12 @@ public class FiltersDialog {
 				.build();
 
 		final View customView = md.getCustomView();
-		final ViewGroup daysContainer = (ViewGroup) customView.findViewById(R.id.dialogFitlersDays);
 		final ViewGroup tracksContainer = (ViewGroup) customView.findViewById(R.id.dialogFitlersTracks);
 		final ViewGroup customsContainer = (ViewGroup) customView.findViewById(R.id.dialogFitlersCustoms);
 
-		setupListeners(customView, daysContainer, tracksContainer);
-		setupCheckBoxes(context, daysFilters, tracksFilters, customFilters,
-				globalListener, daysContainer, tracksContainer, customsContainer);
+		setupListeners(customView, tracksContainer);
+		setupCheckBoxes(context, tracksFilters, customFilters,
+				globalListener, tracksContainer, customsContainer);
 
 		md.show();
 
@@ -67,10 +66,9 @@ public class FiltersDialog {
 
 	private static void setupCheckBoxes(
 			Context context,
-			List<RealmScheduleDayItemFilter> daysFilters,
 			List<RealmScheduleTrackItemFilter> tracksFilters,
 			List<RealmScheduleCustomFilter> customFilters, IFiltersChangedListener globalListener,
-			ViewGroup daysContainer, ViewGroup tracksContainer, ViewGroup customsContainer) {
+			ViewGroup tracksContainer, ViewGroup customsContainer) {
 
 		final LayoutInflater li = LayoutInflater.from(context);
 
@@ -80,11 +78,6 @@ public class FiltersDialog {
 					customFilter.isActive(), customFilter.getLabel()));
 		}
 
-		for (RealmScheduleDayItemFilter dayFilter : daysFilters) {
-			daysContainer.addView(createFilterItemView(li, daysContainer, (buttonView, isChecked) ->
-							globalListener.onDayFiltersChanged(dayFilter, isChecked),
-					dayFilter.isActive(), dayFilter.getLabel()));
-		}
 
 		for (RealmScheduleTrackItemFilter trackFilter : tracksFilters) {
 			tracksContainer.addView(createFilterItemView(li, tracksContainer, (buttonView, isChecked) ->
@@ -93,9 +86,7 @@ public class FiltersDialog {
 		}
 	}
 
-	private static void setupListeners(View customView, ViewGroup daysContainer, ViewGroup tracksContainer) {
-		customView.findViewById(R.id.dialogFiltersDaysMore)
-				.setOnClickListener(createOpenCloseAction(daysContainer));
+	private static void setupListeners(View customView, ViewGroup tracksContainer) {
 		customView.findViewById(R.id.dialogFiltersTracksMore)
 				.setOnClickListener(createOpenCloseAction(tracksContainer));
 	}

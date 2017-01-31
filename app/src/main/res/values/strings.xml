@@ -65,7 +65,7 @@
     <string name="disabled_location_info">Location is disabled</string>
     <string name="open_settings">Open Settings</string>
     <string name="vote">Vote!</string>
-    <string name="twitter_devoxx_message" formatted="false">"Check Devoxx %s conference! %s"</string>
+    <string name="twitter_devoxx_message" formatted="false">"Check Voxxed Days %s conference! %s"</string>
     <string name="register_success_message">Code saved! Now you can vote for a talk.</string>
     <string name="register_failed_message">Code can\'t be empty!</string>
     <string name="user_code_cleared">Code has been cleared!</string>

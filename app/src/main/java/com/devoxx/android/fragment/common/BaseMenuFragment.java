@@ -86,7 +86,7 @@ public abstract class BaseMenuFragment extends BaseFragment
 
 	@Override
 	public void onDayFiltersChanged(RealmScheduleDayItemFilter itemFilter, boolean isActive) {
-		scheduleFilterManager.updateFilter(itemFilter, isActive);
+		//scheduleFilterManager.updateFilter(itemFilter, isActive);
 	}
 
 	@Override

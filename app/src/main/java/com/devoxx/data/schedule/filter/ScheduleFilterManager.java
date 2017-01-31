@@ -151,7 +151,7 @@ public class ScheduleFilterManager {
 	public void updateFilter(RealmScheduleDayItemFilter itemFilter, boolean isActive) {
 		final Realm realm = realmProvider.getRealm();
 		realm.beginTransaction();
-		itemFilter.setActive(isActive);
+		itemFilter.setActive(false);
 		realm.copyToRealmOrUpdate(itemFilter);
 		realm.commitTransaction();
 		realm.close();
@@ -265,7 +265,7 @@ public class ScheduleFilterManager {
 		realm.beginTransaction();
 
 		for (int i = 0; i < days.size(); i++) {
-			days.get(i).setActive(enabled);
+			days.get(i).setActive(true);
 		}
 		for (int i = 0; i < tracks.size(); i++) {
 			tracks.get(i).setActive(enabled);

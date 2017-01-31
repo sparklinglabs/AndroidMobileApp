@@ -24,7 +24,7 @@
     "cfpURL": "https://cfp-vdz.exteso.com/",
     "talkURL": "https://cfp-vdz.exteso.com/2017/talk/",
     "votingURL": "https://cfp-vdz.exteso.com/",
-    "votingEnabled": "false",
+    "votingEnabled": "true",
     "votingImageName": "beer",
     "cfpEndpoint": "https://cfp-vdz.exteso.com/api",
     "cfpVersion": "1.0",
