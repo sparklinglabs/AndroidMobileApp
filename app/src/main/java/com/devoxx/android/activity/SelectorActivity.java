@@ -368,9 +368,9 @@ public class SelectorActivity extends BaseActivity implements ConferenceManager.
 		final DateTimeFormatter fmt = DateTimeFormat.forPattern("dd/MM/YYYY");
 		final String endDateRaw = fmt.print(endDate);
 
-		confInfo.setText(String.format(Locale.getDefault(),
-				getString(R.string.selector_conf_info_format),
-				startDate.getDayOfMonth(), endDateRaw, data.venue));
+		//confInfo.setText(String.format(Locale.getDefault(),	getString(R.string.selector_conf_info_format),	startDate.getDayOfMonth(), endDateRaw, data.venue));
+		confInfo.setText(String.format(Locale.getDefault(),	getString(R.string.selector_conf_info_oneday_format), endDateRaw, data.venue));
+
 
 		final DateTime now = new DateTime();
 		final int days = Math.max(Days.daysBetween(now, startDate).getDays(), 0);

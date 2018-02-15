@@ -56,6 +56,7 @@
     <string name="selector_talks">TALKS</string>
     <string name="selector_capacity">CAPACITY</string>
     <string name="selector_conf_info_format" formatted="false">From %d to %s\n%s</string>
+    <string name="selector_conf_info_oneday_format" formatted="false">%s\n%s</string>
     <string name="credits">Credits</string>
     <string name="report_issue">Report Issue</string>
     <string name="no_data_available">No data yet available</string>

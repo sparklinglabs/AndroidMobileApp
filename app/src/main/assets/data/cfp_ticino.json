@@ -1,0 +1,37 @@
+[
+  {
+    "id": "VDT",
+    "confType": "Voxxed",
+    "confDescription": "Voxxed Days Ticino 2017",
+    "confIcon": "https://s3.amazonaws.com/elasticbeanstalk-us-east-1-387778880482/voxxed/ticino.png",
+    "venue": "Palazzo dei Congressi",
+    "address": "Piazza Indipendenza 4, 6900 Lugano",
+    "country": "Ticino",
+    "latitude": "46.005063",
+    "longitude": "8.956442",
+    "floors": [
+      {"img": "https://s3.amazonaws.com/elasticbeanstalk-us-east-1-387778880482/voxxed/PC_groundfloor.png", "title": "Ground Floor", "tabpos": "1", "target": "phone"},
+      {"img": "https://s3.amazonaws.com/elasticbeanstalk-us-east-1-387778880482/voxxed/PC_groundfloor.png", "title": "Ground Floor", "tabpos": "1", "target": "tablet"},
+      {"img": "https://s3.amazonaws.com/elasticbeanstalk-us-east-1-387778880482/voxxed/PC_firstfloor.png", "title": "First Floor", "tabpos": "1", "target": "phone"},
+      {"img": "https://s3.amazonaws.com/elasticbeanstalk-us-east-1-387778880482/voxxed/PC_firstfloor.png", "title": "First Floor", "tabpos": "1", "target": "tablet"}
+    ],
+    "capacity": "440",
+    "sessions": "28",
+    "hashtag": "#VDT17",
+    "splashImgURL": "https://s3-eu-west-1.amazonaws.com/cfpdevoxx/belgium/DevoxxBelgiumHomePage.jpg",
+    "fromDate": "2017-05-06T09:00:00.000Z",
+    "toDate": "2017-05-06T18:30:00.000Z",
+    "wwwURL": "https://voxxeddays.com/ticino/",
+    "regURL": "https://tickets.voxxeddays.com/event/vdt17/",
+    "cfpURL": "https://cfp-vdt.exteso.com/",
+    "talkURL": "https://cfp-vdt.exteso.com/2017/talk/",
+    "votingURL": "https://cfp-vdt.exteso.com/",
+    "votingEnabled": "true",
+    "votingImageName": "beer",
+    "cfpEndpoint": "https://cfp-vdt.exteso.com/api",
+    "cfpVersion": "1.0",
+    "youTubeURL": "https://www.youtube.com/watch?v=UGk5tt-3IXo&list=PLBmZ5AnSaZNh5S6YtuVMUP8Cc0PQlMGu-",
+    "integration_id":"voxxed_ticino",
+    "pushEnabled": "true"
+  }
+]
